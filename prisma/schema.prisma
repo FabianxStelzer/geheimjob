@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  WORKER
+  EMPLOYER
+  ADMIN
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum NotificationKind {
+  MATCH_REQUEST
+  MATCH_ACCEPTED
+  MATCH_REJECTED
+  NEW_MESSAGE
+  PAYMENT
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  role              Role      @default(WORKER)
+  gdprConsentAt     DateTime?
+  termsAcceptedAt   DateTime?
+  referralCode      String    @unique @default(cuid())
+  referredByUserId  String?
+  referredBy        User?     @relation("UserReferrals", fields: [referredByUserId], references: [id])
+  referrals         User[]    @relation("UserReferrals")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  workerProfile    WorkerProfile?
+  employerProfile  EmployerProfile?
+  notifications    Notification[]
+  platformReviews  PlatformReview[]
+  subscription     Subscription?
+  initiatorMatches MatchRequest[]        @relation("MatchInitiator")
+  chatMessages     ChatMessage[]
+  blocksFromWorkers WorkerEmployerBlock[] @relation("BlockedEmployerUser")
+  referrerRewards   ReferralReward[]      @relation("ReferrerRewards")
+  referredReward    ReferralReward?       @relation("ReferredRewards")
+}
+
+model WorkerProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName       String
+  professionField   String
+  experienceYears   Int
+  region            String
+  salaryExpectation Int?
+  salaryPublic      Boolean  @default(true)
+  availability      String
+  socialLinkedin    String?
+  socialXing        String?
+  socialWebsite     String?
+  bio               String?
+  anonymousSlug     String   @unique @default(cuid())
+  videoIntroUrl     String?
+  cvPdfFilename     String?
+  cvDraftJson       String?
+  profileVisible    Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  exclusions    WorkerEmployerBlock[]
+  matchRequests MatchRequest[] @relation("MatchWorkerProfile")
+}
+
+model EmployerProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName       String
+  industry          String
+  region            String
+  contactName       String
+  contactPhone      String?
+  website           String?
+  openPositionsNote String?
+  stripeCustomerId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  matchRequests MatchRequest[] @relation("MatchEmployerProfile")
+}
+
+model WorkerEmployerBlock {
+  id                    String   @id @default(cuid())
+  workerProfileId       String
+  workerProfile         WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  blockedEmployerUserId String?
+  blockedEmployerUser   User?    @relation("BlockedEmployerUser", fields: [blockedEmployerUserId], references: [id])
+  blockedCompanyName    String?
+}
+
+model MatchRequest {
+  id                String      @id @default(cuid())
+  workerProfileId   String
+  workerProfile     WorkerProfile @relation("MatchWorkerProfile", fields: [workerProfileId], references: [id], onDelete: Cascade)
+  employerProfileId String
+  employerProfile   EmployerProfile @relation("MatchEmployerProfile", fields: [employerProfileId], references: [id], onDelete: Cascade)
+  initiatorUserId   String
+  initiator         User        @relation("MatchInitiator", fields: [initiatorUserId], references: [id])
+  status            MatchStatus @default(PENDING)
+  introMessage      String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  messages     ChatMessage[]
+  placementFee PlacementFee?
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  matchRequestId String
+  matchRequest   MatchRequest @relation(fields: [matchRequestId], references: [id], onDelete: Cascade)
+  senderUserId   String
+  sender         User         @relation(fields: [senderUserId], references: [id])
+  body           String
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotificationKind
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  href      String?
+  createdAt DateTime         @default(now())
+}
+
+model PlatformReview {
+  id             String   @id @default(cuid())
+  employerUserId String
+  employer       User     @relation(fields: [employerUserId], references: [id], onDelete: Cascade)
+  rating         Int
+  comment        String?
+  createdAt      DateTime @default(now())
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  status               String    @default("inactive")
+  currentPeriodEnd     DateTime?
+  updatedAt            DateTime  @updatedAt
+}
+
+model PlacementFee {
+  id              String       @id @default(cuid())
+  matchRequestId  String       @unique
+  matchRequest    MatchRequest @relation(fields: [matchRequestId], references: [id], onDelete: Cascade)
+  amountCents     Int          @default(0)
+  stripePaymentId String?
+  paidAt          DateTime?
+}
+
+model ReferralReward {
+  id             String   @id @default(cuid())
+  referrerUserId String
+  referrer       User     @relation("ReferrerRewards", fields: [referrerUserId], references: [id])
+  referredUserId String   @unique
+  referred       User     @relation("ReferredRewards", fields: [referredUserId], references: [id])
+  status         String   @default("REGISTERED")
+  bonusCents     Int?
+  createdAt      DateTime @default(now())
+}
