@@ -17,6 +17,10 @@ export default async function EmployerProfilPage() {
         <h2 className="mb-4 text-base font-semibold">Unternehmensprofil</h2>
         <form action={updateEmployerProfile} className="grid gap-4 md:grid-cols-2">
           <label className="md:col-span-2">
+            <span className="gj-label">Logo für Stellenanzeigen (Bild‑URL)</span>
+            <input name="logoUrl" type="url" defaultValue={profile.logoUrl ?? ""} className="gj-input" placeholder="https://…" />
+          </label>
+          <label className="md:col-span-2">
             <span className="gj-label">Firmenname</span>
             <input name="companyName" defaultValue={profile.companyName} required className="gj-input" />
           </label>

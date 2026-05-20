@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const body = (await req.json()) as {
     workerProfileId?: string;
     employerProfileId?: string;
+    jobPostingId?: string;
     introMessage?: string;
   };
 
@@ -83,11 +84,79 @@ export async function POST(req: Request) {
     const worker = await prisma.workerProfile.findUnique({
       where: { userId: session.user.id },
     });
+    let employer = null as null | {
+      id: string;
+      userId: string;
+      companyName: string;
+      user: { deletedAt: Date | null };
+    };
+
+    const jobPostingId = body.jobPostingId?.trim();
+
+    if (jobPostingId) {
+      const posting = await prisma.jobPosting.findFirst({
+        where: { id: jobPostingId, published: true },
+        include: {
+          employerProfile: {
+            include: { user: true },
+          },
+        },
+      });
+      if (!posting?.employerProfile || posting.employerProfile.user.deletedAt) {
+        return Response.json({ error: "Stellenanzeige nicht gefunden." }, { status: 404 });
+      }
+      employer = posting.employerProfile;
+      if (!worker) {
+        return Response.json({ error: "Ungültige Anfrage." }, { status: 400 });
+      }
+
+      const blocked = await employerIsBlockedFromWorker({
+        workerProfileId: worker.id,
+        employerUserId: employer.userId,
+        companyName: employer.companyName,
+      });
+      if (blocked) {
+        return Response.json({ error: "Sie haben dieses Unternehmen ausgeschlossen." }, { status: 403 });
+      }
+
+      const dup = await prisma.matchRequest.findFirst({
+        where: {
+          workerProfileId: worker.id,
+          employerProfileId: employer.id,
+          status: "PENDING",
+          jobPostingId,
+        },
+      });
+      if (dup) {
+        return Response.json({ error: "Offene Bewerbung auf diese Stelle existiert bereits." }, { status: 409 });
+      }
+
+      const match = await prisma.matchRequest.create({
+        data: {
+          workerProfileId: worker.id,
+          employerProfileId: employer.id,
+          jobPostingId,
+          initiatorUserId: session.user.id,
+          introMessage: introMessage || `Interesse an: ${posting.title}`,
+        },
+      });
+
+      await notifyUser(
+        employer.userId,
+        NotificationKind.MATCH_REQUEST,
+        "Neue Bewerbung auf Ihre Stelle",
+        `${posting.title}`,
+        `/dashboard/employer/anfragen`,
+      );
+
+      return Response.json({ matchId: match.id });
+    }
+
     if (!worker || !body.employerProfileId) {
       return Response.json({ error: "Ungültige Anfrage." }, { status: 400 });
     }
 
-    const employer = await prisma.employerProfile.findUnique({
+    employer = await prisma.employerProfile.findUnique({
       where: { id: body.employerProfileId },
       include: { user: true },
     });
@@ -112,6 +181,7 @@ export async function POST(req: Request) {
         workerProfileId: worker.id,
         employerProfileId: employer.id,
         status: "PENDING",
+        jobPostingId: null,
       },
     });
     if (dup) {

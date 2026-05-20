@@ -36,9 +36,9 @@ export function MessagesShell({
   );
 
   return (
-    <div className="grid h-[calc(100vh-9rem)] grid-cols-1 gap-4 md:grid-cols-[320px_minmax(0,1fr)]">
-      <aside className="gj-card flex min-h-0 flex-col">
-        <div className="border-b border-[var(--gj-border)] p-3">
+    <div className="flex min-h-[min(560px,calc(100dvh-10rem))] max-h-[calc(100dvh-10rem)] flex-col gap-4 lg:flex-row lg:gap-5">
+      <aside className="gj-card flex max-h-[min(360px,40vh)] w-full shrink-0 flex-col overflow-hidden lg:max-h-none lg:h-auto lg:w-[300px]">
+        <div className="border-b border-[var(--gj-border)] p-3 shrink-0">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -80,7 +80,7 @@ export function MessagesShell({
         </ul>
       </aside>
 
-      <section className="gj-card flex min-h-0 flex-col overflow-hidden">{children}</section>
+      <section className="gj-card flex min-h-[260px] min-w-0 flex-1 flex-col overflow-hidden lg:min-h-0">{children}</section>
     </div>
   );
 }

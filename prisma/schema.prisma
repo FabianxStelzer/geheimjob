@@ -20,6 +20,15 @@ enum MatchStatus {
   WITHDRAWN
 }
 
+enum HiringStage {
+  NONE
+  BEWORBEN
+  EINGELADEN
+  INTERVIEW
+  ENTSCHEIDUNG
+  EINGESTELLT
+}
+
 enum NotificationKind {
   MATCH_REQUEST
   MATCH_ACCEPTED
@@ -60,6 +69,7 @@ model WorkerProfile {
   userId            String   @unique
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName       String
+  photoUrl          String?
   professionField   String
   experienceYears   Int
   region            String
@@ -87,6 +97,7 @@ model EmployerProfile {
   userId            String   @unique
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName       String
+  logoUrl           String?
   industry          String
   region            String
   contactName       String
@@ -98,6 +109,7 @@ model EmployerProfile {
   updatedAt         DateTime @updatedAt
 
   matchRequests MatchRequest[] @relation("MatchEmployerProfile")
+  jobPostings   JobPosting[]
 }
 
 model WorkerEmployerBlock {
@@ -109,15 +121,38 @@ model WorkerEmployerBlock {
   blockedCompanyName    String?
 }
 
+model JobPosting {
+  id                String          @id @default(cuid())
+  employerProfileId String
+  employerProfile   EmployerProfile @relation(fields: [employerProfileId], references: [id], onDelete: Cascade)
+  title             String
+  headline          String?
+  richDescription   String          @default("")
+  tags              String          @default("")
+  productCostHint   String?
+  commissionHint    String?
+  targetIncomeHint  String?
+  workModeHint      String?
+  weeklyHoursHint   String?
+  published         Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  matches MatchRequest[]
+}
+
 model MatchRequest {
   id                String      @id @default(cuid())
   workerProfileId   String
   workerProfile     WorkerProfile @relation("MatchWorkerProfile", fields: [workerProfileId], references: [id], onDelete: Cascade)
   employerProfileId String
   employerProfile   EmployerProfile @relation("MatchEmployerProfile", fields: [employerProfileId], references: [id], onDelete: Cascade)
+  jobPostingId      String?
+  jobPosting        JobPosting?   @relation(fields: [jobPostingId], references: [id], onDelete: SetNull)
   initiatorUserId   String
   initiator         User        @relation("MatchInitiator", fields: [initiatorUserId], references: [id])
   status            MatchStatus @default(PENDING)
+  hiringStage       HiringStage @default(NONE)
   introMessage      String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt

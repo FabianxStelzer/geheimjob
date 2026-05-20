@@ -1,6 +1,6 @@
 const map: Record<string, string> = {
   "/dashboard": "Übersicht",
-  "/dashboard/worker": "Unternehmen entdecken",
+  "/dashboard/worker": "Job-Suche",
   "/dashboard/worker/anfragen": "Bewerbungen",
   "/dashboard/worker/nachrichten": "Nachrichten",
   "/dashboard/worker/profil": "Profil",
@@ -10,6 +10,7 @@ const map: Record<string, string> = {
   "/dashboard/employer/anfragen": "Anfragen",
   "/dashboard/employer/nachrichten": "Nachrichten",
   "/dashboard/employer/profil": "Unternehmensprofil",
+  "/dashboard/employer/stellen": "Stellenanzeigen",
   "/dashboard/employer/abrechnung": "Abrechnung",
   "/dashboard/admin": "Administration",
   "/dashboard/benachrichtigungen": "Benachrichtigungen",

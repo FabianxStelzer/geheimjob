@@ -11,6 +11,7 @@ import {
   CreditCardIcon,
   UserIcon,
   UsersIcon,
+  SettingsIcon,
 } from "@/components/icons";
 
 type NavItem = {
@@ -20,7 +21,7 @@ type NavItem = {
 };
 
 const workerNav: NavItem[] = [
-  { href: "/dashboard/worker", label: "Unternehmen", Icon: BriefcaseIcon },
+  { href: "/dashboard/worker", label: "Job-Suche", Icon: BriefcaseIcon },
   { href: "/dashboard/worker/anfragen", label: "Bewerbungen", Icon: SendIcon },
   { href: "/dashboard/worker/nachrichten", label: "Nachrichten", Icon: ChatIcon },
   { href: "/dashboard/worker/profil", label: "Profil", Icon: UserIcon },
@@ -31,7 +32,8 @@ const employerNav: NavItem[] = [
   { href: "/dashboard/employer", label: "Kandidaten", Icon: UsersIcon },
   { href: "/dashboard/employer/anfragen", label: "Anfragen", Icon: SendIcon },
   { href: "/dashboard/employer/nachrichten", label: "Nachrichten", Icon: ChatIcon },
-  { href: "/dashboard/employer/profil", label: "Unternehmen", Icon: BriefcaseIcon },
+  { href: "/dashboard/employer/stellen", label: "Stellen", Icon: BriefcaseIcon },
+  { href: "/dashboard/employer/profil", label: "Unternehmen", Icon: SettingsIcon },
   { href: "/dashboard/employer/abrechnung", label: "Abrechnung", Icon: CreditCardIcon },
 ];
 
@@ -51,6 +53,10 @@ function isActive(pathname: string, href: string) {
 
   if (h === "/dashboard/worker/nachrichten" && p.startsWith("/dashboard/worker/chat")) return true;
   if (h === "/dashboard/employer/nachrichten" && p.startsWith("/dashboard/employer/chat")) return true;
+
+  if (h === "/dashboard/employer/stellen") {
+    return p === h;
+  }
 
   return p === h || p.startsWith(`${h}/`);
 }

@@ -12,6 +12,7 @@ export type CandidateCardData = {
   salaryExpectation: number | null;
   anonymousSlug: string;
   bioPreview: string | null;
+  photoUrl: string | null;
 };
 
 export function CandidateCard({ data }: { data: CandidateCardData }) {
@@ -40,8 +41,13 @@ export function CandidateCard({ data }: { data: CandidateCardData }) {
   return (
     <article className="gj-card relative overflow-hidden p-5 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--gj-primary-soft)] text-[var(--gj-primary)]">
-          <UserIcon />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--gj-primary-soft)] text-[var(--gj-primary)]">
+          {data.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={data.photoUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <UserIcon />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-[var(--gj-text)]">{data.professionField}</h3>

@@ -43,7 +43,10 @@ export async function PATCH(req: Request, props: Params) {
 
   await prisma.matchRequest.update({
     where: { id },
-    data: { status },
+    data:
+      status === "ACCEPTED"
+        ? { status, hiringStage: "BEWORBEN" }
+        : { status },
   });
 
   const notifyTargetUserId =

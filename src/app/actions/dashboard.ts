@@ -73,6 +73,7 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
     String(formData.get("socialWebsite") || "").trim() || null;
   const profileVisible = formData.get("profileVisible") === "on";
   const cvDraftJson = String(formData.get("cvDraftJson") || "").trim() || null;
+  const photoUrl = String(formData.get("photoUrl") || "").trim() || null;
 
   if (!displayName || !professionField || !region || !availability) return;
 
@@ -95,10 +96,12 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       socialWebsite,
       profileVisible,
       cvDraftJson,
+      photoUrl,
     },
   });
 
   revalidatePath("/dashboard/worker/profil");
+  revalidatePath("/dashboard/employer");
 }
 
 export async function updateEmployerProfile(formData: FormData): Promise<void> {
@@ -113,6 +116,7 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
   const website = String(formData.get("website") || "").trim() || null;
   const openPositionsNote =
     String(formData.get("openPositionsNote") || "").trim() || null;
+  const logoUrl = String(formData.get("logoUrl") || "").trim() || null;
 
   if (!companyName || !industry || !region || !contactName) return;
 
@@ -126,10 +130,13 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
       contactPhone,
       website,
       openPositionsNote,
+      logoUrl,
     },
   });
 
   revalidatePath("/dashboard/employer/profil");
+  revalidatePath("/dashboard/employer/stellen");
+  revalidatePath("/dashboard/worker");
 }
 
 export async function regenerateAnonymousSlug(): Promise<void> {

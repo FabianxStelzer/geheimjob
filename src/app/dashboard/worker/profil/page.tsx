@@ -45,6 +45,10 @@ export default async function WorkerProfilPage() {
         <h2 className="mb-4 text-base font-semibold">Profil bearbeiten</h2>
         <form action={updateWorkerProfile} className="grid gap-4 md:grid-cols-2">
           <label className="md:col-span-2">
+            <span className="gj-label">Profilfoto (öffentlich in der Kandidatensuche, URL)</span>
+            <input name="photoUrl" type="url" defaultValue={profile.photoUrl ?? ""} className="gj-input" placeholder="https://…" />
+          </label>
+          <label className="md:col-span-2">
             <span className="gj-label">Anzeigename (intern)</span>
             <input name="displayName" defaultValue={profile.displayName} required className="gj-input" />
           </label>

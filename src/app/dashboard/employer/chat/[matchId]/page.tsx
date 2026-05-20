@@ -63,8 +63,8 @@ export default async function EmployerChatPage(props: Props) {
   }
 
   return (
-    <div className="grid h-[calc(100vh-9rem)] grid-cols-1 gap-4 md:grid-cols-[280px_minmax(0,1fr)_300px]">
-      <aside className="gj-card hidden min-h-0 flex-col md:flex">
+    <div className="flex min-h-[min(640px,calc(100dvh-10rem))] max-h-[calc(100dvh-10rem)] flex-col gap-4 lg:flex-row lg:gap-5">
+      <aside className="gj-card flex max-h-[min(360px,40vh)] min-h-0 w-full shrink-0 flex-col overflow-hidden lg:max-h-none lg:h-auto lg:w-[260px]">
         <ul className="flex-1 overflow-y-auto p-2">
           {items.map((it) => {
             const active = it.matchId === match.id;
@@ -83,7 +83,7 @@ export default async function EmployerChatPage(props: Props) {
         </ul>
       </aside>
 
-      <section className="gj-card flex min-h-0 flex-col overflow-hidden">
+      <section className="gj-card flex min-h-[280px] min-w-0 flex-1 flex-col overflow-hidden lg:min-h-0">
         <ChatThread
           matchId={match.id}
           currentUserId={session!.user.id}
@@ -91,7 +91,7 @@ export default async function EmployerChatPage(props: Props) {
         />
       </section>
 
-      <aside className="gj-card hidden min-h-0 flex-col overflow-y-auto p-5 md:flex">
+      <aside className="gj-card hidden min-h-0 w-full shrink-0 flex-col overflow-y-auto p-5 lg:flex lg:w-[280px]">
         <p className="text-xs uppercase tracking-wider text-[var(--gj-muted)]">Kandidat</p>
         <h2 className="mt-2 text-lg font-semibold">{match.workerProfile.displayName}</h2>
         <p className="mt-1 text-sm text-[var(--gj-muted)]">{match.workerProfile.professionField}</p>
@@ -122,9 +122,7 @@ export default async function EmployerChatPage(props: Props) {
         {match.workerProfile.bio ? (
           <div className="mt-5 border-t border-[var(--gj-border)] pt-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--gj-muted)]">Kurzprofil</p>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--gj-text)]/80">
-              {match.workerProfile.bio}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--gj-text)]/80">{match.workerProfile.bio}</p>
           </div>
         ) : null}
 
