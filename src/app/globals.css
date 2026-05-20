@@ -1,18 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --gj-bg: #f0f4f8;
+  --gj-bg: #f7f7fb;
   --gj-surface: #ffffff;
-  --gj-text: #0f172a;
-  --gj-muted: #64748b;
-  --gj-border: #e2e8f0;
-  --gj-accent: #0d9488;
-  --gj-accent-hover: #0f766e;
-  --gj-accent-soft: rgba(13, 148, 136, 0.12);
-  --gj-sidebar: #0f172a;
-  --gj-sidebar-text: #94a3b8;
-  --gj-sidebar-active: #ffffff;
-  --gj-radius: 14px;
+  --gj-text: #1c1b2e;
+  --gj-muted: #6b6b80;
+  --gj-border: #ececf2;
+  --gj-border-strong: #e0e0eb;
+
+  --gj-primary: #7c3aed;
+  --gj-primary-hover: #6d28d9;
+  --gj-primary-soft: #f3edff;
+  --gj-primary-softer: #faf7ff;
+
+  --gj-success: #16a34a;
+  --gj-warning: #f59e0b;
+  --gj-danger: #dc2626;
+
+  --gj-radius: 12px;
+  --gj-radius-lg: 16px;
 }
 
 @theme inline {
@@ -22,17 +28,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html,
 body {
   background: var(--gj-bg);
-  background-image:
-    radial-gradient(ellipse 120% 80% at 0% -20%, rgba(13, 148, 136, 0.14), transparent),
-    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(15, 118, 110, 0.08), transparent);
   color: var(--gj-text);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   min-height: 100%;
 }
 
-/* Formular-Elemente (wiederverwendbar) */
+/* === Form Elements === */
 .gj-label {
   display: block;
   font-size: 0.8125rem;
@@ -40,7 +44,9 @@ body {
   color: var(--gj-muted);
 }
 
-.gj-input {
+.gj-input,
+.gj-select,
+.gj-textarea {
   margin-top: 0.375rem;
   display: block;
   width: 100%;
@@ -56,45 +62,51 @@ body {
     box-shadow 0.15s ease;
 }
 
-.gj-input:focus {
-  border-color: var(--gj-accent);
-  box-shadow: 0 0 0 3px var(--gj-accent-soft);
+.gj-input:focus,
+.gj-select:focus,
+.gj-textarea:focus {
+  border-color: var(--gj-primary);
+  box-shadow: 0 0 0 3px rgb(124 58 237 / 0.15);
 }
 
-textarea.gj-input {
+.gj-textarea {
   min-height: 5.5rem;
   resize: vertical;
 }
 
-.gj-input::placeholder {
-  color: #94a3b8;
+.gj-input::placeholder,
+.gj-textarea::placeholder {
+  color: #9b9bb0;
 }
 
+/* === Card === */
 .gj-card {
-  border-radius: calc(var(--gj-radius) + 4px);
-  border: 1px solid rgb(226 232 240 / 0.9);
+  border-radius: var(--gj-radius-lg);
+  border: 1px solid var(--gj-border);
   background: var(--gj-surface);
-  box-shadow:
-    0 1px 2px rgb(15 23 42 / 0.04),
-    0 12px 40px rgb(15 23 42 / 0.06);
+  box-shadow: 0 1px 2px rgb(20 20 43 / 0.04);
 }
 
+/* === Buttons === */
 .gj-btn-primary {
   display: inline-flex;
-  width: 100%;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   border-radius: var(--gj-radius);
-  background: var(--gj-accent);
-  padding: 0.75rem 1rem;
+  background: var(--gj-primary);
+  padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: white;
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px rgb(124 58 237 / 0.18);
 }
 
 .gj-btn-primary:hover:not(:disabled) {
-  background: var(--gj-accent-hover);
+  background: var(--gj-primary-hover);
 }
 
 .gj-btn-primary:disabled {
@@ -106,20 +118,120 @@ textarea.gj-input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   border-radius: var(--gj-radius);
-  border: 1px solid var(--gj-border);
+  border: 1px solid var(--gj-border-strong);
   background: var(--gj-surface);
   padding: 0.5rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--gj-muted);
+  color: var(--gj-text);
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
 }
 
 .gj-btn-ghost:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: var(--gj-text);
+  background: var(--gj-primary-softer);
+  border-color: var(--gj-primary);
+  color: var(--gj-primary);
+}
+
+.gj-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: var(--gj-radius);
+  border: 1px solid #fecaca;
+  background: white;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--gj-danger);
+  transition: background 0.15s ease;
+}
+
+.gj-btn-danger:hover {
+  background: #fef2f2;
+}
+
+/* === Chip / Pill === */
+.gj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--gj-primary-soft);
+  color: var(--gj-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.gj-chip-neutral {
+  background: #f1f1f5;
+  color: var(--gj-muted);
+}
+
+.gj-chip-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.gj-chip-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.gj-chip-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* === Ribbon (Top-Match Banner) === */
+.gj-ribbon {
+  position: absolute;
+  top: 14px;
+  left: -34px;
+  width: 130px;
+  transform: rotate(-45deg);
+  background: var(--gj-primary);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 0.25rem 0;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgb(124 58 237 / 0.25);
+}
+
+/* === Sidebar Active Pill (Pre-defined) === */
+.gj-nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gj-muted);
+  transition: all 0.15s ease;
+}
+
+.gj-nav-pill:hover {
+  background: var(--gj-primary-softer);
+  color: var(--gj-primary);
+}
+
+.gj-nav-pill[data-active="true"] {
+  background: var(--gj-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgb(124 58 237 / 0.3);
+}
+
+.gj-nav-pill[data-active="true"] svg {
+  color: white;
 }

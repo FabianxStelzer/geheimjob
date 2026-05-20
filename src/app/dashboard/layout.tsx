@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { TopbarClient } from "@/components/topbar-client";
 
 export default async function DashboardLayout({
   children,
@@ -18,17 +20,32 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="shrink-0 border-slate-800 bg-slate-900 md:min-h-screen md:w-64 md:border-r">
-        <div className="p-6 md:sticky md:top-0 md:max-h-screen md:overflow-y-auto">
-          <DashboardNav role={role} email={session?.user.email} unread={unread} />
+    <div className="flex min-h-screen bg-[var(--gj-bg)]">
+      <aside className="hidden w-64 shrink-0 border-r border-[var(--gj-border)] bg-white md:flex md:flex-col">
+        <Link href="/dashboard" className="flex h-16 items-center gap-2.5 border-b border-[var(--gj-border)] px-6">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-base font-bold text-white shadow-sm">
+            G
+          </span>
+          <span className="text-base font-semibold tracking-tight text-[var(--gj-text)]">
+            Geheim<span className="text-[var(--gj-primary)]">job</span>
+          </span>
+        </Link>
+        <div className="flex flex-1 flex-col justify-between px-4 py-6">
+          <DashboardNav role={role} />
+          <div className="pt-6">
+            <Link
+              href="/datenschutz"
+              className="block px-3 py-2 text-xs text-[var(--gj-muted)] hover:text-[var(--gj-primary)]"
+            >
+              Support-Center
+            </Link>
+          </div>
         </div>
       </aside>
 
-      <section className="min-w-0 flex-1 p-4 md:p-10">
-        <div className="gj-card min-h-[calc(100vh-8rem)] rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm md:p-10">
-          {children}
-        </div>
+      <section className="flex min-w-0 flex-1 flex-col">
+        <TopbarClient email={session?.user.email} role={role} unread={unread} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
       </section>
     </div>
   );

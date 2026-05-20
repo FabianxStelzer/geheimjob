@@ -22,13 +22,13 @@ export function ReviewForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4">
-      <label className="block text-sm">
-        <span className="text-zinc-600">Bewertung (Prozess / Plattform)</span>
+    <form onSubmit={submit} className="space-y-3">
+      <label>
+        <span className="gj-label">Bewertung</span>
         <select
           value={rating}
           onChange={(e) => setRating(Number(e.target.value))}
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+          className="gj-select"
         >
           {[5, 4, 3, 2, 1].map((n) => (
             <option key={n} value={n}>
@@ -37,16 +37,16 @@ export function ReviewForm() {
           ))}
         </select>
       </label>
-      <label className="block text-sm">
-        <span className="text-zinc-600">Kommentar</span>
+      <label>
+        <span className="gj-label">Kommentar</span>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+          className="gj-textarea"
         />
       </label>
-      <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white">
+      <button type="submit" className="gj-btn-primary">
         Bewertung senden
       </button>
     </form>

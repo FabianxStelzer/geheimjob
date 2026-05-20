@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateEmployerProfile } from "@/app/actions/dashboard";
+import { DeleteAccountButton } from "@/components/delete-account-button";
 
 export default async function EmployerProfilPage() {
   const session = await auth();
@@ -12,42 +13,50 @@ export default async function EmployerProfilPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold">Unternehmensprofil</h1>
-      </header>
-      <form action={updateEmployerProfile} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
-        <label className="block text-sm">
-          Firmenname
-          <input name="companyName" defaultValue={profile.companyName} required className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          Branche
-          <input name="industry" defaultValue={profile.industry} required className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          Region
-          <input name="region" defaultValue={profile.region} required className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          Ansprechpartner
-          <input name="contactName" defaultValue={profile.contactName} required className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          Telefon
-          <input name="contactPhone" defaultValue={profile.contactPhone ?? ""} className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          Website
-          <input name="website" defaultValue={profile.website ?? ""} className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <label className="block text-sm md:col-span-2">
-          Offene Stellen / Hinweis
-          <textarea name="openPositionsNote" rows={4} defaultValue={profile.openPositionsNote ?? ""} className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" />
-        </label>
-        <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white">
-          Speichern
-        </button>
-      </form>
+      <section className="gj-card p-6">
+        <h2 className="mb-4 text-base font-semibold">Unternehmensprofil</h2>
+        <form action={updateEmployerProfile} className="grid gap-4 md:grid-cols-2">
+          <label className="md:col-span-2">
+            <span className="gj-label">Firmenname</span>
+            <input name="companyName" defaultValue={profile.companyName} required className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Branche</span>
+            <input name="industry" defaultValue={profile.industry} required className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Region</span>
+            <input name="region" defaultValue={profile.region} required className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Ansprechpartner</span>
+            <input name="contactName" defaultValue={profile.contactName} required className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Telefon</span>
+            <input name="contactPhone" defaultValue={profile.contactPhone ?? ""} className="gj-input" />
+          </label>
+          <label className="md:col-span-2">
+            <span className="gj-label">Website</span>
+            <input name="website" defaultValue={profile.website ?? ""} className="gj-input" />
+          </label>
+          <label className="md:col-span-2">
+            <span className="gj-label">Offene Stellen / Hinweis</span>
+            <textarea name="openPositionsNote" rows={4} defaultValue={profile.openPositionsNote ?? ""} className="gj-textarea" />
+          </label>
+          <div className="md:col-span-2 pt-2">
+            <button type="submit" className="gj-btn-primary">Speichern</button>
+          </div>
+        </form>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold text-rose-700">Konto löschen</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Zugangsdaten anonymisieren und Profil bereinigen.
+        </p>
+        <DeleteAccountButton />
+      </section>
     </div>
   );
 }

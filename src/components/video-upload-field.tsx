@@ -13,9 +13,14 @@ export function VideoUploadField() {
   }
 
   return (
-    <label className="block text-sm">
-      <span className="text-zinc-600">Kurzvideo (MP4/WebM, ~30 Sek.)</span>
-      <input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => void onChange(e)} className="mt-1 block w-full text-sm" />
+    <label className="block">
+      <span className="gj-label">Kurzvideo (MP4/WebM, ~30 Sek.)</span>
+      <input
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime"
+        onChange={(e) => void onChange(e)}
+        className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--gj-primary-soft)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[var(--gj-primary)] hover:file:bg-[var(--gj-primary-softer)]"
+      />
     </label>
   );
 }

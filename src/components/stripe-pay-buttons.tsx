@@ -17,18 +17,10 @@ export function StripePayButtons() {
 
   return (
     <div className="flex flex-wrap gap-3">
-      <button
-        type="button"
-        onClick={() => void checkout("subscription")}
-        className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50"
-      >
+      <button type="button" onClick={() => void checkout("subscription")} className="gj-btn-primary">
         Abo buchen (Stripe)
       </button>
-      <button
-        type="button"
-        onClick={() => void checkout("placement")}
-        className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50"
-      >
+      <button type="button" onClick={() => void checkout("placement")} className="gj-btn-ghost">
         Einmal-Provision (Match)
       </button>
     </div>

@@ -20,11 +20,7 @@ export function DeleteAccountButton() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={onDelete}
-      className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-    >
+    <button type="button" onClick={onDelete} className="gj-btn-danger">
       Konto und Daten löschen
     </button>
   );

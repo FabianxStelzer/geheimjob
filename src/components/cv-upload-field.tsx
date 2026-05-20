@@ -13,13 +13,13 @@ export function CvUploadField() {
   }
 
   return (
-    <label className="block text-sm">
-      <span className="text-zinc-600">PDF-Lebenslauf</span>
+    <label className="block">
+      <span className="gj-label">PDF-Lebenslauf (max. 5 MB)</span>
       <input
         type="file"
         accept="application/pdf"
         onChange={(e) => void onChange(e)}
-        className="mt-1 block w-full text-sm"
+        className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--gj-primary-soft)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[var(--gj-primary)] hover:file:bg-[var(--gj-primary-softer)]"
       />
     </label>
   );

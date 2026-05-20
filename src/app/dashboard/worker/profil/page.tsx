@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  regenerateAnonymousSlug,
-  updateWorkerProfile,
-} from "@/app/actions/dashboard";
+import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { DeleteAccountButton } from "@/components/delete-account-button";
+import { CopyButton } from "@/components/copy-button";
 
 export default async function WorkerProfilPage() {
   const session = await auth();
@@ -22,174 +20,135 @@ export default async function WorkerProfilPage() {
   const shareUrl = `${process.env.NEXTAUTH_URL ?? ""}/p/${profile.anonymousSlug}`;
 
   return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl font-semibold">Profil & Sharing</h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Anonymer Link ohne Namen für Außenstehende. Namen &amp; E-Mail werden erst nach Match
-          freigegeben.
-        </p>
-      </div>
-
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Anonymer Profil-Link</h2>
-        <p className="mt-2 break-all text-sm text-emerald-900">{shareUrl}</p>
-        <form action={regenerateAnonymousSlug} className="mt-4">
-          <button type="submit" className="rounded-lg border border-zinc-300 px-3 py-2 text-xs">
-            Neuen Slug erzeugen
-          </button>
-        </form>
+    <div className="space-y-6">
+      <section className="gj-card p-6">
+        <header className="mb-4">
+          <h2 className="text-base font-semibold">Anonymer Profil-Link</h2>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
+            Diesen Link können Sie teilen — Name und Kontaktdaten bleiben verborgen, bis Sie einen Match annehmen.
+          </p>
+        </header>
+        <div className="flex flex-wrap items-center gap-2">
+          <code className="flex-1 min-w-0 truncate rounded-lg border border-[var(--gj-border)] bg-[var(--gj-bg)] px-3 py-2 text-sm">
+            {shareUrl}
+          </code>
+          <CopyButton text={shareUrl} />
+          <form action={regenerateAnonymousSlug}>
+            <button type="submit" className="gj-btn-ghost">
+              Neuen Link erzeugen
+            </button>
+          </form>
+        </div>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Profil bearbeiten</h2>
-        <form action={updateWorkerProfile} className="mt-4 grid gap-4 md:grid-cols-2">
-          <label className="text-sm md:col-span-2">
-            <span className="text-zinc-600">Anzeigename (intern)</span>
-            <input
-              name="displayName"
-              defaultValue={profile.displayName}
-              required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+      <section className="gj-card p-6">
+        <h2 className="mb-4 text-base font-semibold">Profil bearbeiten</h2>
+        <form action={updateWorkerProfile} className="grid gap-4 md:grid-cols-2">
+          <label className="md:col-span-2">
+            <span className="gj-label">Anzeigename (intern)</span>
+            <input name="displayName" defaultValue={profile.displayName} required className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">Berufsfeld</span>
-            <input
-              name="professionField"
-              defaultValue={profile.professionField}
-              required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">Berufsfeld</span>
+            <input name="professionField" defaultValue={profile.professionField} required className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">Region</span>
-            <input
-              name="region"
-              defaultValue={profile.region}
-              required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">Region</span>
+            <input name="region" defaultValue={profile.region} required className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">Jahre Erfahrung</span>
-            <input
-              name="experienceYears"
-              type="number"
-              defaultValue={profile.experienceYears}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">Jahre Erfahrung</span>
+            <input name="experienceYears" type="number" defaultValue={profile.experienceYears} className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">Verfügbarkeit</span>
-            <input
-              name="availability"
-              defaultValue={profile.availability}
-              required
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">Verfügbarkeit</span>
+            <input name="availability" defaultValue={profile.availability} required className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">Gehaltswunsch</span>
-            <input
-              name="salaryExpectation"
-              type="number"
-              defaultValue={profile.salaryExpectation ?? ""}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">Gehaltswunsch (€/Monat)</span>
+            <input name="salaryExpectation" type="number" defaultValue={profile.salaryExpectation ?? ""} className="gj-input" />
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="salaryPublic" defaultChecked={profile.salaryPublic} />
-            Gehalt öffentlich
-          </label>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="salaryPublic" defaultChecked={profile.salaryPublic} />
+              Gehalt öffentlich
+            </label>
+          </div>
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input type="checkbox" name="profileVisible" defaultChecked={profile.profileVisible} />
             Profil in Arbeitgeber-Suche sichtbar
           </label>
-          <label className="text-sm md:col-span-2">
-            <span className="text-zinc-600">Kurzprofil</span>
-            <textarea
-              name="bio"
-              rows={4}
-              defaultValue={profile.bio ?? ""}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label className="md:col-span-2">
+            <span className="gj-label">Kurzprofil</span>
+            <textarea name="bio" rows={4} defaultValue={profile.bio ?? ""} className="gj-textarea" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">LinkedIn</span>
-            <input
-              name="socialLinkedin"
-              defaultValue={profile.socialLinkedin ?? ""}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">LinkedIn</span>
+            <input name="socialLinkedin" defaultValue={profile.socialLinkedin ?? ""} className="gj-input" />
           </label>
-          <label className="text-sm">
-            <span className="text-zinc-600">XING</span>
-            <input
-              name="socialXing"
-              defaultValue={profile.socialXing ?? ""}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label>
+            <span className="gj-label">XING</span>
+            <input name="socialXing" defaultValue={profile.socialXing ?? ""} className="gj-input" />
           </label>
-          <label className="text-sm md:col-span-2">
-            <span className="text-zinc-600">Website</span>
-            <input
-              name="socialWebsite"
-              defaultValue={profile.socialWebsite ?? ""}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-            />
+          <label className="md:col-span-2">
+            <span className="gj-label">Website</span>
+            <input name="socialWebsite" defaultValue={profile.socialWebsite ?? ""} className="gj-input" />
           </label>
-          <label className="text-sm md:col-span-2">
-            <span className="text-zinc-600">
-              Strukturierter Lebenslauf (JSON/Text — später durch Editor ersetzbar)
-            </span>
+          <label className="md:col-span-2">
+            <span className="gj-label">Strukturierter Lebenslauf (Text/JSON)</span>
             <textarea
               name="cvDraftJson"
               rows={6}
               defaultValue={profile.cvDraftJson ?? ""}
               placeholder='{"beruf":"…","skills":["…"]}'
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-xs"
+              className="gj-textarea font-mono text-xs"
             />
           </label>
-          <div className="md:col-span-2">
-            <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white">
-              Speichern
-            </button>
+          <div className="md:col-span-2 pt-2">
+            <button type="submit" className="gj-btn-primary">Speichern</button>
           </div>
         </form>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Dateien</h2>
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
+      <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold">Dateien</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">PDF und Kurzvideo — werden erst nach Match freigegeben.</p>
+        <div className="grid gap-6 md:grid-cols-2">
           <CvUploadField />
           <VideoUploadField />
         </div>
         {profile.videoIntroUrl ? (
           <video
             key={profile.videoIntroUrl}
-            className="mt-6 w-full max-w-md rounded-xl border border-zinc-200"
+            className="mt-6 w-full max-w-md rounded-xl border border-[var(--gj-border)]"
             controls
             src={profile.videoIntroUrl}
           />
         ) : null}
-        <p className="mt-4 text-xs text-zinc-500">
-          PDF-Lebenslauf für Arbeitgeber erst nach Match:{" "}
-          <Link href="/api/cv/self" className="underline">
-            eigene Vorschau
+        <p className="mt-4 text-xs text-[var(--gj-muted)]">
+          Eigene PDF-Vorschau:{" "}
+          <Link href="/api/cv/self" className="text-[var(--gj-primary)] hover:underline">
+            anzeigen
           </Link>
         </p>
       </section>
 
-      <section className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h2 className="text-lg font-semibold text-red-900">Konto löschen</h2>
-        <p className="mt-2 text-sm text-red-800">
-          Hiermit werden Zugangsdaten anonymisiert und Profile bereinigt (Demo-Implementierung —
-          produktiv Rechtsfolgen prüfen).
+      <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold">Ausschlüsse</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Verhindern Sie, dass bestimmte Firmen (z. B. Ihr aktueller Arbeitgeber) Sie sehen.
         </p>
-        <div className="mt-4">
-          <DeleteAccountButton />
-        </div>
+        <Link href="/dashboard/worker/ausschluesse" className="gj-btn-ghost">
+          Ausschlüsse verwalten
+        </Link>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold text-rose-700">Konto löschen</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Zugangsdaten anonymisieren und Profil bereinigen.
+        </p>
+        <DeleteAccountButton />
       </section>
     </div>
   );

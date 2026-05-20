@@ -1,53 +1,64 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { CompanyCard, type CompanyCardData } from "@/components/company-card";
 
 export default async function WorkerHome() {
   const session = await auth();
   if (!session?.user) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const employers = await prisma.employerProfile.findMany({
+    where: { user: { deletedAt: null } },
+    orderBy: { updatedAt: "desc" },
+    take: 60,
+    select: {
+      id: true,
+      companyName: true,
+      industry: true,
+      region: true,
+      openPositionsNote: true,
+      createdAt: true,
+    },
   });
 
-  const base = process.env.NEXTAUTH_URL ?? "";
-  const referralLink = `${base}/register/arbeitnehmer?ref=${user?.referralCode ?? ""}`;
+  const now = Date.now();
+  const items: CompanyCardData[] = employers.map((e) => ({
+    id: e.id,
+    companyName: e.companyName,
+    industry: e.industry,
+    region: e.region,
+    openPositionsNote: e.openPositionsNote,
+    isNew: now - new Date(e.createdAt).getTime() < 1000 * 60 * 60 * 24 * 14,
+  }));
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold">Arbeitnehmer-Dashboard</h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Teilen Sie Ihr anonymes Profil oder laden Sie Kolleginnen mit Ihrem Referral-Link ein.
-        </p>
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm text-[var(--gj-muted)]">
+            Wir haben{" "}
+            <span className="font-semibold text-[var(--gj-primary)]">{items.length}</span>{" "}
+            Unternehmen für Sie gefunden
+          </p>
+        </div>
+        <Link href="/dashboard/worker/anfragen" className="gj-btn-ghost">
+          Meine Bewerbungen
+        </Link>
       </header>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Referral-Programm</h2>
-        <p className="mt-2 text-sm text-zinc-600">
-          Link weitergeben — bei erfolgreicher Registrierung entsteht ein Eintrag{" "}
-          <code className="rounded bg-zinc-100 px-1">ReferralReward</code> (Bonus-Auszahlung
-          konfigurierbar).
-        </p>
-        <p className="mt-4 break-all rounded-lg bg-zinc-50 p-3 text-sm">{referralLink}</p>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2">
-        <Link
-          href="/dashboard/worker/profil"
-          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm hover:border-zinc-400"
-        >
-          <h3 className="font-semibold">Profil & Lebenslauf</h3>
-          <p className="mt-2 text-sm text-zinc-600">PDF, Kurzvideo, strukturierter Lebenslauf-Entwurf.</p>
-        </Link>
-        <Link
-          href="/dashboard/worker/unternehmen"
-          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm hover:border-zinc-400"
-        >
-          <h3 className="font-semibold">Unternehmen kontaktieren</h3>
-          <p className="mt-2 text-sm text-zinc-600">Initiieren Sie Matches bei ausgewählten Arbeitgebern.</p>
-        </Link>
-      </section>
+      {items.length === 0 ? (
+        <div className="gj-card p-12 text-center">
+          <p className="text-sm text-[var(--gj-muted)]">
+            Noch keine Unternehmen verfügbar. Schauen Sie später wieder vorbei.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map((c) => (
+            <CompanyCard key={c.id} data={c} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

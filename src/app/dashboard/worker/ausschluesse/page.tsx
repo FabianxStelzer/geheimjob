@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { addEmployerBlock, removeEmployerBlock } from "@/app/actions/dashboard";
@@ -12,57 +13,58 @@ export default async function WorkerBlocksPage() {
   if (!profile) return <p className="text-sm text-red-600">Kein Profil.</p>;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-semibold">Arbeitgeber ausschließen</h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Verhindern Sie, dass ausgewählte Firmen (z. B. Ihr aktueller Arbeitgeber) Ihr Profil sehen
-          oder Anfragen senden.
+    <div className="space-y-6">
+      <p>
+        <Link href="/dashboard/worker/profil" className="text-sm text-[var(--gj-primary)] hover:underline">
+          ← Zurück zum Profil
+        </Link>
+      </p>
+
+      <section className="gj-card p-6">
+        <h2 className="text-base font-semibold">Neuer Ausschluss</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Verhindern Sie, dass eine Firma Ihr Profil sieht oder Sie kontaktiert.
         </p>
-      </div>
+        <form action={addEmployerBlock} className="mt-4 space-y-4">
+          <label>
+            <span className="gj-label">Firmenname (Freitext)</span>
+            <input name="blockedCompanyName" className="gj-input" placeholder="z. B. Geheim AG" />
+          </label>
+          <label>
+            <span className="gj-label">Optional: User-ID des Arbeitgebers</span>
+            <input name="blockedEmployerUserId" className="gj-input font-mono text-xs" placeholder="cuid…" />
+          </label>
+          <button type="submit" className="gj-btn-primary">
+            Ausschluss hinzufügen
+          </button>
+        </form>
+      </section>
 
-      <form
-        action={addEmployerBlock}
-        className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4"
-      >
-        <label className="block text-sm">
-          <span className="text-zinc-600">Firmenname (Freitext)</span>
-          <input name="blockedCompanyName" className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2" placeholder="z. B. Geheim AG" />
-        </label>
-        <label className="block text-sm">
-          <span className="text-zinc-600">Optional: User-ID des Arbeitgebers (falls bekannt)</span>
-          <input name="blockedEmployerUserId" className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-xs" placeholder="cuid…" />
-        </label>
-        <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white">
-          Ausschluss speichern
-        </button>
-      </form>
-
-      <ul className="space-y-3">
-        {profile.exclusions.length === 0 ? (
-          <li className="text-sm text-zinc-500">Keine Einträge.</li>
-        ) : (
-          profile.exclusions.map((ex) => (
-            <li
-              key={ex.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4"
-            >
-              <div className="text-sm">
-                <p className="font-medium">{ex.blockedCompanyName ?? "—"}</p>
-                {ex.blockedEmployerUserId ? (
-                  <p className="text-xs text-zinc-500">{ex.blockedEmployerUserId}</p>
-                ) : null}
-              </div>
-              <form action={removeEmployerBlock}>
-                <input type="hidden" name="blockId" value={ex.id} />
-                <button type="submit" className="text-xs text-red-700 underline">
-                  entfernen
-                </button>
-              </form>
-            </li>
-          ))
-        )}
-      </ul>
+      <section className="gj-card p-6">
+        <h2 className="text-base font-semibold">Bestehende Ausschlüsse</h2>
+        <ul className="mt-4 divide-y divide-[var(--gj-border)]">
+          {profile.exclusions.length === 0 ? (
+            <li className="py-4 text-sm text-[var(--gj-muted)]">Keine Einträge.</li>
+          ) : (
+            profile.exclusions.map((ex) => (
+              <li key={ex.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="text-sm">
+                  <p className="font-medium">{ex.blockedCompanyName ?? "—"}</p>
+                  {ex.blockedEmployerUserId ? (
+                    <p className="text-xs text-[var(--gj-muted)]">{ex.blockedEmployerUserId}</p>
+                  ) : null}
+                </div>
+                <form action={removeEmployerBlock}>
+                  <input type="hidden" name="blockId" value={ex.id} />
+                  <button type="submit" className="gj-btn-danger">
+                    Entfernen
+                  </button>
+                </form>
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
     </div>
   );
 }

@@ -3,20 +3,25 @@ import { ReviewForm } from "@/components/review-form";
 
 export default function EmployerBillingPage() {
   return (
-    <div className="space-y-10">
-      <header>
-        <h1 className="text-3xl font-semibold">Abrechnung & Vertrauen</h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Stripe Checkout für Abo oder Einmal-Provision. Bewertungen helfen neuen Kandidaten.
+    <div className="space-y-6">
+      <section className="gj-card p-6">
+        <h2 className="text-base font-semibold">Zahlung &amp; Abo</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Buchen Sie ein Monatsabo oder bezahlen Sie eine Vermittlungsprovision pro erfolgreichem Match.
         </p>
-      </header>
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold">Stripe Checkout</h2>
-        <StripePayButtons />
+        <div className="mt-4">
+          <StripePayButtons />
+        </div>
       </section>
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold">Prozess bewerten</h2>
-        <ReviewForm />
+
+      <section className="gj-card p-6">
+        <h2 className="text-base font-semibold">Prozess bewerten</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Ihre Rückmeldung hilft neuen Kandidat:innen, Vertrauen aufzubauen.
+        </p>
+        <div className="mt-4">
+          <ReviewForm />
+        </div>
       </section>
     </div>
   );
