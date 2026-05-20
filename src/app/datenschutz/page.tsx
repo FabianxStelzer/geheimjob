@@ -1,6 +1,11 @@
 export default function DatenschutzPage() {
   return (
-    <main className="mx-auto max-w-3xl flex-1 px-4 py-16 text-zinc-900">
+    <main className="mx-auto max-w-3xl flex-1 px-4 py-12 text-slate-900 sm:py-16">
+      <p className="mb-8">
+        <a href="/login" className="text-sm font-medium text-teal-700 hover:text-teal-900">
+          ← Zur Anmeldung
+        </a>
+      </p>
       <h1 className="text-3xl font-semibold">Datenschutzerklärung (Entwurf)</h1>
       <p className="mt-4 text-sm text-amber-800">
         Dies ist eine technische Vorlage für die Entwicklung. Vor Produktivgang ist eine
