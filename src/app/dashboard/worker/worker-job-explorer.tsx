@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandAvatar } from "@/components/brand-logo";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { JobFeedItem } from "@/lib/job-postings-for-worker";
@@ -134,7 +135,7 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
                           <h2 className="text-lg font-bold leading-snug text-[var(--gj-text)] md:text-xl">
                             {job.title}
                           </h2>
-                          <span className="gj-chip text-[10px] uppercase">Neu</span>
+                          <span className="gj-chip gj-chip-solid text-[10px] uppercase">Neu</span>
                         </div>
                         <p className="mt-1 text-sm font-medium text-[var(--gj-muted)]">
                           <span className="text-[var(--gj-text)]">{job.employer.companyName}</span> ·{" "}
@@ -297,8 +298,8 @@ function EmployerLogo({ name, logoUrl }: { name: string; logoUrl: string | null 
     );
   }
   return (
-    <span className="mx-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-lg font-bold text-white shadow-inner lg:mx-0">
+    <BrandAvatar rounded="full" className="mx-auto h-16 w-16 text-lg lg:mx-0">
       {initials}
-    </span>
+    </BrandAvatar>
   );
 }

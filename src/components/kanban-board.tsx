@@ -18,7 +18,7 @@ type KanbanCard = {
 };
 
 const COLUMNS: { key: KanbanColumnKey; label: string; accent: string }[] = [
-  { key: "PENDING", label: "Offen", accent: "bg-violet-500" },
+  { key: "PENDING", label: "Offen", accent: "bg-[var(--gj-primary)]" },
   { key: "ACCEPTED", label: "Akzeptiert · Chat aktiv", accent: "bg-emerald-500" },
   { key: "REJECTED", label: "Abgelehnt", accent: "bg-rose-500" },
   { key: "WITHDRAWN", label: "Zurückgezogen", accent: "bg-slate-400" },

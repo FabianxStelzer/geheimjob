@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import { BrandAvatar } from "@/components/brand-logo";
 import { BellIcon, ChevronDownIcon } from "@/components/icons";
 
 export function Topbar({
@@ -55,9 +56,9 @@ export function Topbar({
             onClick={() => setOpen((o) => !o)}
             className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-[var(--gj-primary-softer)]"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-xs font-semibold text-white shadow-sm">
+            <BrandAvatar rounded="full" className="h-9 w-9 text-xs font-semibold">
               {initials}
-            </span>
+            </BrandAvatar>
             <span className="hidden text-left sm:block">
               <span className="block text-sm font-semibold leading-tight text-[var(--gj-text)]">
                 {email ? email.split("@")[0] : "—"}

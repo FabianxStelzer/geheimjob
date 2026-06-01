@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { BrandLogo } from "@/components/brand-logo";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { TopbarClient } from "@/components/topbar-client";
 
@@ -22,13 +23,8 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-[var(--gj-bg)]">
       <aside className="hidden w-64 shrink-0 border-r border-[var(--gj-border)] bg-white md:flex md:flex-col">
-        <Link href="/dashboard" className="flex h-16 items-center gap-2.5 border-b border-[var(--gj-border)] px-6">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-base font-bold text-white shadow-sm">
-            G
-          </span>
-          <span className="text-base font-semibold tracking-tight text-[var(--gj-text)]">
-            Geheim<span className="text-[var(--gj-primary)]">job</span>
-          </span>
+        <Link href="/dashboard" className="flex h-16 items-center border-b border-[var(--gj-border)] px-6">
+          <BrandLogo className="text-[1.125rem] min-w-[120px]" />
         </Link>
         <div className="flex flex-1 flex-col justify-between px-4 py-6">
           <DashboardNav role={role} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BrandAvatar } from "@/components/brand-logo";
 import { SendIcon } from "@/components/icons";
 
 type Msg = {
@@ -61,9 +62,9 @@ export function ChatThread({
     <div className="flex h-full min-h-0 flex-col">
       {partnerName ? (
         <div className="flex items-center gap-3 border-b border-[var(--gj-border)] px-5 py-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-xs font-semibold text-white">
+          <BrandAvatar rounded="full" className="h-10 w-10 text-xs font-semibold">
             {partnerInitial ?? partnerName.slice(0, 2).toUpperCase()}
-          </span>
+          </BrandAvatar>
           <div>
             <p className="text-sm font-semibold text-[var(--gj-text)]">{partnerName}</p>
             <p className="text-[11px] text-[var(--gj-muted)]">Online · Sofort-Chat</p>

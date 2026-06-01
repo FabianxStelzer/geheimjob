@@ -39,7 +39,7 @@ export function CandidateCard({ data }: { data: CandidateCardData }) {
   }
 
   return (
-    <article className="gj-card relative overflow-hidden p-5 transition-shadow hover:shadow-md">
+    <article className="gj-card gj-card-interactive relative overflow-hidden p-5">
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--gj-primary-soft)] text-[var(--gj-primary)]">
           {data.photoUrl ? (

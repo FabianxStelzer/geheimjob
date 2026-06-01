@@ -22,5 +22,5 @@ export function pageTitleFromPath(pathname: string): string {
   if (pathname.startsWith("/dashboard/worker/chat/")) return "Nachrichten";
   if (pathname.startsWith("/dashboard/employer/chat/")) return "Nachrichten";
 
-  return "Geheimjob";
+  return "geheimjob.de";
 }

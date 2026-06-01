@@ -13,7 +13,7 @@ const COL_META: Record<
   PipelineBoardColumn,
   { label: string; accent: string }
 > = {
-  AUSSTEHEND: { label: "Ausstehend · Match", accent: "bg-violet-500" },
+  AUSSTEHEND: { label: "Ausstehend · Match", accent: "bg-[var(--gj-primary)]" },
   BEWORBEN: { label: "Beworben", accent: "bg-slate-500" },
   EINGELADEN: { label: "Eingeladen", accent: "bg-amber-400" },
   INTERVIEW: { label: "Interview", accent: "bg-sky-500" },

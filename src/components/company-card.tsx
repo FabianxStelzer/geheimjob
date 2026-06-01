@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrandAvatar } from "@/components/brand-logo";
 import { BriefcaseIcon, ChatIcon, MapPinIcon } from "@/components/icons";
 
 export type CompanyCardData = {
@@ -38,13 +39,11 @@ export function CompanyCard({ data }: { data: CompanyCardData }) {
   const initial = data.companyName.slice(0, 2).toUpperCase();
 
   return (
-    <article className="gj-card relative overflow-hidden p-5 transition-shadow hover:shadow-md">
+    <article className="gj-card gj-card-interactive relative overflow-hidden p-5">
       {data.isNew ? <div className="gj-ribbon">Neu</div> : null}
 
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-sm font-bold text-white shadow-sm">
-          {initial}
-        </div>
+        <BrandAvatar className="h-12 w-12 text-sm">{initial}</BrandAvatar>
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold text-[var(--gj-text)]">
             {data.companyName}

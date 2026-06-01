@@ -256,7 +256,7 @@ function EmployerBadge({ logoUrl, label }: { logoUrl: string | null; label: stri
     );
   }
   return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] text-sm font-bold text-white">
+    <span className="gj-gradient-primary flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white">
       {initials}
     </span>
   );

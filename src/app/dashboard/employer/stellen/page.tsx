@@ -19,7 +19,7 @@ export default async function EmployerStellenPage() {
         <h1 className="text-xl font-semibold tracking-tight">Stellen veröffentlichen</h1>
         <p className="mt-1 text-sm text-[var(--gj-muted)]">
           Veröffentlichte Jobs erscheinen in der Arbeitnehmer-Job-Suche (ganze Breite, Detail-Drawer beim
-          Klick wie bei ProviPanda).
+          Vollbreite-Karten mit Eckdaten und Veröffentlichung).
         </p>
       </header>
 

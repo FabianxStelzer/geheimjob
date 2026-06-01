@@ -19,7 +19,7 @@ export default async function ReferralPage() {
   return (
     <div className="space-y-6">
       <section className="gj-card overflow-hidden">
-        <div className="relative bg-gradient-to-br from-[var(--gj-primary)] to-[#a855f7] p-8 text-white">
+        <div className="relative gj-gradient-primary p-8 text-white">
           <div className="flex items-start gap-4">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
               <GiftIcon className="h-6 w-6 text-white" />
