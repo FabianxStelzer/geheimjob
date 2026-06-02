@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
+import { CvBuilder } from "@/components/cv-builder";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
@@ -105,16 +106,6 @@ export default async function WorkerProfilPage() {
             <span className="gj-label">Website</span>
             <input name="socialWebsite" defaultValue={profile.socialWebsite ?? ""} className="gj-input" />
           </label>
-          <label className="md:col-span-2">
-            <span className="gj-label">Strukturierter Lebenslauf (Text/JSON)</span>
-            <textarea
-              name="cvDraftJson"
-              rows={6}
-              defaultValue={profile.cvDraftJson ?? ""}
-              placeholder='{"beruf":"…","skills":["…"]}'
-              className="gj-textarea font-mono text-xs"
-            />
-          </label>
           <div className="md:col-span-2 pt-2">
             <button type="submit" className="gj-btn-primary">Speichern</button>
           </div>
@@ -122,8 +113,23 @@ export default async function WorkerProfilPage() {
       </section>
 
       <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold">Lebenslauf erstellen</h2>
+        <CvBuilder
+          initialJson={profile.cvDraftJson}
+          hasPdf={!!profile.cvPdfFilename}
+          profileMeta={{
+            displayName: profile.displayName,
+            professionField: profile.professionField,
+            region: profile.region,
+          }}
+        />
+      </section>
+
+      <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold">Dateien</h2>
-        <p className="mb-4 text-sm text-[var(--gj-muted)]">PDF und Kurzvideo — werden erst nach Match freigegeben.</p>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Optional: eigene PDF hochladen oder Kurzvideo — für Arbeitgeber erst nach Match sichtbar.
+        </p>
         <div className="grid gap-6 md:grid-cols-2">
           <CvUploadField />
           <VideoUploadField />
