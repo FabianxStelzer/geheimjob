@@ -18,7 +18,7 @@ export async function POST(_req: Request, props: Params) {
     include: { workerProfile: true, employerProfile: true },
   });
 
-  if (!match || match.status !== "ACCEPTED") {
+  if (!match || (match.status !== "ACCEPTED" && match.status !== "PENDING")) {
     return Response.json({ error: "Kein aktiver Match." }, { status: 404 });
   }
   if (match.employerProfile.userId !== session.user.id) {

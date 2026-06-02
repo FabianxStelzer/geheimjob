@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/components/icons";
 import { CvDraftPreview } from "@/components/cv-draft-preview";
 import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
 import type { CandidateCardData } from "@/components/candidate-card";
+
+export type ContactResult = { ok: boolean; matchId?: string };
 
 export function CandidateProfilePanel({
   slug,
@@ -13,36 +15,87 @@ export function CandidateProfilePanel({
 }: {
   slug: string;
   cardPreview?: CandidateCardData;
-  onContact?: () => Promise<boolean>;
+  onContact?: () => Promise<ContactResult>;
 }) {
   const [profile, setProfile] = useState<PublicAnonymousProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contactBusy, setContactBusy] = useState(false);
   const [contactSent, setContactSent] = useState(false);
+  const [cvBusy, setCvBusy] = useState(false);
 
-  useEffect(() => {
+  const loadProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
-    void fetch(`/api/workers/anonymous-profile/${encodeURIComponent(slug)}`)
-      .then(async (res) => {
-        const data = (await res.json()) as {
-          profile?: PublicAnonymousProfile;
-          error?: string;
-        };
-        if (!res.ok) throw new Error(data.error || "Profil konnte nicht geladen werden.");
-        setProfile(data.profile ?? null);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : "Fehler beim Laden."))
-      .finally(() => setLoading(false));
+    try {
+      const res = await fetch(`/api/workers/anonymous-profile/${encodeURIComponent(slug)}`);
+      const data = (await res.json()) as {
+        profile?: PublicAnonymousProfile;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "Profil konnte nicht geladen werden.");
+      const next = data.profile ?? null;
+      setProfile(next);
+      if (next?.employerMatch) setContactSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Fehler beim Laden.");
+    } finally {
+      setLoading(false);
+    }
   }, [slug]);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
 
   async function handleContact() {
     if (!onContact || contactSent) return;
     setContactBusy(true);
-    const ok = await onContact();
+    const result = await onContact();
     setContactBusy(false);
-    if (ok) setContactSent(true);
+    if (result.ok) {
+      setContactSent(true);
+      await loadProfile();
+    }
+  }
+
+  async function handleCvRequest() {
+    if (!profile?.hasCv || profile.cvShareMode !== "ON_REQUEST") return;
+
+    let matchId = profile.employerMatch?.id;
+    if (!matchId && onContact && !contactSent) {
+      setCvBusy(true);
+      const result = await onContact();
+      setCvBusy(false);
+      if (!result.ok) return;
+      setContactSent(true);
+      matchId = result.matchId;
+      await loadProfile();
+      if (!matchId) {
+        const res = await fetch(`/api/workers/anonymous-profile/${encodeURIComponent(slug)}`);
+        const data = (await res.json()) as { profile?: PublicAnonymousProfile };
+        matchId = data.profile?.employerMatch?.id;
+        if (data.profile) setProfile(data.profile);
+      }
+    }
+
+    if (!matchId) {
+      alert("Bitte zuerst Kontakt aufnehmen.");
+      return;
+    }
+
+    const cvAccess = profile.employerMatch?.cvAccess;
+    if (cvAccess?.canView || cvAccess?.requested) return;
+
+    setCvBusy(true);
+    const res = await fetch(`/api/matches/${matchId}/cv-request`, { method: "POST" });
+    setCvBusy(false);
+    if (!res.ok) {
+      const j = (await res.json().catch(() => ({}))) as { error?: string };
+      alert(j.error || "Anfrage fehlgeschlagen.");
+      return;
+    }
+    await loadProfile();
   }
 
   if (loading) {
@@ -54,6 +107,14 @@ export function CandidateProfilePanel({
   }
 
   if (!profile) return null;
+
+  const cvAccess = profile.employerMatch?.cvAccess;
+  const showCvPreview = profile.hasCv && profile.cvDraftJson;
+  const showCvRequestButton =
+    profile.hasCv &&
+    profile.cvShareMode === "ON_REQUEST" &&
+    !cvAccess?.canView;
+  const cvRequested = cvAccess?.requested ?? false;
 
   return (
     <div className="space-y-4">
@@ -104,26 +165,19 @@ export function CandidateProfilePanel({
         dieser Ansicht ausgeblendet.
       </p>
 
-      {profile.hasCv ? (
+      {showCvPreview ? (
         <section className="space-y-3 border-t border-[var(--gj-border)] pt-4">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--gj-muted)]">
             Lebenslauf
           </h4>
-          {profile.cvShareMode === "IMMEDIATE" && profile.cvDraftJson ? (
-            <CvDraftPreview
-              draftJson={profile.cvDraftJson}
-              meta={{
-                displayName: profile.professionField,
-                professionField: profile.professionField,
-                region: profile.region,
-              }}
-            />
-          ) : (
-            <p className="rounded-lg border border-[var(--gj-border)] bg-[var(--gj-bg)] px-3 py-2 text-sm text-[var(--gj-muted)]">
-              Lebenslauf erst nach Kontaktaufnahme und Freigabe durch den Kandidaten (Einstellung:
-              „Erst nach meiner Freigabe“).
-            </p>
-          )}
+          <CvDraftPreview
+            draftJson={profile.cvDraftJson!}
+            meta={{
+              displayName: profile.professionField,
+              professionField: profile.professionField,
+              region: profile.region,
+            }}
+          />
         </section>
       ) : null}
 
@@ -138,6 +192,16 @@ export function CandidateProfilePanel({
             <ChatIcon />{" "}
             {contactSent ? "Anfrage gesendet" : contactBusy ? "Sende…" : "Kontakt aufnehmen"}
           </button>
+          {showCvRequestButton ? (
+            <button
+              type="button"
+              disabled={cvBusy || cvRequested}
+              onClick={() => void handleCvRequest()}
+              className="gj-btn-secondary"
+            >
+              {cvRequested ? "Lebenslauf angefordert" : cvBusy ? "Sende…" : "Lebenslauf anfordern"}
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

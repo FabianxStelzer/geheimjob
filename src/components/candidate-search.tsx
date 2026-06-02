@@ -49,8 +49,8 @@ export function CandidateSearch() {
     setDrawerOpen(true);
   }
 
-  const requestContact = useCallback(async () => {
-    if (!active) return false;
+  const requestContact = useCallback(async (): Promise<{ ok: boolean; matchId?: string }> => {
+    if (!active) return { ok: false };
     const res = await fetch("/api/matches", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,12 +59,15 @@ export function CandidateSearch() {
         introMessage: "Wir möchten Sie gerne kennenlernen.",
       }),
     });
-    if (!res.ok) {
-      const j = (await res.json().catch(() => ({}))) as { error?: string };
-      alert(j.error || "Anfrage fehlgeschlagen.");
-      return false;
+    const j = (await res.json().catch(() => ({}))) as { error?: string; matchId?: string };
+    if (res.status === 409) {
+      return { ok: true };
     }
-    return true;
+    if (!res.ok) {
+      alert(j.error || "Anfrage fehlgeschlagen.");
+      return { ok: false };
+    }
+    return { ok: true, matchId: j.matchId };
   }, [active]);
 
   return (

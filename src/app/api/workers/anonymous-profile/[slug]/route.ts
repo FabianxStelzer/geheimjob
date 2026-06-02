@@ -3,7 +3,7 @@ import { getEmployerEntitlements } from "@/lib/employer-billing";
 import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
 import { employerIsBlockedFromWorker } from "@/lib/platform";
 import { primaryWorkerPhotoUrl } from "@/lib/worker-profile-photos";
-import { workerHasCv } from "@/lib/cv-access";
+import { cvAccessUiState, workerHasCv } from "@/lib/cv-access";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -46,8 +46,32 @@ export async function GET(_req: Request, props: Params) {
   }
 
   const hasCv = workerHasCv(profile);
-  const showCvDraft =
-    profile.cvShareMode === "IMMEDIATE" && hasCv ? profile.cvDraftJson : null;
+
+  const existingMatch = await prisma.matchRequest.findFirst({
+    where: {
+      workerProfileId: profile.id,
+      employerProfileId: employer.id,
+      status: { in: ["PENDING", "ACCEPTED"] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const employerMatch = existingMatch
+    ? {
+        id: existingMatch.id,
+        status: existingMatch.status as "PENDING" | "ACCEPTED",
+        cvAccess: cvAccessUiState(existingMatch, profile),
+      }
+    : null;
+
+  let showCvDraft: string | null = null;
+  if (hasCv) {
+    if (profile.cvShareMode === "IMMEDIATE") {
+      showCvDraft = profile.cvDraftJson;
+    } else if (employerMatch?.cvAccess.canView) {
+      showCvDraft = profile.cvDraftJson;
+    }
+  }
 
   const out: PublicAnonymousProfile = {
     professionField: profile.professionField,
@@ -64,6 +88,7 @@ export async function GET(_req: Request, props: Params) {
     cvShareMode: profile.cvShareMode,
     hasCv,
     cvDraftJson: showCvDraft,
+    employerMatch,
   };
 
   return Response.json({ profile: out });
