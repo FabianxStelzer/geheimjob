@@ -7,7 +7,6 @@ import { CvShareModeSettings } from "@/components/cv-share-mode-settings";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
-import { WorkerSalaryFields } from "@/components/worker-salary-fields";
 import { parseWorkerProfilePhotos } from "@/lib/worker-profile-photos";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { CopyButton } from "@/components/copy-button";
@@ -78,13 +77,31 @@ export default async function WorkerProfilPage() {
             <span className="gj-label">Verfügbarkeit</span>
             <input name="availability" defaultValue={profile.availability} required className="gj-input" />
           </label>
-          <WorkerSalaryFields
-            salaryExpectation={profile.salaryExpectation}
-            salaryKind={profile.salaryKind}
-            taxClass={profile.taxClass}
-            churchTax={profile.churchTax}
-            federalState={profile.federalState}
-          />
+          <label>
+            <span className="gj-label">Gehaltswunsch (€/Monat)</span>
+            <input
+              name="salaryExpectation"
+              type="number"
+              defaultValue={profile.salaryExpectation ?? ""}
+              className="gj-input"
+              placeholder="5000"
+            />
+          </label>
+          <label>
+            <span className="gj-label">Angabe als</span>
+            <select name="salaryKind" className="gj-input" defaultValue={profile.salaryKind}>
+              <option value="BRUTTO">Brutto</option>
+              <option value="NETTO">Netto</option>
+            </select>
+          </label>
+          <div className="md:col-span-2">
+            <Link
+              href="/dashboard/worker/gehalt"
+              className="text-sm text-[var(--gj-primary)] hover:underline"
+            >
+              Netto-Schätzung für die Job-Suche einrichten →
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="salaryPublic" defaultChecked={profile.salaryPublic} />

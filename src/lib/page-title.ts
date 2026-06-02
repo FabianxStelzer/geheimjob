@@ -3,6 +3,7 @@ const map: Record<string, string> = {
   "/dashboard/worker": "Job-Suche",
   "/dashboard/worker/anfragen": "Bewerbungen",
   "/dashboard/worker/nachrichten": "Nachrichten",
+  "/dashboard/worker/gehalt": "Gehalt & Steuern",
   "/dashboard/worker/profil": "Profil",
   "/dashboard/worker/referral": "Referral",
   "/dashboard/worker/ausschluesse": "Profil · Ausschlüsse",

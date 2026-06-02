@@ -281,8 +281,8 @@ export default function WorkerJobExplorer({
         <ul className="flex flex-col gap-6">
           {!hasNetCalcSettings(netCalcSettings) ? (
             <li className="gj-card border border-[var(--gj-border)] bg-[var(--gj-primary-softer)]/30 px-4 py-3 text-sm text-[var(--gj-text-secondary)]">
-              <Link href="/dashboard/worker/profil" className="font-medium text-[var(--gj-primary)] hover:underline">
-                Steuerdaten im Profil hinterlegen
+              <Link href="/dashboard/worker/gehalt" className="font-medium text-[var(--gj-primary)] hover:underline">
+                Steuerdaten unter Gehalt & Steuern hinterlegen
               </Link>
               , um bei Brutto-Gehältern automatisch eine Netto-Schätzung (ca.) zu sehen.
             </li>
