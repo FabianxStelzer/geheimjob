@@ -5,6 +5,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const role = req.auth?.user?.role;
 
+  if (pathname === "/login" && req.auth?.user) {
+    const callback = req.nextUrl.searchParams.get("callbackUrl");
+    const dest = callback?.startsWith("/") ? callback : "/dashboard";
+    return NextResponse.redirect(new URL(dest, req.nextUrl.origin));
+  }
+
   if (!req.auth && pathname.startsWith("/dashboard")) {
     const login = new URL("/login", req.nextUrl.origin);
     login.searchParams.set("callbackUrl", pathname);
@@ -40,5 +46,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/login"],
 };

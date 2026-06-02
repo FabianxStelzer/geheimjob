@@ -1,13 +1,22 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { auth } from "@/auth";
 import { BrandLogo } from "@/components/brand-logo";
 import LoginForm from "./login-form";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ registered?: string }>;
+  searchParams: Promise<{ registered?: string; callbackUrl?: string }>;
 }) {
+  const session = await auth();
   const sp = await searchParams;
+
+  if (session?.user) {
+    const target = sp.callbackUrl?.startsWith("/") ? sp.callbackUrl : "/dashboard";
+    redirect(target);
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--gj-bg)]">
@@ -24,7 +33,9 @@ export default async function LoginPage({
             </p>
           ) : null}
 
-          <LoginForm />
+          <Suspense fallback={<p className="text-sm text-[var(--gj-muted)]">Laden…</p>}>
+            <LoginForm />
+          </Suspense>
 
           <p className="mt-8 text-center text-xs text-[var(--gj-muted)]">
             <Link href="/datenschutz" className="hover:text-[var(--gj-primary)]">

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -15,24 +17,58 @@ export default function LoginForm() {
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") || "");
     const password = String(fd.get("password") || "");
-    const res = await signIn("credentials", { email, password, redirect: false });
-    setPending(false);
-    if (res?.error) {
-      setError("Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");
-      return;
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (!res || res.error) {
+        setError("Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");
+        setPending(false);
+        return;
+      }
+
+      // Vollständiger Reload, damit Session-Cookie sicher gesetzt ist
+      window.location.assign(callbackUrl.startsWith("/") ? callbackUrl : "/dashboard");
+    } catch {
+      setError("Anmeldung fehlgeschlagen. Bitte später erneut versuchen.");
+      setPending(false);
     }
-    window.location.href = "/dashboard";
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div>
-        <label className="gj-label" htmlFor="login-email">E-Mail</label>
-        <input id="login-email" name="email" type="email" autoComplete="email" required className="gj-input" placeholder="name@beispiel.de" />
+        <label className="gj-label" htmlFor="login-email">
+          E-Mail
+        </label>
+        <input
+          id="login-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          className="gj-input"
+          placeholder="name@beispiel.de"
+        />
       </div>
       <div>
-        <label className="gj-label" htmlFor="login-password">Passwort</label>
-        <input id="login-password" name="password" type="password" autoComplete="current-password" required className="gj-input" placeholder="••••••••" />
+        <label className="gj-label" htmlFor="login-password">
+          Passwort
+        </label>
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          className="gj-input"
+          placeholder="••••••••"
+        />
       </div>
 
       {error ? (

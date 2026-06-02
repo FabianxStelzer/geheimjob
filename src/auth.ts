@@ -42,14 +42,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        token.role = user.role;
-      } else if (token.sub) {
+      const userId =
+        (user as { id?: string } | undefined)?.id ?? (token.sub as string | undefined);
+
+      if (userId) {
+        token.sub = userId;
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub as string },
+          where: { id: userId },
           select: { role: true, deletedAt: true },
         });
         if (dbUser && !dbUser.deletedAt) {
