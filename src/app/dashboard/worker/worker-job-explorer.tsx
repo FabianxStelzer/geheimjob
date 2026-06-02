@@ -282,10 +282,8 @@ export default function WorkerJobExplorer({
           {jobs.map((job) => (
             <li key={job.id} className="w-full">
               <article
-                className={`gj-card relative overflow-hidden p-5 md:p-7 ${
-                  job.highlighted
-                    ? "border-2 border-[var(--gj-primary)] shadow-[0_8px_28px_rgba(13,148,136,0.22)] ring-2 ring-[var(--gj-primary)]/15"
-                    : "border border-[var(--gj-border)] shadow-sm"
+                className={`relative p-5 md:p-7 ${
+                  job.highlighted ? "gj-card--highlighted-job" : "gj-card overflow-hidden"
                 }`}
               >
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start">

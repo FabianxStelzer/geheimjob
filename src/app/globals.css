@@ -173,6 +173,16 @@ h4 {
   transform: translateY(-3px);
 }
 
+/* Hervorgehobene Stellenanzeige (Job-Suche) — überschreibt .gj-card-Rand */
+.gj-card--highlighted-job {
+  border: 2px solid var(--gj-primary) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gj-primary) 20%, transparent),
+    0 10px 36px rgba(13, 148, 136, 0.28) !important;
+  background: var(--gj-surface);
+  border-radius: var(--gj-radius-lg);
+}
+
 /* === Buttons === */
 .gj-btn-primary {
   display: inline-flex;

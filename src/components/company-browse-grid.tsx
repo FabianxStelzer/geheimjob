@@ -34,10 +34,12 @@ export function CompanyBrowseGrid({ companies }: { companies: CompanyBrowseItem[
           <Link
             key={c.id}
             href={`/dashboard/worker/unternehmen/${c.publicSlug}`}
-            className="gj-card gj-card-interactive block overflow-hidden p-5 transition hover:shadow-md"
+            className="group gj-card gj-card-interactive relative block overflow-hidden p-5 transition hover:shadow-md"
           >
-            {c.isNew && c.publishedJobsCount > 0 ? (
-              <div className="gj-ribbon">Stellen offen</div>
+            {c.publishedJobsCount > 0 ? (
+              <div className="gj-ribbon pointer-events-none transition-opacity duration-200 group-hover:opacity-0">
+                Stellen offen
+              </div>
             ) : null}
             <div className="flex items-start gap-4">
               {c.logoUrl ? (

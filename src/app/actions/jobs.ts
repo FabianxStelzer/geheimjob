@@ -36,8 +36,8 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const richDescription = String(formData.get("richDescription") || "").trim();
   const publishedRaw = formData.get("published");
   const published = publishedRaw === "on" || publishedRaw === "true";
-  const highlightedRaw = formData.get("highlighted");
-  const highlighted = highlightedRaw === "on" || highlightedRaw === "true";
+  const highlightedRequested =
+    formData.get("highlighted") === "on" || formData.get("highlighted") === "true";
 
   if (!title || title.length > 280) return;
   if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
@@ -50,6 +50,8 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
       where: { id, employerProfileId: emp.id },
     });
     if (!existing) return;
+
+    const highlighted = allowHighlight ? highlightedRequested : existing.highlighted;
 
     const newlyPublishing = published && !existing.published;
     if (newlyPublishing) {
@@ -72,7 +74,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         employmentKind,
         richDescription,
         published,
-        highlighted: allowHighlight && highlighted,
+        highlighted,
       },
     });
     if (newlyPublishing) {
@@ -105,7 +107,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         employmentKind,
         richDescription,
         published,
-        highlighted: allowHighlight && highlighted,
+        highlighted: allowHighlight && highlightedRequested,
       },
     });
     if (published) {
