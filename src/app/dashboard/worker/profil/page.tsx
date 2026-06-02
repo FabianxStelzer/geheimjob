@@ -8,8 +8,9 @@ import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
 import { parseWorkerProfilePhotos } from "@/lib/worker-profile-photos";
-import { DeleteAccountButton } from "@/components/delete-account-button";
 import { CopyButton } from "@/components/copy-button";
+import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
+import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
 
 export default async function WorkerProfilPage() {
   const session = await auth();
@@ -75,7 +76,24 @@ export default async function WorkerProfilPage() {
           </label>
           <label>
             <span className="gj-label">Verfügbarkeit</span>
-            <input name="availability" defaultValue={profile.availability} required className="gj-input" />
+            <select name="availability" required className="gj-input" defaultValue={profile.availability}>
+              {WORKER_AVAILABILITY_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="gj-label">Beschäftigungsart</span>
+            <select name="employmentKind" className="gj-input" defaultValue={profile.employmentKind ?? ""}>
+              <option value="">Nicht angegeben</option>
+              {EMPLOYMENT_KIND_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             <span className="gj-label">Gehaltswunsch (€/Monat)</span>
@@ -175,11 +193,13 @@ export default async function WorkerProfilPage() {
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold text-rose-700">Konto löschen</h2>
+        <h2 className="mb-1 text-base font-semibold">Konto</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Zugangsdaten anonymisieren und Profil bereinigen.
+          Einstellungen, Datenschutz und Kontolöschung finden Sie unter Einstellungen (Avatar oben rechts).
         </p>
-        <DeleteAccountButton />
+        <Link href="/dashboard/einstellungen" className="gj-btn-ghost text-sm">
+          Zu den Einstellungen
+        </Link>
       </section>
     </div>
   );

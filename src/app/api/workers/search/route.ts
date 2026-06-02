@@ -32,6 +32,7 @@ export async function GET(req: Request) {
   const professionField = searchParams.get("professionField") || undefined;
   const region = searchParams.get("region") || undefined;
   const availability = searchParams.get("availability") || undefined;
+  const employmentKind = searchParams.get("employmentKind") || undefined;
   const salaryRange = parseSalaryRange(searchParams.get("salary"));
 
   const workers = await prisma.workerProfile.findMany({
@@ -43,6 +44,7 @@ export async function GET(req: Request) {
         : {}),
       ...(region ? { region: { contains: region } } : {}),
       ...(availability ? { availability: { contains: availability } } : {}),
+      ...(employmentKind ? { employmentKind: { contains: employmentKind } } : {}),
       ...(salaryRange ? { salaryExpectation: salaryRange } : {}),
     },
     orderBy: { updatedAt: "desc" },
@@ -66,6 +68,7 @@ export async function GET(req: Request) {
       experienceYears: w.experienceYears,
       region: w.region,
       availability: w.availability,
+      employmentKind: w.employmentKind,
       salaryExpectation: w.salaryPublic ? w.salaryExpectation : null,
       anonymousSlug: w.anonymousSlug,
       bioPreview: w.bio ? w.bio.slice(0, 160) : null,

@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 const slugNano = customAlphabet("23456789abcdefghjkmnpqrstuvwxyz", 12);
 
 import { normalizeWebsiteDomain } from "@/lib/employer-block-match";
+import { isValidEmploymentKind } from "@/lib/employment-kinds";
 
 export async function addEmployerBlock(formData: FormData): Promise<void> {
   const session = await auth();
@@ -65,6 +66,8 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
   const professionField = String(formData.get("professionField") || "").trim();
   const region = String(formData.get("region") || "").trim();
   const availability = String(formData.get("availability") || "").trim();
+  const employmentKindRaw = String(formData.get("employmentKind") || "").trim();
+  const employmentKind = employmentKindRaw || null;
   const experienceYears = Number(formData.get("experienceYears") || 0);
   const salaryExpectation = formData.get("salaryExpectation")
     ? Number(formData.get("salaryExpectation"))
@@ -80,6 +83,7 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
     String(formData.get("socialWebsite") || "").trim() || null;
   const profileVisible = formData.get("profileVisible") === "on";
   if (!displayName || !professionField || !region || !availability) return;
+  if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
 
   await prisma.workerProfile.update({
     where: { userId: session.user.id },
@@ -88,6 +92,7 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       professionField,
       region,
       availability,
+      employmentKind,
       experienceYears: Number.isFinite(experienceYears) ? experienceYears : 0,
       salaryExpectation:
         salaryExpectation && Number.isFinite(salaryExpectation)
@@ -152,6 +157,8 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
   const openPositionsNote =
     String(formData.get("openPositionsNote") || "").trim() || null;
   const logoUrl = String(formData.get("logoUrl") || "").trim() || null;
+  const companyDescription =
+    String(formData.get("companyDescription") || "").trim() || null;
 
   if (!companyName || !industry || !region || !contactName) return;
 
@@ -167,12 +174,14 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
       website,
       openPositionsNote,
       logoUrl,
+      companyDescription,
     },
   });
 
   revalidatePath("/dashboard/employer/profil");
   revalidatePath("/dashboard/employer/stellen");
   revalidatePath("/dashboard/worker");
+  revalidatePath("/dashboard/worker/unternehmen");
 }
 
 export async function regenerateAnonymousSlug(): Promise<void> {

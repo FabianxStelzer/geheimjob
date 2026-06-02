@@ -6,6 +6,7 @@ import { signIn } from "@/auth";
 import { notifyPremiumEmployersOnNewTalent } from "@/lib/billing-notifications";
 import { prisma } from "@/lib/prisma";
 import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
+import { isValidEmploymentKind } from "@/lib/employment-kinds";
 
 function parseCheckbox(formData: FormData, key: string) {
   return formData.get(key) === "on";
@@ -22,6 +23,8 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
   const professionField = String(formData.get("professionField") || "").trim();
   const region = String(formData.get("region") || "").trim();
   const availability = String(formData.get("availability") || "").trim();
+  const employmentKindRaw = String(formData.get("employmentKind") || "").trim();
+  const employmentKind = employmentKindRaw || null;
   const experienceYears = Number(formData.get("experienceYears") || 0);
   const salaryExpectation = formData.get("salaryExpectation")
     ? Number(formData.get("salaryExpectation"))
@@ -42,6 +45,8 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
     return { error: "Bitte alle Pflichtfelder ausfüllen." };
   if (!availabilityOptions.has(availability))
     return { error: "Bitte eine gültige Verfügbarkeit wählen." };
+  if (employmentKind && !isValidEmploymentKind(employmentKind))
+    return { error: "Bitte eine gültige Beschäftigungsart wählen." };
 
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) return { error: "Diese E-Mail ist bereits registriert." };
@@ -75,6 +80,7 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
               : null,
           salaryPublic,
           availability,
+          employmentKind,
           bio,
         },
       },

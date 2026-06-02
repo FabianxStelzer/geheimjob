@@ -106,6 +106,7 @@ model WorkerProfile {
   photoUrl          String?
   profilePhotosJson String?
   professionField   String
+  employmentKind    String?
   experienceYears   Int
   region            String
   salaryExpectation Int?
@@ -136,10 +137,12 @@ model EmployerProfile {
   id                String   @id @default(cuid())
   userId            String   @unique
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicSlug        String   @unique @default(cuid())
   companyName       String
   logoUrl           String?
   industry          String
   region            String
+  companyDescription String?
   contactName       String
   contactPhone      String?
   website           String?
@@ -178,6 +181,7 @@ model JobPosting {
   targetIncomeKind  IncomeKind @default(BRUTTO)
   workModeHint      String?
   weeklyHoursHint   String?
+  employmentKind    String?
   published         Boolean         @default(false)
   highlighted       Boolean         @default(false)
   detailViewCount   Int             @default(0)

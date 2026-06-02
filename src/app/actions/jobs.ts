@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { notifyWorkersOnNewJob } from "@/lib/billing-notifications";
 import { canPublishAnotherJob, getEmployerEntitlements } from "@/lib/employer-billing";
 import { prisma } from "@/lib/prisma";
+import { isValidEmploymentKind } from "@/lib/employment-kinds";
 
 async function employerProfileFromSession() {
   const session = await auth();
@@ -30,6 +31,8 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const targetIncomeKind = targetIncomeKindRaw === "NETTO" ? "NETTO" : "BRUTTO";
   const workModeHint = String(formData.get("workModeHint") || "").trim() || null;
   const weeklyHoursHint = String(formData.get("weeklyHoursHint") || "").trim() || null;
+  const employmentKindRaw = String(formData.get("employmentKind") || "").trim();
+  const employmentKind = employmentKindRaw || null;
   const richDescription = String(formData.get("richDescription") || "").trim();
   const publishedRaw = formData.get("published");
   const published = publishedRaw === "on" || publishedRaw === "true";
@@ -37,6 +40,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const highlighted = highlightedRaw === "on" || highlightedRaw === "true";
 
   if (!title || title.length > 280) return;
+  if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
 
   const ent = await getEmployerEntitlements(emp.userId);
   const allowHighlight = ent.canHighlightJobs;
@@ -65,6 +69,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         targetIncomeKind,
         workModeHint,
         weeklyHoursHint,
+        employmentKind,
         richDescription,
         published,
         highlighted: allowHighlight && highlighted,
@@ -97,6 +102,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         targetIncomeKind,
         workModeHint,
         weeklyHoursHint,
+        employmentKind,
         richDescription,
         published,
         highlighted: allowHighlight && highlighted,

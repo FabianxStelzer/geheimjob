@@ -92,11 +92,7 @@ export default async function EmployerAnfragenPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-3xl text-sm text-[var(--gj-muted)]">
-          Karte anklicken: Kandidat und Stellenanzeige im Seitenfenster. Pipeline-Stufen steuern Sie dort —
-          keine zusätzliche Seite nötig.
-        </p>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <Link href="/dashboard/employer/stellen" className="gj-btn-ghost text-sm">
           Stellen
         </Link>

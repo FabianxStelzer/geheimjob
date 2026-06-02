@@ -3,6 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { GiftIcon, UsersIcon } from "@/components/icons";
 import { CopyButton } from "@/components/copy-button";
 
+const STATUS_LABELS: Record<string, string> = {
+  REGISTERED: "Registriert",
+  BONUS_PENDING: "Bonus ausstehend",
+  BONUS_PAID: "Bonus ausgezahlt",
+};
+
 export default async function ReferralPage() {
   const session = await auth();
   if (!session?.user) return null;
@@ -10,6 +16,13 @@ export default async function ReferralPage() {
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   const referrals = await prisma.referralReward.findMany({
     where: { referrerUserId: session.user.id },
+    include: {
+      referred: {
+        include: {
+          workerProfile: { select: { displayName: true } },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -25,7 +38,7 @@ export default async function ReferralPage() {
               <GiftIcon className="h-6 w-6 text-white" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-2xl font-semibold">Empfehlen &amp; Bonus erhalten</h2>
+              <h2 className="text-2xl font-semibold !text-white">Empfehlen &amp; Bonus erhalten</h2>
               <p className="mt-2 max-w-xl text-sm text-white/85">
                 Teilen Sie Ihren persönlichen Link mit Kolleg:innen. Sobald sie sich registrieren,
                 wird ein Bonus auf Ihr Konto vermerkt.
@@ -56,19 +69,24 @@ export default async function ReferralPage() {
           </p>
         ) : (
           <ul className="divide-y divide-[var(--gj-border)]">
-            {referrals.map((r) => (
-              <li key={r.id} className="flex items-center justify-between py-3">
-                <div className="text-sm">
-                  <p className="font-medium text-[var(--gj-text)]">{r.referredUserId.slice(0, 12)}…</p>
-                  <p className="text-xs text-[var(--gj-muted)]">{r.createdAt.toLocaleDateString("de-DE")}</p>
-                </div>
-                <span className="gj-chip gj-chip-success">{r.status}</span>
-              </li>
-            ))}
+            {referrals.map((r) => {
+              const name = r.referred.workerProfile?.displayName ?? "Unbekannt";
+              const statusLabel = STATUS_LABELS[r.status] ?? r.status;
+              return (
+                <li key={r.id} className="flex items-center justify-between py-3">
+                  <div className="text-sm">
+                    <p className="font-medium text-[var(--gj-text)]">{name}</p>
+                    <p className="text-xs text-[var(--gj-muted)]">
+                      {r.createdAt.toLocaleDateString("de-DE")}
+                    </p>
+                  </div>
+                  <span className="gj-chip gj-chip-success">{statusLabel}</span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
     </div>
   );
 }
-

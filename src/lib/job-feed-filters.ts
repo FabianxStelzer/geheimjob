@@ -5,8 +5,7 @@ export type JobFeedFilters = {
   region: string;
   industry: string;
   workMode: string;
-  tag: string;
-  onlyHighlighted: boolean;
+  employmentKind: string;
 };
 
 export function emptyJobFeedFilters(): JobFeedFilters {
@@ -15,8 +14,7 @@ export function emptyJobFeedFilters(): JobFeedFilters {
     region: "",
     industry: "",
     workMode: "",
-    tag: "",
-    onlyHighlighted: false,
+    employmentKind: "",
   };
 }
 
@@ -24,13 +22,13 @@ export function jobFeedFilterOptions(jobs: JobFeedItem[]) {
   const regions = new Set<string>();
   const industries = new Set<string>();
   const workModes = new Set<string>();
-  const tags = new Set<string>();
+  const employmentKinds = new Set<string>();
 
   for (const j of jobs) {
     if (j.employer.region) regions.add(j.employer.region);
     if (j.employer.industry) industries.add(j.employer.industry);
     if (j.workModeHint) workModes.add(j.workModeHint);
-    for (const t of j.tags) tags.add(t);
+    if (j.employmentKind) employmentKinds.add(j.employmentKind);
   }
 
   const sort = (a: string, b: string) => a.localeCompare(b, "de");
@@ -38,7 +36,7 @@ export function jobFeedFilterOptions(jobs: JobFeedItem[]) {
     regions: [...regions].sort(sort),
     industries: [...industries].sort(sort),
     workModes: [...workModes].sort(sort),
-    tags: [...tags].sort(sort),
+    employmentKinds: [...employmentKinds].sort(sort),
   };
 }
 
@@ -47,18 +45,19 @@ export function filterJobFeedItems(jobs: JobFeedItem[], f: JobFeedFilters): JobF
   const region = f.region.trim().toLowerCase();
   const industry = f.industry.trim().toLowerCase();
   const workMode = f.workMode.trim().toLowerCase();
-  const tag = f.tag.trim().toLowerCase();
+  const employmentKind = f.employmentKind.trim().toLowerCase();
 
   return jobs.filter((job) => {
-    if (f.onlyHighlighted && !job.highlighted) return false;
-
     if (region && !job.employer.region.toLowerCase().includes(region)) return false;
     if (industry && !job.employer.industry.toLowerCase().includes(industry)) return false;
     if (workMode) {
       const wm = (job.workModeHint ?? "").toLowerCase();
       if (!wm.includes(workMode)) return false;
     }
-    if (tag && !job.tags.some((t) => t.toLowerCase().includes(tag))) return false;
+    if (employmentKind) {
+      const ek = (job.employmentKind ?? "").toLowerCase();
+      if (!ek.includes(employmentKind)) return false;
+    }
 
     if (q) {
       const haystack = [
@@ -69,6 +68,7 @@ export function filterJobFeedItems(jobs: JobFeedItem[], f: JobFeedFilters): JobF
         job.employer.region,
         job.workModeHint,
         job.weeklyHoursHint,
+        job.employmentKind,
         job.productCostHint,
         job.commissionHint,
         job.targetIncomeHint,

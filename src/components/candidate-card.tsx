@@ -9,6 +9,7 @@ export type CandidateCardData = {
   experienceYears: number;
   region: string;
   availability: string;
+  employmentKind: string | null;
   salaryExpectation: number | null;
   anonymousSlug: string;
   bioPreview: string | null;
@@ -83,6 +84,9 @@ export function CandidateCard({
           <span className="gj-chip gj-chip-neutral text-[11px]">
             <ClockIcon /> {data.availability}
           </span>
+          {data.employmentKind ? (
+            <span className="gj-chip gj-chip-neutral text-[11px]">{data.employmentKind}</span>
+          ) : null}
           {data.salaryExpectation != null ? (
             <span className="gj-chip gj-chip-neutral text-[11px]">
               <EuroIcon /> {data.salaryExpectation.toLocaleString("de-DE")} €

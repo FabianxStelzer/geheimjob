@@ -77,8 +77,7 @@ export default function WorkerJobExplorer({
     if (filters.region) n++;
     if (filters.industry) n++;
     if (filters.workMode) n++;
-    if (filters.tag) n++;
-    if (filters.onlyHighlighted) n++;
+    if (filters.employmentKind) n++;
     return n;
   }, [filters]);
 
@@ -248,32 +247,19 @@ export default function WorkerJobExplorer({
               </select>
             </label>
             <label>
-              <span className="gj-label">Tag</span>
+              <span className="gj-label">Beschäftigungsart</span>
               <select
                 className="gj-input"
-                value={filters.tag}
-                onChange={(e) => setFilters((f) => ({ ...f, tag: e.target.value }))}
+                value={filters.employmentKind}
+                onChange={(e) => setFilters((f) => ({ ...f, employmentKind: e.target.value }))}
               >
-                <option value="">Alle Tags</option>
-                {filterOptions.tags.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                <option value="">Alle Arten</option>
+                {filterOptions.employmentKinds.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="flex items-end gap-2 pb-1 md:col-span-2">
-              <input
-                id="only-highlighted"
-                type="checkbox"
-                checked={filters.onlyHighlighted}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, onlyHighlighted: e.target.checked }))
-                }
-              />
-              <span className="text-sm text-[var(--gj-text-secondary)]">
-                Nur hervorgehobene Stellen
-              </span>
             </label>
           </div>
         ) : null}
@@ -293,18 +279,18 @@ export default function WorkerJobExplorer({
               , um bei Brutto-Gehältern automatisch eine Netto-Schätzung (ca.) zu sehen.
             </li>
           ) : null}
-          {jobs.map((job, idx) => (
+          {jobs.map((job) => (
             <li key={job.id} className="w-full">
               <article
-                className={`gj-card relative overflow-hidden p-5 shadow-md md:p-7 ${
+                className={`gj-card relative overflow-hidden p-5 md:p-7 ${
                   job.highlighted
-                    ? "border-2 border-[var(--gj-primary)] ring-2 ring-[var(--gj-primary)]/20"
-                    : "border-2 border-[var(--gj-primary)]/25"
+                    ? "border-2 border-[var(--gj-primary)] shadow-[0_8px_28px_rgba(13,148,136,0.22)] ring-2 ring-[var(--gj-primary)]/15"
+                    : "border border-[var(--gj-border)] shadow-sm"
                 }`}
               >
-                {idx < 2 ? (
+                {job.highlighted ? (
                   <div className="gj-ribbon" style={{ top: 22, left: -36 }}>
-                    Top
+                    Hervorgehoben
                   </div>
                 ) : null}
 
@@ -321,8 +307,13 @@ export default function WorkerJobExplorer({
                           <span className="gj-chip gj-chip-solid text-[10px] uppercase">Neu</span>
                         </div>
                         <p className="mt-1 text-sm font-medium text-[var(--gj-muted)]">
-                          <span className="text-[var(--gj-text)]">{job.employer.companyName}</span> ·{" "}
-                          {job.employer.industry}
+                          <Link
+                            href={`/dashboard/worker/unternehmen/${job.employer.publicSlug}`}
+                            className="text-[var(--gj-text)] hover:text-[var(--gj-primary)] hover:underline"
+                          >
+                            {job.employer.companyName}
+                          </Link>{" "}
+                          · {job.employer.industry}
                         </p>
                       </div>
                       <button
@@ -348,6 +339,9 @@ export default function WorkerJobExplorer({
                       </span>
                       {job.workModeHint ? (
                         <span className="gj-chip gj-chip-neutral">{job.workModeHint}</span>
+                      ) : null}
+                      {job.employmentKind ? (
+                        <span className="gj-chip gj-chip-neutral">{job.employmentKind}</span>
                       ) : null}
                       {job.weeklyHoursHint ? (
                         <span className="gj-chip gj-chip-neutral">
@@ -402,7 +396,14 @@ export default function WorkerJobExplorer({
             <div className="flex gap-3">
               <EmployerLogo name={detail.employer.companyName} logoUrl={detail.employer.logoUrl} />
               <div>
-                <p className="font-semibold text-[var(--gj-text)]">{detail.employer.companyName}</p>
+                <p className="font-semibold text-[var(--gj-text)]">
+                  <Link
+                    href={`/dashboard/worker/unternehmen/${detail.employer.publicSlug}`}
+                    className="hover:text-[var(--gj-primary)] hover:underline"
+                  >
+                    {detail.employer.companyName}
+                  </Link>
+                </p>
                 <p className="text-sm text-[var(--gj-muted)]">
                   Ansprechpartner: {detail.employer.contactName}
                 </p>

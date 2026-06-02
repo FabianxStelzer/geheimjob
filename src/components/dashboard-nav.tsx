@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BriefcaseIcon,
+  BuildingIcon,
   ChatIcon,
   EuroIcon,
   GiftIcon,
@@ -23,6 +24,7 @@ type NavItem = {
 
 const workerNav: NavItem[] = [
   { href: "/dashboard/worker", label: "Job-Suche", Icon: BriefcaseIcon },
+  { href: "/dashboard/worker/unternehmen", label: "Unternehmen", Icon: BuildingIcon },
   { href: "/dashboard/worker/anfragen", label: "Bewerbungen", Icon: SendIcon },
   { href: "/dashboard/worker/nachrichten", label: "Nachrichten", Icon: ChatIcon },
   { href: "/dashboard/worker/gehalt", label: "Gehalt & Steuern", Icon: EuroIcon },
@@ -60,6 +62,10 @@ function isActive(pathname: string, href: string) {
     return p === h || p.startsWith(`${h}?`);
   }
 
+  if (h === "/dashboard/worker/unternehmen") {
+    return p === h || p.startsWith(`${h}/`);
+  }
+
   if (h === "/dashboard/worker/nachrichten" && p.startsWith("/dashboard/worker/chat")) return true;
   if (h === "/dashboard/employer/nachrichten" && p.startsWith("/dashboard/employer/chat")) return true;
 
@@ -77,20 +83,27 @@ function isActive(pathname: string, href: string) {
   return p === h || p.startsWith(`${h}/`);
 }
 
-function NavLink({ href, label, Icon }: NavItem) {
+function NavLink({ href, label, Icon, collapsed }: NavItem & { collapsed?: boolean }) {
   const pathname = usePathname();
   return (
-    <Link href={href} className="gj-nav-pill" data-active={isActive(pathname, href)}>
+    <Link
+      href={href}
+      className="gj-nav-pill"
+      data-active={isActive(pathname, href)}
+      title={collapsed ? label : undefined}
+    >
       <Icon />
-      <span>{label}</span>
+      {!collapsed ? <span>{label}</span> : null}
     </Link>
   );
 }
 
 export function DashboardNav({
   role,
+  collapsed,
 }: {
   role: string | undefined;
+  collapsed?: boolean;
 }) {
   const items =
     role === "WORKER" ? workerNav : role === "EMPLOYER" ? employerNav : role === "ADMIN" ? adminNav : [];
@@ -98,7 +111,7 @@ export function DashboardNav({
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => (
-        <NavLink key={item.href} {...item} />
+        <NavLink key={item.href} {...item} collapsed={collapsed} />
       ))}
     </nav>
   );

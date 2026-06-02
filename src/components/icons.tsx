@@ -12,6 +12,15 @@ export function BriefcaseIcon({ className = "" }: IconProps) {
   );
 }
 
+export function BuildingIcon({ className = "" }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`${base} ${className}`}>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01M9 18h6" />
+    </svg>
+  );
+}
+
 export function ChatIcon({ className = "" }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`${base} ${className}`}>

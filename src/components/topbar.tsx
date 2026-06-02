@@ -76,6 +76,13 @@ export function Topbar({
                   {role ?? "—"}
                 </p>
               </div>
+              <Link
+                href="/dashboard/einstellungen"
+                className="block px-3 py-2 text-sm text-[var(--gj-text)] transition-colors hover:bg-[var(--gj-primary-softer)] hover:text-[var(--gj-primary)]"
+                onClick={() => setOpen(false)}
+              >
+                Einstellungen
+              </Link>
               <button
                 type="button"
                 onClick={() => void signOut({ callbackUrl: "/login" })}

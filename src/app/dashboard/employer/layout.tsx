@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
@@ -37,19 +37,7 @@ export default async function EmployerDashboardLayout({
             Jetzt Paket wählen
           </Link>
         </div>
-      ) : (
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--gj-muted)]">
-          <span className="gj-chip gj-chip-solid">{ent.planName}</span>
-          {ent.canPublishJobs ? (
-            <span>
-              Stellen: {ent.publishedJobsCount}/{ent.maxPublishedJobs}
-            </span>
-          ) : (
-            <span>Nur Talentpool (keine Stellen)</span>
-          )}
-          {ent.contactAll ? <span className="gj-chip">Alle kontaktieren</span> : null}
-        </div>
-      )}
+      ) : null}
       {children}
     </>
   );

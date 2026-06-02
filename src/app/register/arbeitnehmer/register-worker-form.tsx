@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { registerWorkerAction } from "@/app/actions/register";
 import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
+import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
 
 export function RegisterWorkerForm({ referralCode }: { referralCode?: string }) {
   const [state, action, pending] = useActionState(registerWorkerAction, {});
@@ -57,6 +58,17 @@ export function RegisterWorkerForm({ referralCode }: { referralCode?: string }) 
             Bitte wählen…
           </option>
           {WORKER_AVAILABILITY_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block">
+        <span className="gj-label">Beschäftigungsart</span>
+        <select name="employmentKind" className="gj-input" defaultValue="">
+          <option value="">Bitte wählen… (optional)</option>
+          {EMPLOYMENT_KIND_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>

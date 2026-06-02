@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateEmployerProfile } from "@/app/actions/dashboard";
-import { DeleteAccountButton } from "@/components/delete-account-button";
+import Link from "next/link";
 
 export default async function EmployerProfilPage() {
   const session = await auth();
@@ -54,6 +54,16 @@ export default async function EmployerProfilPage() {
             <input name="website" defaultValue={profile.website ?? ""} className="gj-input" />
           </label>
           <label className="md:col-span-2">
+            <span className="gj-label">Über das Unternehmen</span>
+            <textarea
+              name="companyDescription"
+              rows={5}
+              defaultValue={profile.companyDescription ?? ""}
+              className="gj-textarea"
+              placeholder="Was macht Ihr Unternehmen? Kultur, Benefits, Standorte…"
+            />
+          </label>
+          <label className="md:col-span-2">
             <span className="gj-label">Offene Stellen / Hinweis</span>
             <textarea name="openPositionsNote" rows={4} defaultValue={profile.openPositionsNote ?? ""} className="gj-textarea" />
           </label>
@@ -64,11 +74,13 @@ export default async function EmployerProfilPage() {
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold text-rose-700">Konto löschen</h2>
+        <h2 className="mb-1 text-base font-semibold">Konto</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Zugangsdaten anonymisieren und Profil bereinigen.
+          Einstellungen, Datenschutz und Kontolöschung finden Sie unter Einstellungen (Avatar oben rechts).
         </p>
-        <DeleteAccountButton />
+        <Link href="/dashboard/einstellungen" className="gj-btn-ghost text-sm">
+          Zu den Einstellungen
+        </Link>
       </section>
     </div>
   );

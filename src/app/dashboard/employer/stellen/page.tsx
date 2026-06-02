@@ -5,6 +5,7 @@ import { deleteJobPosting, upsertJobPosting } from "@/app/actions/jobs";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
 import { getEmployerJobPostingStats } from "@/lib/job-posting-stats";
 import { JobStatsCompact, JobStatsGrid } from "@/components/job-posting-stats";
+import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
 
 export default async function EmployerStellenPage() {
   const session = await auth();
@@ -26,9 +27,14 @@ export default async function EmployerStellenPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Stellenanzeigen</h1>
           <p className="mt-1 text-sm text-[var(--gj-muted)]">
-            {ent.canPublishJobs
-              ? `${ent.publishedJobsCount} / ${ent.maxPublishedJobs} veröffentlicht · Paket ${ent.planName}`
-              : "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."}
+            {ent.canPublishJobs ? (
+              <>
+                <span className="gj-chip gj-chip-solid mr-2">{ent.planName}</span>
+                Stellen: {ent.publishedJobsCount} / {ent.maxPublishedJobs} veröffentlicht
+              </>
+            ) : (
+              "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."
+            )}
           </p>
         </div>
         {employer.jobPostings.length > 0 ? (
@@ -135,6 +141,7 @@ export default async function EmployerStellenPage() {
                           targetIncomeKind: j.targetIncomeKind,
                           workModeHint: j.workModeHint,
                           weeklyHoursHint: j.weeklyHoursHint,
+                          employmentKind: j.employmentKind,
                           richDescription: j.richDescription,
                           published: j.published,
                           highlighted: j.highlighted,
@@ -168,6 +175,7 @@ function JobForm({
     targetIncomeKind: "BRUTTO" | "NETTO";
     workModeHint: string | null;
     weeklyHoursHint: string | null;
+    employmentKind: string | null;
     richDescription: string;
     published: boolean;
     highlighted: boolean;
@@ -224,6 +232,17 @@ function JobForm({
         <label>
           <span className="gj-label">Arbeitsmodell</span>
           <input name="workModeHint" className="gj-input" defaultValue={job?.workModeHint ?? ""} placeholder="Hybrid / Remote" />
+        </label>
+        <label>
+          <span className="gj-label">Beschäftigungsart</span>
+          <select name="employmentKind" className="gj-input" defaultValue={job?.employmentKind ?? ""}>
+            <option value="">Bitte wählen…</option>
+            {EMPLOYMENT_KIND_OPTIONS.map((kind) => (
+              <option key={kind} value={kind}>
+                {kind}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="md:col-span-2">
           <span className="gj-label">Wochenstunden</span>

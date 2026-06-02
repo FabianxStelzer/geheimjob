@@ -12,6 +12,7 @@ export type JobFeedItem = {
   targetIncomeKind: "BRUTTO" | "NETTO";
   workModeHint: string | null;
   weeklyHoursHint: string | null;
+  employmentKind: string | null;
   richDescription: string;
   updatedAt: string;
   highlighted: boolean;
@@ -21,6 +22,7 @@ export type JobFeedItem = {
     industry: string;
     logoUrl: string | null;
     employerProfileId: string;
+    publicSlug: string;
     contactName: string;
   };
 };
@@ -47,6 +49,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
           region: true,
           industry: true,
           logoUrl: true,
+          publicSlug: true,
           userId: true,
           contactName: true,
           website: true,
@@ -83,6 +86,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
       targetIncomeKind: p.targetIncomeKind,
       workModeHint: p.workModeHint,
       weeklyHoursHint: p.weeklyHoursHint,
+      employmentKind: p.employmentKind,
       richDescription: p.richDescription,
       updatedAt: p.updatedAt.toISOString(),
       highlighted: p.highlighted,
@@ -92,6 +96,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
         industry: e.industry,
         logoUrl: e.logoUrl,
         employerProfileId: e.id,
+        publicSlug: e.publicSlug,
         contactName: e.contactName,
       },
     });
