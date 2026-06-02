@@ -61,11 +61,11 @@ export function CandidateProfilePanel({
         <span className="gj-chip gj-chip-neutral">Talentpool</span>
       </div>
 
-      <div className="flex gap-4">
-        <ProfileAvatar photoUrl={profile.photoUrl} label={profile.professionField} />
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/60 p-5 text-center">
+        <ProfileAvatar photoUrl={profile.photoUrl} label={profile.professionField} size="large" />
         <div>
-          <h3 className="text-lg font-semibold text-[var(--gj-text)]">{profile.professionField}</h3>
-          <p className="text-sm text-[var(--gj-muted)]">
+          <h3 className="text-xl font-semibold text-[var(--gj-text)]">{profile.professionField}</h3>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
             {profile.region} · {profile.experienceYears} Jahre Erfahrung
           </p>
         </div>
@@ -120,21 +120,29 @@ export function CandidateProfilePanel({
   );
 }
 
-function ProfileAvatar({ photoUrl, label }: { photoUrl: string | null; label: string }) {
+function ProfileAvatar({
+  photoUrl,
+  label,
+  size = "large",
+}: {
+  photoUrl: string | null;
+  label: string;
+  size?: "large" | "default";
+}) {
   const initials = label.slice(0, 2).toUpperCase();
+  const large = size === "large";
+  const imgClass = large
+    ? "mx-auto aspect-square w-full max-w-[220px] rounded-2xl object-cover ring-4 ring-[var(--gj-primary-soft)] shadow-md"
+    : "h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-[var(--gj-primary-soft)]";
+  const fallbackClass = large
+    ? "mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center rounded-2xl bg-[var(--gj-primary-soft)] text-3xl font-bold text-[var(--gj-primary)] ring-4 ring-[var(--gj-primary-soft)]"
+    : "flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[var(--gj-primary-soft)] text-sm font-bold text-[var(--gj-primary)]";
+
   if (photoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={photoUrl}
-        alt=""
-        className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-[var(--gj-primary-soft)]"
-      />
+      <img src={photoUrl} alt="" className={imgClass} />
     );
   }
-  return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[var(--gj-primary-soft)] text-sm font-bold text-[var(--gj-primary)]">
-      {initials || "?"}
-    </span>
-  );
+  return <span className={fallbackClass}>{initials || "?"}</span>;
 }

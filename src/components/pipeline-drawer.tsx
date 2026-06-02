@@ -118,19 +118,19 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
         </span>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/60 p-5 text-center sm:flex-row sm:text-left">
         {payload.viewerRole === "WORKER" ? (
-          <EmployerBadge logoUrl={payload.employer.logoUrl} label={payload.employer.companyName} />
+          <EmployerBadge logoUrl={payload.employer.logoUrl} label={payload.employer.companyName} large />
         ) : (
-          <WorkerBadge photoUrl={payload.worker?.photoUrl} label={payload.worker?.displayName ?? "?"} />
+          <WorkerBadge photoUrl={payload.worker?.photoUrl} label={payload.worker?.displayName ?? "?"} large />
         )}
-        <div>
-          <h3 className="text-lg font-semibold text-[var(--gj-text)]">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-xl font-semibold text-[var(--gj-text)]">
             {payload.viewerRole === "WORKER"
               ? payload.employer.companyName
               : payload.worker?.displayName}
           </h3>
-          <p className="text-sm text-[var(--gj-muted)]">
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
             {payload.viewerRole === "WORKER"
               ? `${payload.employer.industry} · ${payload.employer.region}`
               : `${payload.worker?.professionField} · ${payload.worker?.region}`}
@@ -266,31 +266,65 @@ function Row({ label, val }: { label: string; val: string }) {
   );
 }
 
-function EmployerBadge({ logoUrl, label }: { logoUrl: string | null; label: string }) {
+function EmployerBadge({
+  logoUrl,
+  label,
+  large = false,
+}: {
+  logoUrl: string | null;
+  label: string;
+  large?: boolean;
+}) {
   const initials = label.slice(0, 2).toUpperCase();
+  const sizeClass = large
+    ? "h-32 w-32 shrink-0 rounded-2xl text-2xl ring-4"
+    : "h-14 w-14 shrink-0 rounded-2xl text-sm ring-2";
   if (logoUrl) {
     // eslint-disable-next-line @next/next/no-img-element
     return (
-      <img src={logoUrl} alt="" className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-[var(--gj-primary-soft)]" />
+      <img
+        src={logoUrl}
+        alt=""
+        className={`${sizeClass} object-cover ring-[var(--gj-primary-soft)] shadow-md`}
+      />
     );
   }
   return (
-    <span className="gj-gradient-primary flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white">
+    <span
+      className={`gj-gradient-primary flex items-center justify-center font-bold text-white ${sizeClass}`}
+    >
       {initials}
     </span>
   );
 }
 
-function WorkerBadge({ photoUrl, label }: { photoUrl: string | null | undefined; label: string }) {
+function WorkerBadge({
+  photoUrl,
+  label,
+  large = false,
+}: {
+  photoUrl: string | null | undefined;
+  label: string;
+  large?: boolean;
+}) {
   const initials = label.slice(0, 2).toUpperCase();
+  const sizeClass = large
+    ? "h-32 w-32 shrink-0 rounded-2xl text-2xl ring-4"
+    : "h-14 w-14 shrink-0 rounded-full text-sm ring-2";
   if (photoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={photoUrl} alt="" className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-[var(--gj-primary-soft)]" />
+      <img
+        src={photoUrl}
+        alt=""
+        className={`${sizeClass} object-cover ring-[var(--gj-primary-soft)] shadow-md`}
+      />
     );
   }
   return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[var(--gj-primary-soft)] text-sm font-bold text-[var(--gj-primary)]">
+    <span
+      className={`flex items-center justify-center bg-[var(--gj-primary-soft)] font-bold text-[var(--gj-primary)] ${sizeClass} ring-[var(--gj-primary-soft)]`}
+    >
       {initials}
     </span>
   );
