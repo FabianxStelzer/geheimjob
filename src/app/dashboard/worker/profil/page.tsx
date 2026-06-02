@@ -175,16 +175,6 @@ export default async function WorkerProfilPage() {
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold">Ausschlüsse</h2>
-        <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Verhindern Sie, dass bestimmte Firmen (z. B. Ihr aktueller Arbeitgeber) Sie sehen.
-        </p>
-        <Link href="/dashboard/worker/ausschluesse" className="gj-btn-ghost">
-          Ausschlüsse verwalten
-        </Link>
-      </section>
-
-      <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold text-rose-700">Konto löschen</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
           Zugangsdaten anonymisieren und Profil bereinigen.

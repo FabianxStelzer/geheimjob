@@ -45,6 +45,10 @@ export function RegisterEmployerForm() {
         <input name="contactName" required className="gj-input" />
       </label>
       <label className="block">
+        <span className="gj-label">Geschäftsführer / Inhaber (optional)</span>
+        <input name="managingDirectorName" className="gj-input" />
+      </label>
+      <label className="block">
         <span className="gj-label">Telefon (optional)</span>
         <input name="contactPhone" className="gj-input" />
       </label>

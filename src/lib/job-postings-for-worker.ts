@@ -49,6 +49,8 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
           logoUrl: true,
           userId: true,
           contactName: true,
+          website: true,
+          managingDirectorName: true,
         },
       },
     },
@@ -64,6 +66,9 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
       workerProfileId,
       employerUserId: e.userId,
       companyName: e.companyName,
+      website: e.website,
+      managingDirectorName: e.managingDirectorName,
+      contactName: e.contactName,
     });
     if (blocked) continue;
 

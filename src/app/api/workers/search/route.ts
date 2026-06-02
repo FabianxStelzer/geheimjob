@@ -55,6 +55,9 @@ export async function GET(req: Request) {
       workerProfileId: w.id,
       employerUserId: session.user.id,
       companyName: employer.companyName,
+      website: employer.website,
+      managingDirectorName: employer.managingDirectorName,
+      contactName: employer.contactName,
     });
     if (blocked) continue;
     out.push({

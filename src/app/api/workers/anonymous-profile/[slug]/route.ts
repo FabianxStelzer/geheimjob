@@ -40,6 +40,9 @@ export async function GET(_req: Request, props: Params) {
     workerProfileId: profile.id,
     employerUserId: session.user.id,
     companyName: employer.companyName,
+    website: employer.website,
+    managingDirectorName: employer.managingDirectorName,
+    contactName: employer.contactName,
   });
   if (blocked) {
     return Response.json({ error: "Profil nicht verfügbar." }, { status: 403 });

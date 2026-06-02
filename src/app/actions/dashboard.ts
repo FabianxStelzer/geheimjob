@@ -7,15 +7,19 @@ import { auth } from "@/auth";
 
 const slugNano = customAlphabet("23456789abcdefghjkmnpqrstuvwxyz", 12);
 
+import { normalizeWebsiteDomain } from "@/lib/employer-block-match";
+
 export async function addEmployerBlock(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user || session.user.role !== "WORKER") return;
 
   const company = String(formData.get("blockedCompanyName") || "").trim();
-  const employerUserIdRaw = String(formData.get("blockedEmployerUserId") || "").trim();
-  const blockedEmployerUserId = employerUserIdRaw || null;
+  const websiteDomain = normalizeWebsiteDomain(
+    String(formData.get("blockedWebsiteDomain") || ""),
+  );
+  const managingDirector = String(formData.get("blockedManagingDirectorName") || "").trim();
 
-  if (!company && !blockedEmployerUserId) return;
+  if (!company && !websiteDomain && !managingDirector) return;
 
   const profile = await prisma.workerProfile.findUnique({
     where: { userId: session.user.id },
@@ -26,7 +30,8 @@ export async function addEmployerBlock(formData: FormData): Promise<void> {
     data: {
       workerProfileId: profile.id,
       blockedCompanyName: company || null,
-      blockedEmployerUserId,
+      blockedWebsiteDomain: websiteDomain || null,
+      blockedManagingDirectorName: managingDirector || null,
     },
   });
 
@@ -140,6 +145,8 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
   const industry = String(formData.get("industry") || "").trim();
   const region = String(formData.get("region") || "").trim();
   const contactName = String(formData.get("contactName") || "").trim();
+  const managingDirectorName =
+    String(formData.get("managingDirectorName") || "").trim() || null;
   const contactPhone = String(formData.get("contactPhone") || "").trim() || null;
   const website = String(formData.get("website") || "").trim() || null;
   const openPositionsNote =
@@ -155,6 +162,7 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
       industry,
       region,
       contactName,
+      managingDirectorName,
       contactPhone,
       website,
       openPositionsNote,

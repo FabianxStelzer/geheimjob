@@ -143,6 +143,7 @@ model EmployerProfile {
   contactName       String
   contactPhone      String?
   website           String?
+  managingDirectorName String?
   openPositionsNote String?
   stripeCustomerId  String?
   createdAt         DateTime @default(now())
@@ -159,6 +160,8 @@ model WorkerEmployerBlock {
   blockedEmployerUserId String?
   blockedEmployerUser   User?    @relation("BlockedEmployerUser", fields: [blockedEmployerUserId], references: [id])
   blockedCompanyName    String?
+  blockedWebsiteDomain  String?
+  blockedManagingDirectorName String?
 }
 
 model JobPosting {

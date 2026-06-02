@@ -37,6 +37,15 @@ export default async function EmployerProfilPage() {
             <input name="contactName" defaultValue={profile.contactName} required className="gj-input" />
           </label>
           <label>
+            <span className="gj-label">Geschäftsführer / Inhaber</span>
+            <input
+              name="managingDirectorName"
+              defaultValue={profile.managingDirectorName ?? ""}
+              className="gj-input"
+              placeholder="Für Ausschluss-Abgleich durch Kandidaten"
+            />
+          </label>
+          <label>
             <span className="gj-label">Telefon</span>
             <input name="contactPhone" defaultValue={profile.contactPhone ?? ""} className="gj-input" />
           </label>

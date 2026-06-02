@@ -111,6 +111,8 @@ async function registerEmployerCore(formData: FormData): Promise<RegisterState> 
   const industry = String(formData.get("industry") || "").trim();
   const region = String(formData.get("region") || "").trim();
   const contactName = String(formData.get("contactName") || "").trim();
+  const managingDirectorName =
+    String(formData.get("managingDirectorName") || "").trim() || null;
   const contactPhone = String(formData.get("contactPhone") || "").trim() || null;
   const website = String(formData.get("website") || "").trim() || null;
   const openPositionsNote =
@@ -142,6 +144,7 @@ async function registerEmployerCore(formData: FormData): Promise<RegisterState> 
           industry,
           region,
           contactName,
+          managingDirectorName,
           contactPhone,
           website,
           openPositionsNote,

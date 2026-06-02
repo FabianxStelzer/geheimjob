@@ -1,5 +1,9 @@
 import { NotificationKind, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  blockMatchesEmployer,
+  type EmployerBlockCheckInput,
+} from "@/lib/employer-block-match";
 
 export async function notifyUser(
   userId: string,
@@ -13,25 +17,11 @@ export async function notifyUser(
   });
 }
 
-export async function employerIsBlockedFromWorker(opts: {
-  workerProfileId: string;
-  employerUserId: string;
-  companyName: string;
-}) {
-  const { workerProfileId, employerUserId, companyName } = opts;
-  const normalizedCompany = companyName.toLowerCase().trim();
+export async function employerIsBlockedFromWorker(opts: EmployerBlockCheckInput) {
   const blocks = await prisma.workerEmployerBlock.findMany({
-    where: { workerProfileId },
+    where: { workerProfileId: opts.workerProfileId },
   });
-  return blocks.some((b) => {
-    if (b.blockedEmployerUserId === employerUserId) return true;
-    if (
-      b.blockedCompanyName &&
-      b.blockedCompanyName.toLowerCase().trim() === normalizedCompany
-    )
-      return true;
-    return false;
-  });
+  return blocks.some((b) => blockMatchesEmployer(b, opts));
 }
 
 export function parseSalaryRange(param: string | null): Prisma.IntNullableFilter | undefined {
@@ -79,6 +69,7 @@ export async function softDeleteUser(userId: string) {
         contactName: "—",
         contactPhone: null,
         website: null,
+        managingDirectorName: null,
         openPositionsNote: null,
       },
     }),

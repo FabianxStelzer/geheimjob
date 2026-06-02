@@ -26,6 +26,7 @@ const workerNav: NavItem[] = [
   { href: "/dashboard/worker/anfragen", label: "Bewerbungen", Icon: SendIcon },
   { href: "/dashboard/worker/nachrichten", label: "Nachrichten", Icon: ChatIcon },
   { href: "/dashboard/worker/gehalt", label: "Gehalt & Steuern", Icon: EuroIcon },
+  { href: "/dashboard/worker/ausschluesse", label: "Ausschlüsse", Icon: ShieldIcon },
   { href: "/dashboard/worker/profil", label: "Profil", Icon: UserIcon },
   { href: "/dashboard/worker/referral", label: "Referral", Icon: GiftIcon },
 ];

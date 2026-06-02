@@ -42,6 +42,9 @@ export async function POST(req: Request) {
       workerProfileId: body.workerProfileId,
       employerUserId: session.user.id,
       companyName: employer.companyName,
+      website: employer.website,
+      managingDirectorName: employer.managingDirectorName,
+      contactName: employer.contactName,
     });
     if (blocked) {
       return Response.json(
@@ -93,12 +96,11 @@ export async function POST(req: Request) {
     const worker = await prisma.workerProfile.findUnique({
       where: { userId: session.user.id },
     });
-    let employer = null as null | {
-      id: string;
-      userId: string;
-      companyName: string;
-      user: { deletedAt: Date | null };
-    };
+    let employer: Awaited<
+      ReturnType<
+        typeof prisma.employerProfile.findFirst<{ include: { user: true } }>
+      >
+    > = null;
 
     const jobPostingId = body.jobPostingId?.trim();
 
@@ -123,6 +125,9 @@ export async function POST(req: Request) {
         workerProfileId: worker.id,
         employerUserId: employer.userId,
         companyName: employer.companyName,
+        website: employer.website,
+        managingDirectorName: employer.managingDirectorName,
+        contactName: employer.contactName,
       });
       if (blocked) {
         return Response.json({ error: "Sie haben dieses Unternehmen ausgeschlossen." }, { status: 403 });
@@ -185,6 +190,9 @@ export async function POST(req: Request) {
       workerProfileId: worker.id,
       employerUserId: employer.userId,
       companyName: employer.companyName,
+      website: employer.website,
+      managingDirectorName: employer.managingDirectorName,
+      contactName: employer.contactName,
     });
     if (blocked) {
       return Response.json(
