@@ -192,7 +192,19 @@ export async function registerEmployerAction(
   _prev: RegisterState | undefined,
   formData: FormData,
 ): Promise<RegisterState> {
+  const email = String(formData.get("email") || "")
+    .toLowerCase()
+    .trim();
+  const password = String(formData.get("password") || "");
+
   const result = await registerEmployerCore(formData);
   if (result.error) return result;
-  redirect("/login?registered=1");
+
+  await signIn("credentials", {
+    email,
+    password,
+    redirectTo: "/dashboard/employer",
+  });
+
+  redirect("/dashboard/employer");
 }

@@ -88,12 +88,15 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Link href="/register/arbeitnehmer" className="gj-btn-ghost text-center">
-          Als Arbeitnehmer
+      <Link href="/register" className="gj-btn-ghost w-full text-center">
+        Registrieren
+      </Link>
+      <div className="grid gap-2 text-center text-xs text-[var(--gj-muted)] sm:grid-cols-2">
+        <Link href="/register/arbeitnehmer" className="hover:text-[var(--gj-primary)] hover:underline">
+          Arbeitnehmer
         </Link>
-        <Link href="/register/arbeitgeber" className="gj-btn-ghost text-center">
-          Als Arbeitgeber
+        <Link href="/register/arbeitgeber" className="hover:text-[var(--gj-primary)] hover:underline">
+          Arbeitgeber
         </Link>
       </div>
     </form>
