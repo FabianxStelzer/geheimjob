@@ -144,3 +144,37 @@ export async function saveAdminBootstrapEmail(formData: FormData): Promise<void>
 
   revalidatePath("/dashboard/admin/einstellungen");
 }
+
+export async function saveSupportSettings(formData: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+
+  await prisma.platformSettings.upsert({
+    where: { id: "default" },
+    create: { id: "default", billingCatalogJson: "{}" },
+    update: {
+      supportEmail: str(formData, "supportEmail") || null,
+      supportPhone: str(formData, "supportPhone") || null,
+      supportIntro: str(formData, "supportIntro") || null,
+    },
+  });
+
+  revalidatePath("/dashboard/admin/einstellungen");
+  revalidatePath("/dashboard/support");
+}
+
+export async function saveLegalContent(formData: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+
+  await prisma.platformSettings.upsert({
+    where: { id: "default" },
+    create: { id: "default", billingCatalogJson: "{}" },
+    update: {
+      privacyContent: str(formData, "privacyContent") || null,
+      termsContent: str(formData, "termsContent") || null,
+    },
+  });
+
+  revalidatePath("/dashboard/admin/einstellungen");
+  revalidatePath("/datenschutz");
+  revalidatePath("/agb");
+}

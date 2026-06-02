@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const ent = await getEmployerEntitlements(session.user.id);
     if (!ent.talentPool) {
       return Response.json(
-        { error: "Aktives Paket erforderlich. Bitte unter Abrechnung buchen." },
+        { error: "Aktives Paket erforderlich. Bitte unter Pakete buchen." },
         { status: 402 },
       );
     }

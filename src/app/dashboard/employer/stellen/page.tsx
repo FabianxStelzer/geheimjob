@@ -22,7 +22,7 @@ export default async function EmployerStellenPage() {
   const analytics = await getEmployerJobPostingStats(employer.id);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Stellenanzeigen</h1>
@@ -33,7 +33,7 @@ export default async function EmployerStellenPage() {
                 Stellen: {ent.publishedJobsCount} / {ent.maxPublishedJobs} veröffentlicht
               </>
             ) : (
-              "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."
+              "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Pakete buchen."
             )}
           </p>
         </div>

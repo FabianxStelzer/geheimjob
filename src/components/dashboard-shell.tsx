@@ -82,12 +82,12 @@ export function DashboardShell({
           <DashboardNav role={role} collapsed={collapsed} />
           {!collapsed ? (
             <div className="pt-6">
-              <Link
-                href="/datenschutz"
-                className="block px-3 py-2 text-xs text-[var(--gj-muted)] hover:text-[var(--gj-primary)]"
-              >
-                Support-Center
-              </Link>
+            <Link
+              href="/dashboard/support"
+              className="block px-3 py-2 text-xs text-[var(--gj-muted)] hover:text-[var(--gj-primary)]"
+            >
+              Support-Center
+            </Link>
             </div>
           ) : null}
         </div>

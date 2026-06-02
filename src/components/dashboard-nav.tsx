@@ -39,7 +39,7 @@ const employerNav: NavItem[] = [
   { href: "/dashboard/employer/nachrichten", label: "Nachrichten", Icon: ChatIcon },
   { href: "/dashboard/employer/stellen", label: "Stellen", Icon: BriefcaseIcon },
   { href: "/dashboard/employer/profil", label: "Unternehmen", Icon: SettingsIcon },
-  { href: "/dashboard/employer/abrechnung", label: "Abrechnung", Icon: CreditCardIcon },
+  { href: "/dashboard/employer/abrechnung", label: "Pakete", Icon: CreditCardIcon },
 ];
 
 const adminNav: NavItem[] = [

@@ -85,7 +85,7 @@ export async function requireActiveEmployerBilling(userId: string): Promise<Empl
 export async function canPublishAnotherJob(userId: string): Promise<{ ok: boolean; reason?: string }> {
   const ent = await getEmployerEntitlements(userId);
   if (!ent.isActive) {
-    return { ok: false, reason: "Bitte buchen Sie zuerst ein Paket unter Abrechnung." };
+    return { ok: false, reason: "Bitte buchen Sie zuerst ein Paket unter Pakete." };
   }
   if (!ent.canPublishJobs) {
     return { ok: false, reason: "Ihr Paket (Starter) enthält keine Stellenanzeigen. Upgrade auf Plus oder Premium." };

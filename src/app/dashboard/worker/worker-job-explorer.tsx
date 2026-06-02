@@ -288,12 +288,6 @@ export default function WorkerJobExplorer({
                     : "border border-[var(--gj-border)] shadow-sm"
                 }`}
               >
-                {job.highlighted ? (
-                  <div className="gj-ribbon" style={{ top: 22, left: -36 }}>
-                    Hervorgehoben
-                  </div>
-                ) : null}
-
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
                   <EmployerLogo name={job.employer.companyName} logoUrl={job.employer.logoUrl} />
 

@@ -12,7 +12,7 @@ export default async function WorkerBlocksPage() {
   if (!profile) return <p className="text-sm text-red-600">Kein Profil.</p>;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <header>
         <h1 className="text-xl font-semibold tracking-tight">Ausschlüsse</h1>
         <p className="mt-2 text-sm text-[var(--gj-muted)]">

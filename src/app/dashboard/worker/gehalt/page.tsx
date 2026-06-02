@@ -25,7 +25,7 @@ export default async function WorkerGehaltPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <header>
         <h1 className="text-xl font-semibold tracking-tight">Gehalt & Steuern</h1>
         <p className="mt-2 text-sm text-[var(--gj-muted)]">

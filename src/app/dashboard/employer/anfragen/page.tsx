@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { recipientUserId } from "@/lib/match";
@@ -92,11 +91,6 @@ export default async function EmployerAnfragenPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Link href="/dashboard/employer/stellen" className="gj-btn-ghost text-sm">
-          Stellen
-        </Link>
-      </div>
       <ApplicationsPipelineBoard cards={cards} />
     </div>
   );

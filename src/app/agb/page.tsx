@@ -1,27 +1,30 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
+import { getLegalContent, termsContentOrDefault } from "@/lib/platform-content";
 
-export default function AgbPage() {
+export default async function AgbPage() {
+  const legal = await getLegalContent();
+  const html = termsContentOrDefault(legal.termsHtml);
+
   return (
     <div className="min-h-screen bg-[var(--gj-bg)]">
       <header className="border-b border-[var(--gj-border)] bg-white px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <BrandLogo className="text-base min-w-[120px]" />
-          <Link href="/login" className="text-sm font-medium text-[var(--gj-primary)] hover:text-[var(--gj-primary-hover)]">
+          <Link
+            href="/login"
+            className="text-sm font-medium text-[var(--gj-primary)] hover:text-[var(--gj-primary-hover)]"
+          >
             ← Zur Anmeldung
           </Link>
         </div>
       </header>
       <main className="mx-auto max-w-3xl flex-1 px-4 py-12 sm:py-16">
-        <h1 className="text-[28px] font-bold text-[var(--gj-text)]">Allgemeine Nutzungsbedingungen (Entwurf)</h1>
-        <p className="mt-4 text-sm text-amber-800">
-          Platzhalter für die Produktion — bitte juristisch ausarbeiten (Leistungsbeschreibung, Gebühren, Haftung,
-          Verfügbarkeit, Vertragsstrafe bei Missbrauch etc.).
-        </p>
-        <p className="mt-6 text-sm leading-relaxed text-[var(--gj-text-secondary)]">
-          Mit Registrierung erklären Sie sich vorläufig einverstanden, die Plattform nur im Rahmen geltenden Rechts zu
-          nutzen und wahrheitsgemäße Angaben zu machen.
-        </p>
+        <h1 className="text-[28px] font-bold text-[var(--gj-text)]">Allgemeine Nutzungsbedingungen</h1>
+        <div
+          className="legal-content mt-8 space-y-4 text-sm leading-relaxed text-[var(--gj-text-secondary)] [&_h2]:mt-8 [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[var(--gj-text)] [&_ul]:list-disc [&_ul]:pl-6"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
       </main>
     </div>
   );

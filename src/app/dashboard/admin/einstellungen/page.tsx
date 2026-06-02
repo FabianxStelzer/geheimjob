@@ -1,9 +1,12 @@
 import {
   saveAdminBootstrapEmail,
   saveBillingCatalogSettings,
+  saveLegalContent,
   saveStripePlatformSettings,
+  saveSupportSettings,
   adminResetUserPassword,
 } from "@/app/actions/admin-platform";
+import { prisma } from "@/lib/prisma";
 import { getBillingCatalog } from "@/lib/billing-catalog";
 import { PLAN_CATALOG_DEFAULT, ADDON_CATALOG_DEFAULT } from "@/lib/billing-plans";
 import {
@@ -15,10 +18,11 @@ import type { AddonCode } from "@/lib/billing-plans";
 import type { EmployerPlan } from "@prisma/client";
 
 export default async function AdminEinstellungenPage() {
-  const [settings, catalog, bootstrapEmail] = await Promise.all([
+  const [settings, catalog, bootstrapEmail, platformRow] = await Promise.all([
     getPlatformSettings(),
     getBillingCatalog(),
     getAdminBootstrapEmail(),
+    prisma.platformSettings.findUnique({ where: { id: "default" } }),
   ]);
 
   const planRows = PLAN_CATALOG_DEFAULT.map((base) => {
@@ -236,6 +240,79 @@ export default async function AdminEinstellungenPage() {
 
           <button type="submit" className="gj-btn-primary">
             Pakete &amp; Preise speichern
+          </button>
+        </form>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="text-lg font-semibold text-[var(--gj-text)]">Support-Center</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Kontaktdaten und Einleitungstext für das Support-Center in der Sidebar.
+        </p>
+        <form action={saveSupportSettings} className="mt-6 grid gap-4">
+          <label className="block">
+            <span className="gj-label">Support E-Mail</span>
+            <input
+              name="supportEmail"
+              type="email"
+              defaultValue={platformRow?.supportEmail ?? ""}
+              className="gj-input"
+              placeholder="info@geheimjob.de"
+            />
+          </label>
+          <label className="block">
+            <span className="gj-label">Support Telefon</span>
+            <input
+              name="supportPhone"
+              type="tel"
+              defaultValue={platformRow?.supportPhone ?? ""}
+              className="gj-input"
+              placeholder="+49 …"
+            />
+          </label>
+          <label className="block">
+            <span className="gj-label">Einleitungstext</span>
+            <textarea
+              name="supportIntro"
+              rows={3}
+              defaultValue={platformRow?.supportIntro ?? ""}
+              className="gj-textarea"
+              placeholder="Kurzer Hinweis über dem Kontaktformular…"
+            />
+          </label>
+          <button type="submit" className="gj-btn-primary w-fit">
+            Support speichern
+          </button>
+        </form>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="text-lg font-semibold text-[var(--gj-text)]">Datenschutz &amp; AGB</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Inhalte für die öffentlichen Seiten /datenschutz und /agb. Einfaches HTML ist erlaubt
+          (z. B. &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;).
+        </p>
+        <form action={saveLegalContent} className="mt-6 space-y-6">
+          <label className="block">
+            <span className="gj-label">Datenschutzerklärung (HTML)</span>
+            <textarea
+              name="privacyContent"
+              rows={14}
+              defaultValue={platformRow?.privacyContent ?? ""}
+              className="gj-textarea font-mono text-xs"
+            />
+          </label>
+          <label className="block">
+            <span className="gj-label">Nutzungsbedingungen / AGB (HTML)</span>
+            <textarea
+              name="termsContent"
+              rows={14}
+              defaultValue={platformRow?.termsContent ?? ""}
+              className="gj-textarea font-mono text-xs"
+            />
+          </label>
+          <button type="submit" className="gj-btn-primary">
+            Rechtstexte speichern
           </button>
         </form>
       </section>

@@ -192,15 +192,6 @@ export default async function WorkerProfilPage() {
         </p>
       </section>
 
-      <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold">Konto</h2>
-        <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Einstellungen, Datenschutz und Kontolöschung finden Sie unter Einstellungen (Avatar oben rechts).
-        </p>
-        <Link href="/dashboard/einstellungen" className="gj-btn-ghost text-sm">
-          Zu den Einstellungen
-        </Link>
-      </section>
     </div>
   );
 }

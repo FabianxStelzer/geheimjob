@@ -290,7 +290,21 @@ model PlatformSettings {
   stripeWebhookSecret  String?
   stripePublishableKey String?
   billingCatalogJson   String   @default("{}")
+  supportEmail         String?
+  supportPhone         String?
+  supportIntro         String?
+  privacyContent       String?
+  termsContent         String?
   updatedAt            DateTime @updatedAt
+}
+
+model ContactInquiry {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
 }
 
 model ReferralReward {

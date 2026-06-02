@@ -217,3 +217,65 @@ export async function markAllNotificationsRead(_formData: FormData): Promise<voi
   });
   revalidatePath("/dashboard/benachrichtigungen");
 }
+
+export type AccountSettingsState = { error?: string; success?: string };
+
+export async function updateAccountName(
+  _prev: AccountSettingsState | undefined,
+  formData: FormData,
+): Promise<AccountSettingsState> {
+  const session = await auth();
+  if (!session?.user) return { error: "Nicht angemeldet." };
+
+  const name = String(formData.get("name") || "").trim();
+  if (!name || name.length < 2) {
+    return { error: "Bitte einen gültigen Namen eingeben (min. 2 Zeichen)." };
+  }
+
+  if (session.user.role === "WORKER") {
+    await prisma.workerProfile.update({
+      where: { userId: session.user.id },
+      data: { displayName: name },
+    });
+    revalidatePath("/dashboard/worker/profil");
+    revalidatePath("/dashboard/worker/referral");
+  } else if (session.user.role === "EMPLOYER") {
+    await prisma.employerProfile.update({
+      where: { userId: session.user.id },
+      data: { contactName: name },
+    });
+    revalidatePath("/dashboard/employer/profil");
+  } else {
+    return { error: "Für diese Rolle ist keine Namensänderung hinterlegt." };
+  }
+
+  revalidatePath("/dashboard/einstellungen");
+  return { success: "Name gespeichert." };
+}
+
+export type ContactFormState = { error?: string; success?: string };
+
+export async function submitContactInquiry(
+  _prev: ContactFormState | undefined,
+  formData: FormData,
+): Promise<ContactFormState> {
+  const session = await auth();
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const message = String(formData.get("message") || "").trim();
+
+  if (!name || !email || message.length < 10) {
+    return { error: "Bitte Name, E-Mail und eine Nachricht (min. 10 Zeichen) ausfüllen." };
+  }
+
+  await prisma.contactInquiry.create({
+    data: {
+      userId: session?.user?.id,
+      name,
+      email,
+      message,
+    },
+  });
+
+  return { success: "Vielen Dank — Ihre Nachricht wurde übermittelt. Wir melden uns bei Ihnen." };
+}
