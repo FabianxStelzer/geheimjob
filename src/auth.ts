@@ -23,10 +23,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!user) return null;
         const ok = await bcrypt.compare(String(credentials.password), user.passwordHash);
         if (!ok) return null;
+
+        let role = user.role as Role;
+        const bootstrap = process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim();
+        if (bootstrap && email === bootstrap && role !== "ADMIN") {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: "ADMIN" },
+          });
+          role = "ADMIN";
+        }
+
         return {
           id: user.id,
           email: user.email,
-          role: user.role as Role,
+          role,
         };
       },
     }),
@@ -36,6 +47,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.sub = user.id;
         token.role = user.role;
+      } else if (token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub as string },
+          select: { role: true, deletedAt: true },
+        });
+        if (dbUser && !dbUser.deletedAt) {
+          token.role = dbUser.role;
+        }
       }
       return token;
     },
