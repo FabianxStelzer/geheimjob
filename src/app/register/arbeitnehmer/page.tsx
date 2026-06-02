@@ -19,13 +19,11 @@ export default async function Page({
       </div>
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6">
         <div className="text-center">
-          <h1 className="text-[28px] font-bold leading-tight text-[var(--gj-text)]">Arbeitnehmer-Registrierung</h1>
+          <h1 className="text-[28px] font-bold leading-tight text-[var(--gj-text)]">
+            Arbeitnehmer-Registrierung
+          </h1>
           <p className="mt-3 text-sm text-[var(--gj-muted)]">
-            Diskretes Profil mit Kontrollmechanismen. Referral per Link{" "}
-            <code className="rounded-md bg-[var(--gj-primary-soft)] px-1.5 py-0.5 text-xs text-[var(--gj-primary-hover)]">
-              ?ref=…
-            </code>
-            .
+            Profil anlegen und passende Stellen entdecken.
           </p>
         </div>
         <RegisterWorkerForm referralCode={sp.ref} />
