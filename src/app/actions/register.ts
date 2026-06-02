@@ -2,6 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+import { notifyPremiumEmployersOnNewTalent } from "@/lib/billing-notifications";
 import { prisma } from "@/lib/prisma";
 
 function parseCheckbox(formData: FormData, key: string) {
@@ -93,6 +94,11 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
     });
   }
 
+  await notifyPremiumEmployersOnNewTalent({
+    professionField,
+    region,
+  });
+
   return {};
 }
 
@@ -139,6 +145,13 @@ async function registerEmployerCore(formData: FormData): Promise<RegisterState> 
           contactPhone,
           website,
           openPositionsNote,
+        },
+      },
+      subscription: {
+        create: {
+          plan: "NONE",
+          billingStatus: "INACTIVE",
+          status: "inactive",
         },
       },
     },

@@ -12,7 +12,11 @@ const map: Record<string, string> = {
   "/dashboard/employer/profil": "Unternehmensprofil",
   "/dashboard/employer/stellen": "Stellenanzeigen",
   "/dashboard/employer/abrechnung": "Abrechnung",
-  "/dashboard/admin": "Administration",
+  "/dashboard/admin": "Super-Admin",
+  "/dashboard/admin/unternehmen": "Unternehmen",
+  "/dashboard/admin/arbeitnehmer": "Arbeitnehmer",
+  "/dashboard/admin/pakete": "Pakete",
+  "/dashboard/admin/abonnements": "Abonnements",
   "/dashboard/benachrichtigungen": "Benachrichtigungen",
 };
 

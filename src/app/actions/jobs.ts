@@ -1,15 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { notifyWorkersOnNewJob } from "@/lib/billing-notifications";
+import { canPublishAnotherJob, getEmployerEntitlements } from "@/lib/employer-billing";
+import { prisma } from "@/lib/prisma";
 
 async function employerProfileFromSession() {
   const session = await auth();
   if (!session?.user || session.user.role !== "EMPLOYER") return null;
   return prisma.employerProfile.findUnique({
     where: { userId: session.user.id },
-    select: { id: true },
+    select: { id: true, region: true, userId: true },
   });
 }
 
@@ -29,14 +31,26 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const richDescription = String(formData.get("richDescription") || "").trim();
   const publishedRaw = formData.get("published");
   const published = publishedRaw === "on" || publishedRaw === "true";
+  const highlightedRaw = formData.get("highlighted");
+  const highlighted = highlightedRaw === "on" || highlightedRaw === "true";
 
   if (!title || title.length > 280) return;
+
+  const ent = await getEmployerEntitlements(emp.userId);
+  const allowHighlight = ent.canHighlightJobs;
 
   if (id) {
     const existing = await prisma.jobPosting.findFirst({
       where: { id, employerProfileId: emp.id },
     });
     if (!existing) return;
+
+    const newlyPublishing = published && !existing.published;
+    if (newlyPublishing) {
+      const check = await canPublishAnotherJob(emp.userId);
+      if (!check.ok) return;
+    }
+
     await prisma.jobPosting.update({
       where: { id },
       data: {
@@ -50,10 +64,25 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         weeklyHoursHint,
         richDescription,
         published,
+        highlighted: allowHighlight && highlighted,
       },
     });
+    if (newlyPublishing) {
+      await notifyWorkersOnNewJob({
+        jobPostingId: id,
+        employerProfileId: emp.id,
+        title,
+        tags,
+        region: emp.region,
+      });
+    }
   } else {
-    await prisma.jobPosting.create({
+    if (published) {
+      const check = await canPublishAnotherJob(emp.userId);
+      if (!check.ok) return;
+    }
+
+    const created = await prisma.jobPosting.create({
       data: {
         employerProfileId: emp.id,
         title,
@@ -66,8 +95,18 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         weeklyHoursHint,
         richDescription,
         published,
+        highlighted: allowHighlight && highlighted,
       },
     });
+    if (published) {
+      await notifyWorkersOnNewJob({
+        jobPostingId: created.id,
+        employerProfileId: emp.id,
+        title: created.title,
+        tags: created.tags,
+        region: emp.region,
+      });
+    }
   }
 
   revalidatePath("/dashboard/employer/stellen");

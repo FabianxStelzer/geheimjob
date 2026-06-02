@@ -118,7 +118,13 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
         <ul className="flex flex-col gap-6">
           {jobs.map((job, idx) => (
             <li key={job.id} className="w-full">
-              <article className="gj-card relative overflow-hidden border-2 border-[var(--gj-primary)]/25 p-5 shadow-md md:p-7">
+              <article
+                className={`gj-card relative overflow-hidden p-5 shadow-md md:p-7 ${
+                  job.highlighted
+                    ? "border-2 border-[var(--gj-primary)] ring-2 ring-[var(--gj-primary)]/20"
+                    : "border-2 border-[var(--gj-primary)]/25"
+                }`}
+              >
                 {idx < 2 ? (
                   <div className="gj-ribbon" style={{ top: 22, left: -36 }}>
                     Top

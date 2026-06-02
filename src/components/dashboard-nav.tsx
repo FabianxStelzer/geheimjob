@@ -37,7 +37,13 @@ const employerNav: NavItem[] = [
   { href: "/dashboard/employer/abrechnung", label: "Abrechnung", Icon: CreditCardIcon },
 ];
 
-const adminNav: NavItem[] = [{ href: "/dashboard/admin", label: "Administration", Icon: ShieldIcon }];
+const adminNav: NavItem[] = [
+  { href: "/dashboard/admin", label: "Super-Admin", Icon: ShieldIcon },
+  { href: "/dashboard/admin/unternehmen", label: "Unternehmen", Icon: SettingsIcon },
+  { href: "/dashboard/admin/arbeitnehmer", label: "Arbeitnehmer", Icon: UsersIcon },
+  { href: "/dashboard/admin/pakete", label: "Pakete", Icon: CreditCardIcon },
+  { href: "/dashboard/admin/abonnements", label: "Abonnements", Icon: BriefcaseIcon },
+];
 
 function normalize(p: string) {
   return p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p;
@@ -56,6 +62,13 @@ function isActive(pathname: string, href: string) {
 
   if (h === "/dashboard/employer/stellen") {
     return p === h;
+  }
+
+  if (h === "/dashboard/admin") {
+    return p === h;
+  }
+  if (h.startsWith("/dashboard/admin/")) {
+    return p === h || p.startsWith(`${h}/`);
   }
 
   return p === h || p.startsWith(`${h}/`);

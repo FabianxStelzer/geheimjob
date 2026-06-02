@@ -35,6 +35,29 @@ enum NotificationKind {
   MATCH_REJECTED
   NEW_MESSAGE
   PAYMENT
+  BILLING
+  NEW_TALENT
+  NEW_JOB_MATCH
+}
+
+enum EmployerPlan {
+  NONE
+  STARTER
+  PLUS
+  PREMIUM
+}
+
+enum BillingStatus {
+  INACTIVE
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentMethod {
+  STRIPE
+  INVOICE
 }
 
 model User {
@@ -135,6 +158,7 @@ model JobPosting {
   workModeHint      String?
   weeklyHoursHint   String?
   published         Boolean         @default(false)
+  highlighted       Boolean         @default(false)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
@@ -193,14 +217,22 @@ model PlatformReview {
 }
 
 model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String    @unique
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String         @id @default(cuid())
+  userId               String         @unique
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 EmployerPlan   @default(NONE)
+  billingStatus        BillingStatus  @default(INACTIVE)
+  paymentMethod        PaymentMethod?
   stripeSubscriptionId String?
+  stripeCustomerId     String?
   stripePriceId        String?
-  status               String    @default("inactive")
+  status               String         @default("inactive")
+  extraJobSlots        Int            @default(0)
+  addonHighlight       Boolean        @default(false)
+  addonContactAll      Boolean        @default(false)
   currentPeriodEnd     DateTime?
-  updatedAt            DateTime  @updatedAt
+  adminNote            String?
+  updatedAt            DateTime       @updatedAt
 }
 
 model PlacementFee {

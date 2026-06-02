@@ -1,10 +1,12 @@
 import { auth } from "@/auth";
+import { parseCheckoutSelection } from "@/lib/employer-billing";
 import { getStripe } from "@/lib/stripe";
+import { buildStripeLineItems } from "@/lib/stripe-billing";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user) {
-    return Response.json({ error: "Nicht angemeldet." }, { status: 401 });
+  if (!session?.user || session.user.role !== "EMPLOYER") {
+    return Response.json({ error: "Nur für Arbeitgeber." }, { status: 401 });
   }
 
   const stripe = getStripe();
@@ -15,31 +17,58 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = (await req.json()) as { mode?: "subscription" | "placement" };
-  const mode = body.mode === "placement" ? "placement" : "subscription";
-  const priceId =
-    mode === "placement"
-      ? process.env.STRIPE_PRICE_PLACEMENT
-      : process.env.STRIPE_PRICE_SUBSCRIPTION;
+  const body = (await req.json()) as { plan?: string; addons?: string[]; mode?: string };
 
-  if (!priceId) {
-    return Response.json(
-      { error: "Es fehlt STRIPE_PRICE_SUBSCRIPTION oder STRIPE_PRICE_PLACEMENT." },
-      { status: 501 },
-    );
+  if (body.mode === "placement") {
+    const priceId = process.env.STRIPE_PRICE_PLACEMENT;
+    if (!priceId) {
+      return Response.json({ error: "STRIPE_PRICE_PLACEMENT fehlt." }, { status: 501 });
+    }
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/dashboard/employer/abrechnung?bezahlt=1`,
+      cancel_url: `${baseUrl}/dashboard/employer/abrechnung?bezahlt=0`,
+      customer_email: session.user.email ?? undefined,
+      metadata: { userId: session.user.id, mode: "placement" },
+    });
+    return Response.json({ url: checkout.url });
+  }
+
+  const selection = parseCheckoutSelection(body);
+  if (!selection) {
+    return Response.json({ error: "Ungültiges Paket." }, { status: 400 });
+  }
+
+  let lineItems: { price: string; quantity: number }[];
+  try {
+    lineItems = buildStripeLineItems(selection.plan, selection.addons);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Stripe-Preise fehlen.";
+    return Response.json({ error: msg }, { status: 501 });
   }
 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
   const checkout = await stripe.checkout.sessions.create({
-    mode: mode === "placement" ? "payment" : "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${baseUrl}/dashboard?bezahlt=1`,
-    cancel_url: `${baseUrl}/dashboard?bezahlt=0`,
+    mode: "subscription",
+    line_items: lineItems,
+    success_url: `${baseUrl}/dashboard/employer/abrechnung?bezahlt=1`,
+    cancel_url: `${baseUrl}/dashboard/employer/abrechnung?bezahlt=0`,
     customer_email: session.user.email ?? undefined,
+    payment_method_types: ["card", "sepa_debit"],
     metadata: {
       userId: session.user.id,
-      mode,
+      plan: selection.plan,
+      addons: JSON.stringify(selection.addons),
+    },
+    subscription_data: {
+      metadata: {
+        userId: session.user.id,
+        plan: selection.plan,
+        addons: JSON.stringify(selection.addons),
+      },
     },
   });
 

@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getEmployerEntitlements } from "@/lib/employer-billing";
 import {
   employerIsBlockedFromWorker,
   notifyUser,
@@ -27,6 +28,14 @@ export async function POST(req: Request) {
     });
     if (!employer || !body.workerProfileId) {
       return Response.json({ error: "Ungültige Anfrage." }, { status: 400 });
+    }
+
+    const ent = await getEmployerEntitlements(session.user.id);
+    if (!ent.talentPool) {
+      return Response.json(
+        { error: "Aktives Paket erforderlich. Bitte unter Abrechnung buchen." },
+        { status: 402 },
+      );
     }
 
     const blocked = await employerIsBlockedFromWorker({

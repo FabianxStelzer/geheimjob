@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { getEmployerEntitlements } from "@/lib/employer-billing";
 import { prisma } from "@/lib/prisma";
 import {
   employerIsBlockedFromWorker,
@@ -16,6 +17,14 @@ export async function GET(req: Request) {
   });
   if (!employer) {
     return Response.json({ error: "Kein Unternehmensprofil." }, { status: 400 });
+  }
+
+  const ent = await getEmployerEntitlements(session.user.id);
+  if (!ent.talentPool) {
+    return Response.json(
+      { error: "Aktives Paket erforderlich. Bitte unter Abrechnung buchen." },
+      { status: 402 },
+    );
   }
 
   const { searchParams } = new URL(req.url);

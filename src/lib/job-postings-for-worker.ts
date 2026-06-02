@@ -13,6 +13,7 @@ export type JobFeedItem = {
   weeklyHoursHint: string | null;
   richDescription: string;
   updatedAt: string;
+  highlighted: boolean;
   employer: {
     companyName: string;
     region: string;
@@ -50,7 +51,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
         },
       },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: [{ highlighted: "desc" }, { updatedAt: "desc" }],
     take: 120,
   });
 
@@ -77,6 +78,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
       weeklyHoursHint: p.weeklyHoursHint,
       richDescription: p.richDescription,
       updatedAt: p.updatedAt.toISOString(),
+      highlighted: p.highlighted,
       employer: {
         companyName: e.companyName,
         region: e.region,

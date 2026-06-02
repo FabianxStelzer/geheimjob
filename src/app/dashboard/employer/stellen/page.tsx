@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { deleteJobPosting, upsertJobPosting } from "@/app/actions/jobs";
+import { getEmployerEntitlements } from "@/lib/employer-billing";
 
 export default async function EmployerStellenPage() {
   const session = await auth();
+  const ent = await getEmployerEntitlements(session!.user.id);
   const employer = await prisma.employerProfile.findUnique({
     where: { userId: session!.user.id },
     include: {
@@ -18,8 +20,9 @@ export default async function EmployerStellenPage() {
       <header>
         <h1 className="text-xl font-semibold tracking-tight">Stellen veröffentlichen</h1>
         <p className="mt-1 text-sm text-[var(--gj-muted)]">
-          Veröffentlichte Jobs erscheinen in der Arbeitnehmer-Job-Suche (ganze Breite, Detail-Drawer beim
-          Vollbreite-Karten mit Eckdaten und Veröffentlichung).
+          {ent.canPublishJobs
+            ? `Veröffentlichte Stellen: ${ent.publishedJobsCount} / ${ent.maxPublishedJobs} · Paket ${ent.planName}`
+            : "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."}
         </p>
       </header>
 
@@ -28,7 +31,10 @@ export default async function EmployerStellenPage() {
           Neue Stellenanzeige
         </summary>
         <div className="border-t border-[var(--gj-border)] px-5 py-4">
-          <JobForm hint="Nach dem Speichern erscheint die Stelle erst mit „Veröffentlichen“ bei den Kandidat:innen." />
+          <JobForm
+            canHighlight={ent.canHighlightJobs}
+            hint="Nach dem Speichern erscheint die Stelle erst mit „Veröffentlichen“ bei den Kandidat:innen."
+          />
         </div>
       </details>
 
@@ -57,6 +63,7 @@ export default async function EmployerStellenPage() {
                   </summary>
                   <div className="border-t border-[var(--gj-border)] px-5 py-4">
                     <JobForm
+                      canHighlight={ent.canHighlightJobs}
                       job={{
                         id: j.id,
                         title: j.title,
@@ -69,6 +76,7 @@ export default async function EmployerStellenPage() {
                         weeklyHoursHint: j.weeklyHoursHint,
                         richDescription: j.richDescription,
                         published: j.published,
+                        highlighted: j.highlighted,
                       }}
                     />
                   </div>
@@ -85,6 +93,7 @@ export default async function EmployerStellenPage() {
 function JobForm({
   job,
   hint,
+  canHighlight,
 }: {
   job?: {
     id: string;
@@ -98,8 +107,10 @@ function JobForm({
     weeklyHoursHint: string | null;
     richDescription: string;
     published: boolean;
+    highlighted: boolean;
   };
   hint?: string;
+  canHighlight?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -152,6 +163,12 @@ function JobForm({
           <input type="checkbox" name="published" defaultChecked={job?.published ?? false} /> Veröffentlicht
           (sichtbar für Arbeitnehmer)
         </label>
+        {canHighlight ? (
+          <label className="flex items-center gap-2 text-sm md:col-span-2">
+            <input type="checkbox" name="highlighted" defaultChecked={job?.highlighted ?? false} /> Hervorgehoben
+            in der Job-Suche
+          </label>
+        ) : null}
         <div className="md:col-span-2 flex flex-wrap gap-2">
           <button type="submit" className="gj-btn-primary">
             Speichern
