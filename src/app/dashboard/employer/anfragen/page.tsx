@@ -81,6 +81,8 @@ export default async function EmployerAnfragenPage() {
       subtitle,
       meta: m.createdAt.toLocaleDateString("de-DE"),
       introPreview: m.introMessage,
+      avatarUrl: m.workerProfile.photoUrl,
+      avatarInitials: m.workerProfile.displayName.slice(0, 2) || m.workerProfile.professionField.slice(0, 2),
       drawer,
     };
   });

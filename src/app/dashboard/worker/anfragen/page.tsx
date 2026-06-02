@@ -65,6 +65,8 @@ export default async function WorkerAnfragenPage() {
       subtitle,
       meta: m.createdAt.toLocaleDateString("de-DE"),
       introPreview: m.introMessage,
+      avatarUrl: m.employerProfile.logoUrl,
+      avatarInitials: m.employerProfile.companyName.slice(0, 2),
       drawer,
     };
   });
