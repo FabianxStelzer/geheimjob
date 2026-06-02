@@ -38,6 +38,8 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
   const [tab, setTab] = useState<"all" | "saved">("all");
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
   const [detail, setDetail] = useState<JobFeedItem | null>(null);
+  const [applyJob, setApplyJob] = useState<JobFeedItem | null>(null);
+  const [coverLetter, setCoverLetter] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [filters, setFilters] = useState<JobFeedFilters>(() => emptyJobFeedFilters());
   const [filtersOpen, setFiltersOpen] = useState(true);
@@ -65,15 +67,27 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
     return n;
   }, [filters]);
 
-  async function apply(job: JobFeedItem) {
-    setBusyId(job.id);
+  function openApply(job: JobFeedItem) {
+    setDetail(null);
+    setApplyJob(job);
+    setCoverLetter("");
+  }
+
+  async function submitApplication() {
+    if (!applyJob) return;
+    const letter = coverLetter.trim();
+    if (letter.length < 10) {
+      alert("Bitte verfassen Sie ein Anschreiben (mindestens 10 Zeichen).");
+      return;
+    }
+
+    setBusyId(applyJob.id);
     const res = await fetch("/api/matches", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        jobPostingId: job.id,
-        introMessage:
-          `Bewerbung auf: «${job.title}» (${job.employer.companyName}). Ich freue mich auf Ihre Rückmeldung.`,
+        jobPostingId: applyJob.id,
+        introMessage: letter,
       }),
     });
     setBusyId(null);
@@ -82,6 +96,8 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
       alert(j.error || "Bewerbung fehlgeschlagen.");
       return;
     }
+    setApplyJob(null);
+    setCoverLetter("");
     alert("Bewerbung verschickt. Sie finden den Status unter „Bewerbungen“.");
     window.location.href = "/dashboard/worker/anfragen";
   }
@@ -336,7 +352,7 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
                         <button
                           type="button"
                           disabled={busyId === job.id}
-                          onClick={() => void apply(job)}
+                          onClick={() => openApply(job)}
                           className="gj-btn-primary"
                         >
                           {busyId === job.id ? "Senden…" : "Bewerben"}
@@ -378,11 +394,75 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
               </div>
             </section>
             <div className="flex gap-3">
-              <button type="button" className="gj-btn-primary flex-1" onClick={() => void apply(detail)}>
+              <button type="button" className="gj-btn-primary flex-1" onClick={() => openApply(detail)}>
                 Bewerben
               </button>
               <button type="button" className="gj-btn-ghost flex-1" onClick={() => setDetail(null)}>
                 Schließen
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </SlideOver>
+
+      <SlideOver
+        title="Bewerbung senden"
+        open={applyJob != null}
+        onClose={() => {
+          if (busyId) return;
+          setApplyJob(null);
+          setCoverLetter("");
+        }}
+      >
+        {applyJob ? (
+          <div className="space-y-5">
+            <div className="flex gap-3">
+              <EmployerLogo name={applyJob.employer.companyName} logoUrl={applyJob.employer.logoUrl} />
+              <div>
+                <p className="font-semibold text-[var(--gj-text)]">{applyJob.title}</p>
+                <p className="text-sm text-[var(--gj-muted)]">{applyJob.employer.companyName}</p>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="gj-label">Anschreiben</span>
+              <p className="mb-2 text-xs text-[var(--gj-muted)]">
+                Stellen Sie sich kurz vor und erklären Sie, warum Sie an dieser Stelle interessiert sind.
+                Der Arbeitgeber sieht Ihr Anschreiben mit der Bewerbung.
+              </p>
+              <textarea
+                className="gj-textarea"
+                rows={8}
+                maxLength={2000}
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                placeholder={`Sehr geehrte Damen und Herren,\n\nmit großem Interesse bewerbe ich mich auf die Stelle «${applyJob.title}»…`}
+                autoFocus
+              />
+              <p className="mt-1 text-right text-xs text-[var(--gj-muted)]">
+                {coverLetter.length}/2000
+              </p>
+            </label>
+
+            <div className="flex flex-wrap gap-2 border-t border-[var(--gj-border)] pt-4">
+              <button
+                type="button"
+                className="gj-btn-primary flex-1"
+                disabled={busyId === applyJob.id || coverLetter.trim().length < 10}
+                onClick={() => void submitApplication()}
+              >
+                {busyId === applyJob.id ? "Senden…" : "Bewerbung absenden"}
+              </button>
+              <button
+                type="button"
+                className="gj-btn-ghost flex-1"
+                disabled={busyId === applyJob.id}
+                onClick={() => {
+                  setApplyJob(null);
+                  setCoverLetter("");
+                }}
+              >
+                Abbrechen
               </button>
             </div>
           </div>

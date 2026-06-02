@@ -140,13 +140,21 @@ export async function POST(req: Request) {
         return Response.json({ error: "Offene Bewerbung auf diese Stelle existiert bereits." }, { status: 409 });
       }
 
+      const letter = introMessage.trim();
+      if (letter.length < 10) {
+        return Response.json(
+          { error: "Bitte verfassen Sie ein Anschreiben (mindestens 10 Zeichen)." },
+          { status: 400 },
+        );
+      }
+
       const match = await prisma.matchRequest.create({
         data: {
           workerProfileId: worker.id,
           employerProfileId: employer.id,
           jobPostingId,
           initiatorUserId: session.user.id,
-          introMessage: introMessage || `Interesse an: ${posting.title}`,
+          introMessage: letter,
         },
       });
 

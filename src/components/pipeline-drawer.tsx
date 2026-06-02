@@ -233,7 +233,14 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
       </p>
 
       {payload.introMessage ? (
-        <blockquote className="rounded-lg bg-[var(--gj-bg)] p-3 text-sm italic">{payload.introMessage}</blockquote>
+        <section className="space-y-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--gj-muted)]">
+            Anschreiben
+          </h4>
+          <blockquote className="rounded-lg bg-[var(--gj-bg)] p-3 text-sm italic whitespace-pre-wrap">
+            {payload.introMessage}
+          </blockquote>
+        </section>
       ) : null}
 
       {payload.status === "ACCEPTED" && payload.viewerRole === "EMPLOYER" ? (
