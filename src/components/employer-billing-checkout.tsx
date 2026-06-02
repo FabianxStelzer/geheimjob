@@ -2,25 +2,31 @@
 
 import { useState } from "react";
 import type { AddonCode } from "@/lib/billing-plans";
-import { ADDON_CATALOG, PLAN_CATALOG } from "@/lib/billing-plans";
+import type { AddonDefinition, PlanDefinition } from "@/lib/billing-plans";
 import { requestInvoiceBilling } from "@/app/actions/billing";
 
 export function EmployerBillingCheckout({
+  plans,
+  addons,
   currentPlan,
   billingStatus,
   isActive,
 }: {
+  plans: PlanDefinition[];
+  addons: AddonDefinition[];
   currentPlan: string;
   billingStatus: string;
   isActive: boolean;
 }) {
   const [selectedPlan, setSelectedPlan] = useState<string>("PLUS");
-  const [addons, setAddons] = useState<AddonCode[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<AddonCode[]>([]);
   const [busy, setBusy] = useState(false);
   const [invoicePending, setInvoicePending] = useState(false);
 
   function toggleAddon(code: AddonCode) {
-    setAddons((prev) => (prev.includes(code) ? prev.filter((a) => a !== code) : [...prev, code]));
+    setSelectedAddons((prev) =>
+      prev.includes(code) ? prev.filter((a) => a !== code) : [...prev, code],
+    );
   }
 
   async function payWithStripe() {
@@ -28,7 +34,7 @@ export function EmployerBillingCheckout({
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: selectedPlan, addons }),
+      body: JSON.stringify({ plan: selectedPlan, addons: selectedAddons }),
     });
     setBusy(false);
     const data = (await res.json()) as { url?: string; error?: string };
@@ -42,7 +48,7 @@ export function EmployerBillingCheckout({
   async function requestInvoice() {
     const fd = new FormData();
     fd.set("plan", selectedPlan);
-    fd.set("note", `Add-ons: ${addons.join(", ") || "keine"}`);
+    fd.set("note", `Add-ons: ${selectedAddons.join(", ") || "keine"}`);
     setBusy(true);
     await requestInvoiceBilling(fd);
     setBusy(false);
@@ -66,7 +72,7 @@ export function EmployerBillingCheckout({
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {PLAN_CATALOG.map((plan) => (
+        {plans.map((plan) => (
           <label
             key={plan.code}
             className={`gj-card cursor-pointer p-5 transition ${
@@ -97,18 +103,18 @@ export function EmployerBillingCheckout({
       <section className="gj-card p-5">
         <h3 className="text-sm font-semibold text-[var(--gj-text)]">Add-ons (monatlich)</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {ADDON_CATALOG.map((a) => (
+          {addons.map((a) => (
             <label
               key={a.code}
               className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${
-                addons.includes(a.code)
+                selectedAddons.includes(a.code)
                   ? "border-[var(--gj-primary)] bg-[var(--gj-primary-soft)]"
                   : "border-[var(--gj-border)]"
               }`}
             >
               <input
                 type="checkbox"
-                checked={addons.includes(a.code)}
+                checked={selectedAddons.includes(a.code)}
                 onChange={() => toggleAddon(a.code)}
                 className="mt-1"
               />

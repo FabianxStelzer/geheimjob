@@ -2,7 +2,8 @@ import { auth } from "@/auth";
 import { EmployerBillingCheckout } from "@/components/employer-billing-checkout";
 import { ReviewForm } from "@/components/review-form";
 import { getEmployerEntitlements, ensureEmployerSubscription } from "@/lib/employer-billing";
-import { planByCode } from "@/lib/billing-plans";
+import { planByCode } from "@/lib/billing-catalog";
+import { getAddonCatalog, getPlanCatalog } from "@/lib/billing-catalog";
 
 export default async function EmployerBillingPage({
   searchParams,
@@ -15,7 +16,11 @@ export default async function EmployerBillingPage({
   await ensureEmployerSubscription(session.user.id);
   const ent = await getEmployerEntitlements(session.user.id);
   const sp = await searchParams;
-  const planLabel = planByCode(ent.plan)?.name ?? "Kein Paket";
+  const [plans, addons, planLabel] = await Promise.all([
+    getPlanCatalog(),
+    getAddonCatalog(),
+    planByCode(ent.plan).then((p) => p?.name ?? "Kein Paket"),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -33,6 +38,8 @@ export default async function EmployerBillingPage({
         </p>
         <div className="mt-6">
           <EmployerBillingCheckout
+            plans={plans}
+            addons={addons}
             currentPlan={planLabel}
             billingStatus={ent.billingStatus}
             isActive={ent.isActive}

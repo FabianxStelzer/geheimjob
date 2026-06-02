@@ -1,5 +1,10 @@
 import type { AddonCode } from "@/lib/billing-plans";
-import { addonByCode, planByCode, stripePriceIdFromEnv } from "@/lib/billing-plans";
+import {
+  addonByCode,
+  planByCode,
+  stripePriceIdFromAddon,
+  stripePriceIdFromPlan,
+} from "@/lib/billing-catalog";
 import type { EmployerPlan } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
@@ -51,22 +56,22 @@ export async function applySubscriptionFromStripe(opts: {
   });
 }
 
-export function buildStripeLineItems(plan: EmployerPlan, addons: AddonCode[]): {
+export async function buildStripeLineItems(plan: EmployerPlan, addons: AddonCode[]): Promise<{
   price: string;
   quantity: number;
-}[] {
-  const planDef = planByCode(plan);
+}[]> {
+  const planDef = await planByCode(plan);
   if (!planDef) throw new Error("Unbekanntes Paket");
-  const mainPrice = stripePriceIdFromEnv(planDef.stripePriceEnv);
-  if (!mainPrice) throw new Error(`Stripe-Preis fehlt (${planDef.stripePriceEnv})`);
+  const mainPrice = stripePriceIdFromPlan(planDef);
+  if (!mainPrice) throw new Error(`Stripe Price-ID fehlt für Paket ${planDef.name}`);
 
   const items: { price: string; quantity: number }[] = [{ price: mainPrice, quantity: 1 }];
 
   for (const code of addons) {
-    const addon = addonByCode(code);
+    const addon = await addonByCode(code);
     if (!addon) continue;
-    const price = stripePriceIdFromEnv(addon.stripePriceEnv);
-    if (!price) throw new Error(`Stripe-Preis fehlt (${addon.stripePriceEnv})`);
+    const price = stripePriceIdFromAddon(addon);
+    if (!price) throw new Error(`Stripe Price-ID fehlt für Add-on ${addon.name}`);
     items.push({ price, quantity: 1 });
   }
 

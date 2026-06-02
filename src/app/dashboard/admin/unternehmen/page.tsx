@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AdminEmployerForm } from "@/components/admin-employer-form";
-import { planByCode } from "@/lib/billing-plans";
+import { planByCode } from "@/lib/billing-catalog";
 
 export default async function AdminUnternehmenPage() {
   const employers = await prisma.user.findMany({
@@ -9,6 +9,13 @@ export default async function AdminUnternehmenPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const employersEnriched = await Promise.all(
+    employers.map(async (u) => ({
+      ...u,
+      planName: (await planByCode(u.subscription?.plan ?? "NONE"))?.name ?? "—",
+    })),
+  );
+
   return (
     <section className="gj-card p-6">
       <h2 className="text-base font-semibold">Unternehmen ({employers.length})</h2>
@@ -16,9 +23,8 @@ export default async function AdminUnternehmenPage() {
         Paket freischalten (Rechnung), Status ändern oder Zugang entziehen.
       </p>
       <ul className="mt-6 space-y-4">
-        {employers.map((u) => {
+        {employersEnriched.map((u) => {
           const sub = u.subscription;
-          const planName = planByCode(sub?.plan ?? "NONE")?.name ?? "—";
           return (
             <li key={u.id} className="rounded-xl border border-[var(--gj-border)] p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -29,7 +35,7 @@ export default async function AdminUnternehmenPage() {
                   <p className="text-sm text-[var(--gj-muted)]">{u.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="gj-chip">{planName}</span>
+                  <span className="gj-chip">{u.planName}</span>
                   <span className="gj-chip gj-chip-neutral">{sub?.billingStatus ?? "INACTIVE"}</span>
                   {sub?.paymentMethod ? (
                     <span className="gj-chip gj-chip-neutral">{sub.paymentMethod}</span>

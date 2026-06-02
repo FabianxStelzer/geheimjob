@@ -1,5 +1,5 @@
-import type { AddonCode, PlanDefinition } from "@/lib/billing-plans";
-import { ADDON_CATALOG, planByCode, PLAN_CATALOG } from "@/lib/billing-plans";
+import type { AddonCode } from "@/lib/billing-plans";
+import { addonByCode, getAddonCatalog, getPlanCatalog, planByCode } from "@/lib/billing-catalog";
 import { prisma } from "@/lib/prisma";
 import type { BillingStatus, EmployerPlan, Subscription } from "@prisma/client";
 
@@ -20,10 +20,6 @@ export type EmployerEntitlements = {
   publishedJobsCount: number;
   remainingJobSlots: number;
 };
-
-function planDef(plan: EmployerPlan): PlanDefinition | undefined {
-  return planByCode(plan);
-}
 
 export async function ensureEmployerSubscription(userId: string): Promise<Subscription> {
   const existing = await prisma.subscription.findUnique({ where: { userId } });
@@ -53,7 +49,7 @@ export async function getEmployerEntitlements(userId: string): Promise<EmployerE
     : 0;
 
   const active = subscriptionIsActive(sub);
-  const def = planDef(sub.plan);
+  const def = await planByCode(sub.plan);
   const baseSlots = active && def ? def.jobSlots : 0;
   const maxPublishedJobs = baseSlots + (active ? sub.extraJobSlots : 0);
 
@@ -103,14 +99,16 @@ export async function canPublishAnotherJob(userId: string): Promise<{ ok: boolea
   return { ok: true };
 }
 
-export function parseCheckoutSelection(body: {
+export async function parseCheckoutSelection(body: {
   plan?: string;
   addons?: string[];
-}): { plan: EmployerPlan; addons: AddonCode[] } | null {
+}): Promise<{ plan: EmployerPlan; addons: AddonCode[] } | null> {
   const plan = body.plan as EmployerPlan;
-  if (!PLAN_CATALOG.some((p) => p.code === plan)) return null;
+  const plans = await getPlanCatalog();
+  if (!plans.some((p) => p.code === plan)) return null;
+  const addonList = await getAddonCatalog();
   const addons = (body.addons || []).filter((a): a is AddonCode =>
-    ADDON_CATALOG.some((x) => x.code === a),
+    addonList.some((x) => x.code === a),
   );
   return { plan, addons };
 }

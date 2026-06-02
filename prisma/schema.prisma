@@ -244,6 +244,15 @@ model PlacementFee {
   paidAt          DateTime?
 }
 
+model PlatformSettings {
+  id                   String   @id @default("default")
+  stripeSecretKey      String?
+  stripeWebhookSecret  String?
+  stripePublishableKey String?
+  billingCatalogJson   String   @default("{}")
+  updatedAt            DateTime @updatedAt
+}
+
 model ReferralReward {
   id             String   @id @default(cuid())
   referrerUserId String

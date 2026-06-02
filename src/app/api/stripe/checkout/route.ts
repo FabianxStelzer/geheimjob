@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Nur für Arbeitgeber." }, { status: 401 });
   }
 
-  const stripe = getStripe();
+  const stripe = await getStripe();
   if (!stripe) {
     return Response.json(
       { error: "Stripe ist nicht konfiguriert (STRIPE_SECRET_KEY)." },
@@ -36,14 +36,14 @@ export async function POST(req: Request) {
     return Response.json({ url: checkout.url });
   }
 
-  const selection = parseCheckoutSelection(body);
+  const selection = await parseCheckoutSelection(body);
   if (!selection) {
     return Response.json({ error: "Ungültiges Paket." }, { status: 400 });
   }
 
   let lineItems: { price: string; quantity: number }[];
   try {
-    lineItems = buildStripeLineItems(selection.plan, selection.addons);
+    lineItems = await buildStripeLineItems(selection.plan, selection.addons);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Stripe-Preise fehlen.";
     return Response.json({ error: msg }, { status: 501 });

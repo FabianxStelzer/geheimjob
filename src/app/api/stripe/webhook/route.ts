@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { notifyUser } from "@/lib/platform";
 import { applySubscriptionFromStripe, parseStripeMetadata } from "@/lib/stripe-billing";
+import { getStripeWebhookSecret } from "@/lib/platform-settings";
 import { getStripe } from "@/lib/stripe";
 import { NotificationKind } from "@prisma/client";
 import type Stripe from "stripe";
@@ -12,8 +13,8 @@ function periodEndFromSubscription(sub: Stripe.Subscription): Date {
 }
 
 export async function POST(req: Request) {
-  const stripe = getStripe();
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripe = await getStripe();
+  const secret = await getStripeWebhookSecret();
   if (!stripe || !secret) {
     return NextResponse.json({ error: "Webhook nicht konfiguriert." }, { status: 501 });
   }

@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import type { Role } from "@prisma/client";
 import { authConfig } from "@/auth.config";
+import { getAdminBootstrapEmail } from "@/lib/platform-settings";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -26,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!ok) return null;
 
         let role = user.role as Role;
-        const bootstrap = process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim();
+        const bootstrap = await getAdminBootstrapEmail();
         if (bootstrap && email === bootstrap && role !== "ADMIN") {
           await prisma.user.update({
             where: { id: user.id },

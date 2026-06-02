@@ -14,7 +14,10 @@ export type PlanDefinition = {
   includesHighlight: boolean;
   notifyTalentsOnNewJob: boolean;
   notifyOnNewTalentSignup: boolean;
+  /** Fallback Env-Variable, wenn stripePriceId leer */
   stripePriceEnv: string;
+  /** Aus Super-Admin oder .env */
+  stripePriceId?: string;
 };
 
 export type AddonDefinition = {
@@ -23,9 +26,11 @@ export type AddonDefinition = {
   priceEur: number;
   description: string;
   stripePriceEnv: string;
+  stripePriceId?: string;
 };
 
-export const PLAN_CATALOG: PlanDefinition[] = [
+/** Standard-Katalog (wird mit DB-Overrides aus Super-Admin zusammengeführt). */
+export const PLAN_CATALOG_DEFAULT: PlanDefinition[] = [
   {
     code: "STARTER",
     name: "Starter",
@@ -83,7 +88,7 @@ export const PLAN_CATALOG: PlanDefinition[] = [
   },
 ];
 
-export const ADDON_CATALOG: AddonDefinition[] = [
+export const ADDON_CATALOG_DEFAULT: AddonDefinition[] = [
   {
     code: "EXTRA_JOB",
     name: "Zusatzstelle",
@@ -107,15 +112,6 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   },
 ];
 
-export function planByCode(code: EmployerPlan): PlanDefinition | undefined {
-  return PLAN_CATALOG.find((p) => p.code === code);
-}
-
-export function addonByCode(code: AddonCode): AddonDefinition | undefined {
-  return ADDON_CATALOG.find((a) => a.code === code);
-}
-
-export function stripePriceIdFromEnv(envKey: string): string | null {
-  const v = process.env[envKey];
-  return v && v.trim() ? v.trim() : null;
-}
+/** @deprecated Nutze getPlanCatalog() — nur noch für Client-Defaults */
+export const PLAN_CATALOG = PLAN_CATALOG_DEFAULT;
+export const ADDON_CATALOG = ADDON_CATALOG_DEFAULT;

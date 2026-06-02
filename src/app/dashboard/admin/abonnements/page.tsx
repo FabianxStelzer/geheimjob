@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { planByCode } from "@/lib/billing-plans";
+import { planByCode } from "@/lib/billing-catalog";
 
 export default async function AdminAbonnementsPage() {
   const subs = await prisma.subscription.findMany({
@@ -10,6 +10,13 @@ export default async function AdminAbonnementsPage() {
   });
 
   const pending = subs.filter((s) => s.billingStatus === "PENDING");
+
+  const subsEnriched = await Promise.all(
+    subs.map(async (s) => ({
+      ...s,
+      planName: (await planByCode(s.plan))?.name ?? s.plan,
+    })),
+  );
 
   return (
     <div className="space-y-6">
@@ -34,12 +41,12 @@ export default async function AdminAbonnementsPage() {
               </tr>
             </thead>
             <tbody>
-              {subs.map((s) => (
+              {subsEnriched.map((s) => (
                 <tr key={s.id} className="border-b border-[var(--gj-border)]">
                   <td className="py-2 pr-4">
                     {s.user.employerProfile?.companyName ?? s.user.email}
                   </td>
-                  <td className="py-2 pr-4">{planByCode(s.plan)?.name ?? s.plan}</td>
+                  <td className="py-2 pr-4">{s.planName}</td>
                   <td className="py-2 pr-4">{s.billingStatus}</td>
                   <td className="py-2 pr-4">{s.paymentMethod ?? "—"}</td>
                   <td className="py-2 pr-4 text-xs">
