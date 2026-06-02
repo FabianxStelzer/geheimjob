@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
+import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
+import { parseWorkerProfilePhotos } from "@/lib/worker-profile-photos";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { CopyButton } from "@/components/copy-button";
 
@@ -18,6 +20,7 @@ export default async function WorkerProfilPage() {
   }
 
   const shareUrl = `${process.env.NEXTAUTH_URL ?? ""}/p/${profile.anonymousSlug}`;
+  const profilePhotos = parseWorkerProfilePhotos(profile.profilePhotosJson, profile.photoUrl);
 
   return (
     <div className="space-y-6">
@@ -42,12 +45,16 @@ export default async function WorkerProfilPage() {
       </section>
 
       <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold">Profilfotos</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Mehrere Bilder möglich — sichtbar für Arbeitgeber in der Kandidatensuche (Hauptfoto zuerst).
+        </p>
+        <ProfilePhotosUpload initialPhotos={profilePhotos} />
+      </section>
+
+      <section className="gj-card p-6">
         <h2 className="mb-4 text-base font-semibold">Profil bearbeiten</h2>
         <form action={updateWorkerProfile} className="grid gap-4 md:grid-cols-2">
-          <label className="md:col-span-2">
-            <span className="gj-label">Profilfoto (öffentlich in der Kandidatensuche, URL)</span>
-            <input name="photoUrl" type="url" defaultValue={profile.photoUrl ?? ""} className="gj-input" placeholder="https://…" />
-          </label>
           <label className="md:col-span-2">
             <span className="gj-label">Anzeigename (intern)</span>
             <input name="displayName" defaultValue={profile.displayName} required className="gj-input" />

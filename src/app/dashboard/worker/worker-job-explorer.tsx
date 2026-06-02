@@ -4,6 +4,12 @@ import { BrandAvatar } from "@/components/brand-logo";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { JobFeedItem } from "@/lib/job-postings-for-worker";
+import {
+  emptyJobFeedFilters,
+  filterJobFeedItems,
+  jobFeedFilterOptions,
+  type JobFeedFilters,
+} from "@/lib/job-feed-filters";
 import { BriefcaseIcon, MapPinIcon, ClockIcon } from "@/components/icons";
 import { SlideOver } from "@/components/slide-over";
 
@@ -33,15 +39,31 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
   const [detail, setDetail] = useState<JobFeedItem | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<JobFeedFilters>(() => emptyJobFeedFilters());
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
+  const filterOptions = useMemo(() => jobFeedFilterOptions(initialJobs), [initialJobs]);
 
   useEffect(() => {
     setSaved(loadSavedIds());
   }, []);
 
   const jobs = useMemo(() => {
-    if (tab === "saved") return initialJobs.filter((j) => saved.has(j.id));
-    return initialJobs;
-  }, [initialJobs, saved, tab]);
+    let list = filterJobFeedItems(initialJobs, filters);
+    if (tab === "saved") list = list.filter((j) => saved.has(j.id));
+    return list;
+  }, [initialJobs, saved, tab, filters]);
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (filters.q.trim()) n++;
+    if (filters.region) n++;
+    if (filters.industry) n++;
+    if (filters.workMode) n++;
+    if (filters.tag) n++;
+    if (filters.onlyHighlighted) n++;
+    return n;
+  }, [filters]);
 
   async function apply(job: JobFeedItem) {
     setBusyId(job.id);
@@ -110,9 +132,119 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
         </div>
       </header>
 
+      <section className="gj-card p-4 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-[var(--gj-text)]">Filter</h2>
+          <div className="flex flex-wrap gap-2">
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                className="gj-btn-ghost text-xs"
+                onClick={() => setFilters(emptyJobFeedFilters())}
+              >
+                Filter zurücksetzen ({activeFilterCount})
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="gj-btn-ghost text-xs"
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              {filtersOpen ? "Einklappen" : "Ausklappen"}
+            </button>
+          </div>
+        </div>
+        {filtersOpen ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <label className="md:col-span-2 lg:col-span-3">
+              <span className="gj-label">Stichwort</span>
+              <input
+                className="gj-input"
+                value={filters.q}
+                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                placeholder="Titel, Firma, Branche, Tags…"
+              />
+            </label>
+            <label>
+              <span className="gj-label">Region</span>
+              <select
+                className="gj-input"
+                value={filters.region}
+                onChange={(e) => setFilters((f) => ({ ...f, region: e.target.value }))}
+              >
+                <option value="">Alle Regionen</option>
+                {filterOptions.regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="gj-label">Branche</span>
+              <select
+                className="gj-input"
+                value={filters.industry}
+                onChange={(e) => setFilters((f) => ({ ...f, industry: e.target.value }))}
+              >
+                <option value="">Alle Branchen</option>
+                {filterOptions.industries.map((i) => (
+                  <option key={i} value={i}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="gj-label">Arbeitsmodell</span>
+              <select
+                className="gj-input"
+                value={filters.workMode}
+                onChange={(e) => setFilters((f) => ({ ...f, workMode: e.target.value }))}
+              >
+                <option value="">Alle Modelle</option>
+                {filterOptions.workModes.map((w) => (
+                  <option key={w} value={w}>
+                    {w}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="gj-label">Tag</span>
+              <select
+                className="gj-input"
+                value={filters.tag}
+                onChange={(e) => setFilters((f) => ({ ...f, tag: e.target.value }))}
+              >
+                <option value="">Alle Tags</option>
+                {filterOptions.tags.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-end gap-2 pb-1 md:col-span-2">
+              <input
+                id="only-highlighted"
+                type="checkbox"
+                checked={filters.onlyHighlighted}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, onlyHighlighted: e.target.checked }))
+                }
+              />
+              <span className="text-sm text-[var(--gj-text-secondary)]">
+                Nur hervorgehobene Stellen
+              </span>
+            </label>
+          </div>
+        ) : null}
+      </section>
+
       {jobs.length === 0 ? (
         <div className="gj-card p-12 text-center text-sm text-[var(--gj-muted)]">
-          Keine passenden Anzeigen. Speichern Sie Stellen über das Bookmark-Symbol oder wechseln Sie den Tab.
+          Keine passenden Anzeigen. Filter anpassen, Stellen speichern oder Tab wechseln.
         </div>
       ) : (
         <ul className="flex flex-col gap-6">

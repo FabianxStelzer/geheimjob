@@ -5,6 +5,7 @@ import {
   employerIsBlockedFromWorker,
   parseSalaryRange,
 } from "@/lib/platform";
+import { primaryWorkerPhotoUrl } from "@/lib/worker-profile-photos";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
       salaryExpectation: w.salaryPublic ? w.salaryExpectation : null,
       anonymousSlug: w.anonymousSlug,
       bioPreview: w.bio ? w.bio.slice(0, 160) : null,
-      photoUrl: w.photoUrl,
+      photoUrl: primaryWorkerPhotoUrl(w.profilePhotosJson, w.photoUrl),
     });
   }
 

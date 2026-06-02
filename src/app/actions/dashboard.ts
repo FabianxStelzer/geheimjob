@@ -73,8 +73,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
     String(formData.get("socialWebsite") || "").trim() || null;
   const profileVisible = formData.get("profileVisible") === "on";
   const cvDraftJson = String(formData.get("cvDraftJson") || "").trim() || null;
-  const photoUrl = String(formData.get("photoUrl") || "").trim() || null;
-
   if (!displayName || !professionField || !region || !availability) return;
 
   await prisma.workerProfile.update({
@@ -96,7 +94,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       socialWebsite,
       profileVisible,
       cvDraftJson,
-      photoUrl,
     },
   });
 

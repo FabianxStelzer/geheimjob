@@ -93,6 +93,7 @@ model WorkerProfile {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName       String
   photoUrl          String?
+  profilePhotosJson String?
   professionField   String
   experienceYears   Int
   region            String
