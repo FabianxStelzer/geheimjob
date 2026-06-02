@@ -1,9 +1,13 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { authConfig } from "@/auth.config";
+import type { Role } from "@prisma/client";
+
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const role = req.auth?.user?.role;
+  const role = req.auth?.user?.role as Role | undefined;
 
   if (pathname === "/login" && req.auth?.user) {
     const callback = req.nextUrl.searchParams.get("callbackUrl");
@@ -11,13 +15,17 @@ export default auth((req) => {
     return NextResponse.redirect(new URL(dest, req.nextUrl.origin));
   }
 
-  if (!req.auth && pathname.startsWith("/dashboard")) {
+  if (!req.auth?.user && pathname.startsWith("/dashboard")) {
     const login = new URL("/login", req.nextUrl.origin);
     login.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(login);
   }
 
-  if (!role) return NextResponse.next();
+  if (!role) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-pathname", pathname);
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   if (role === "ADMIN") {
     if (

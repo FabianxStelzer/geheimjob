@@ -2,11 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import type { Role } from "@prisma/client";
+import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   secret: process.env.AUTH_SECRET,
-  trustHost: true,
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   providers: [
     Credentials({
@@ -42,32 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/login",
-  },
   callbacks: {
-    async jwt({ token, user }) {
-      const userId =
-        (user as { id?: string } | undefined)?.id ?? (token.sub as string | undefined);
-
-      if (userId) {
-        token.sub = userId;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { role: true, deletedAt: true },
-        });
-        if (dbUser && !dbUser.deletedAt) {
-          token.role = dbUser.role;
-        }
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
-        session.user.role = (token.role as Role) ?? "WORKER";
-      }
-      return session;
-    },
+    ...authConfig.callbacks,
   },
 });
