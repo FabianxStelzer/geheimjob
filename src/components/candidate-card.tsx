@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnonymousProfileTrigger } from "@/components/anonymous-profile-modal";
 import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/components/icons";
 
 export type CandidateCardData = {
@@ -51,7 +52,7 @@ export function CandidateCard({ data }: { data: CandidateCardData }) {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-[var(--gj-text)]">{data.professionField}</h3>
-          <p className="mt-1 text-xs text-[var(--gj-muted)]">Anonymes Profil · /p/{data.anonymousSlug}</p>
+          <p className="mt-1 text-xs text-[var(--gj-muted)]">Anonymes Profil</p>
         </div>
       </div>
 
@@ -81,14 +82,7 @@ export function CandidateCard({ data }: { data: CandidateCardData }) {
       )}
 
       <div className="mt-5 flex items-center justify-between gap-2 border-t border-[var(--gj-border)] pt-4">
-        <a
-          href={`/p/${data.anonymousSlug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="gj-btn-ghost"
-        >
-          Profil ansehen
-        </a>
+        <AnonymousProfileTrigger slug={data.anonymousSlug} />
         <button
           type="button"
           disabled={busy || sent}
