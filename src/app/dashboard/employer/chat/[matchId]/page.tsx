@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { ChatThread } from "@/components/chat-thread";
 import { MessagesShell, type ChatListItem } from "@/components/messages-shell";
 import { ClockIcon, EuroIcon, MapPinIcon } from "@/components/icons";
+import { MatchCvAccess } from "@/components/match-cv-access";
+import { buildMatchCvFields } from "@/lib/match-cv-props";
 
 type Props = { params: Promise<{ matchId: string }> };
 
@@ -126,16 +128,17 @@ export default async function EmployerChatPage(props: Props) {
           </div>
         ) : null}
 
-        {match.workerProfile.cvPdfFilename ? (
-          <a
-            href={`/api/cv/match/${match.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="gj-btn-primary mt-5"
-          >
-            Lebenslauf herunterladen
-          </a>
-        ) : null}
+        <MatchCvAccess
+          matchId={match.id}
+          viewerRole="EMPLOYER"
+          status={match.status}
+          {...buildMatchCvFields(match, match.workerProfile)}
+          workerMeta={{
+            displayName: match.workerProfile.displayName,
+            professionField: match.workerProfile.professionField,
+            region: match.workerProfile.region,
+          }}
+        />
       </aside>
     </div>
   );

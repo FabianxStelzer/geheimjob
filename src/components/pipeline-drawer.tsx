@@ -5,7 +5,9 @@ import Link from "next/link";
 import type { HiringStage } from "@prisma/client";
 import { BriefcaseIcon, ClockIcon, EuroIcon, MapPinIcon } from "@/components/icons";
 import { MatchRespondButtons } from "@/components/match-respond-buttons";
+import { MatchCvAccess } from "@/components/match-cv-access";
 import { HIRING_STAGE_SEQUENCE } from "@/lib/application-pipeline";
+import type { CvAccessUiState } from "@/lib/cv-access";
 
 export type PipelineDrawerPayload = {
   viewerRole: "WORKER" | "EMPLOYER";
@@ -43,6 +45,9 @@ export type PipelineDrawerPayload = {
     weeklyHoursHint: string | null;
   } | null;
   showRespondButtons: boolean;
+  cvAccess: CvAccessUiState;
+  hasPdf: boolean;
+  cvDraftJson: string | null;
 };
 
 const STAGE_LABEL: Record<HiringStage, string> = {
@@ -192,12 +197,37 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
               Profil-Link
             </Link>
           </p>
-          {payload.status === "ACCEPTED" ? (
-            <a href={`/api/cv/match/${payload.matchId}`} className="inline-block gj-btn-ghost mt-2" target="_blank" rel="noreferrer">
-              Lebenslauf (PDF)
-            </a>
-          ) : null}
+          <MatchCvAccess
+            matchId={payload.matchId}
+            viewerRole="EMPLOYER"
+            status={payload.status}
+            cvAccess={payload.cvAccess}
+            hasPdf={payload.hasPdf}
+            cvDraftJson={payload.cvDraftJson}
+            workerMeta={{
+              displayName: payload.worker.displayName,
+              professionField: payload.worker.professionField,
+              region: payload.worker.region,
+            }}
+          />
         </section>
+      ) : null}
+
+      {payload.viewerRole === "WORKER" ? (
+        <MatchCvAccess
+          matchId={payload.matchId}
+          viewerRole="WORKER"
+          status={payload.status}
+          cvAccess={payload.cvAccess}
+          hasPdf={payload.hasPdf}
+          cvDraftJson={payload.cvDraftJson}
+          workerMeta={{
+            displayName: payload.worker?.displayName ?? "",
+            professionField: payload.worker?.professionField ?? "",
+            region: payload.worker?.region ?? "",
+          }}
+          employerCompanyName={payload.employer.companyName}
+        />
       ) : null}
 
       {payload.viewerRole === "WORKER" && payload.employer.contactName ? (

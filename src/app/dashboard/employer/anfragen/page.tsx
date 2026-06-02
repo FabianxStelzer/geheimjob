@@ -9,6 +9,7 @@ import {
 import { pipelineColumnForMatch } from "@/lib/application-pipeline";
 import { splitJobPostingTags } from "@/lib/job-postings-for-worker";
 import type { PipelineDrawerPayload } from "@/components/pipeline-drawer";
+import { buildMatchCvFields } from "@/lib/match-cv-props";
 
 export default async function EmployerAnfragenPage() {
   const session = await auth();
@@ -65,6 +66,7 @@ export default async function EmployerAnfragenPage() {
       },
       job,
       showRespondButtons: m.status === "PENDING" && isRecipient,
+      ...buildMatchCvFields(m, m.workerProfile),
     };
 
     const title = m.jobPosting

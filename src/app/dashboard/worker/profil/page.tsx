@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
 import { CvBuilder } from "@/components/cv-builder";
+import { CvShareModeSettings } from "@/components/cv-share-mode-settings";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
@@ -114,6 +115,9 @@ export default async function WorkerProfilPage() {
 
       <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold">Lebenslauf erstellen</h2>
+        <div className="mb-6">
+          <CvShareModeSettings currentMode={profile.cvShareMode} />
+        </div>
         <CvBuilder
           initialJson={profile.cvDraftJson}
           profileMeta={{

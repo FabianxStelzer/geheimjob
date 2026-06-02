@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import { auth } from "@/auth";
+import { employerMayAccessCv } from "@/lib/cv-access";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ matchId: string }> };
@@ -24,9 +25,16 @@ export async function GET(_req: Request, props: Params) {
     return Response.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 
+  if (!employerMayAccessCv(match, match.workerProfile)) {
+    return Response.json(
+      { error: "Lebenslauf noch nicht freigegeben oder nicht verfügbar." },
+      { status: 403 },
+    );
+  }
+
   const fn = match.workerProfile.cvPdfFilename;
   if (!fn) {
-    return Response.json({ error: "Kein Lebenslauf hinterlegt." }, { status: 404 });
+    return Response.json({ error: "Kein PDF-Lebenslauf hinterlegt." }, { status: 404 });
   }
 
   const fp = path.join(process.cwd(), "uploads", "cv", fn);
