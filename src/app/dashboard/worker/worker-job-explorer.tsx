@@ -488,18 +488,19 @@ function SummaryRow({
   if (!rows.length) return null;
 
   return (
-    <dl
-      className={`grid gap-2 rounded-2xl border border-[var(--gj-border-strong)] bg-[var(--gj-primary-softer)]/40 p-4 text-sm ${
-        variant === "compact" ? "gap-3" : ""
-      }`}
-    >
+    <div className="flex flex-wrap gap-2">
       {rows.map((r) => (
-        <div key={r.label + r.value} className="flex justify-between gap-4">
-          <dt className="text-[var(--gj-muted)]">{r.label}</dt>
-          <dd className="text-right font-medium text-[var(--gj-text)]">{r.value}</dd>
+        <div
+          key={r.label + r.value}
+          className={`inline-flex max-w-xs min-w-[9rem] flex-col rounded-xl border border-[var(--gj-border-strong)] bg-[var(--gj-primary-softer)]/40 px-3 py-2 text-sm ${
+            variant === "compact" ? "min-w-[8rem]" : ""
+          }`}
+        >
+          <span className="text-[11px] text-[var(--gj-muted)]">{r.label}</span>
+          <span className="font-medium leading-snug text-[var(--gj-text)]">{r.value}</span>
         </div>
       ))}
-    </dl>
+    </div>
   );
 }
 
