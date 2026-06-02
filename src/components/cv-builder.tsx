@@ -16,7 +16,6 @@ import {
 
 type Props = {
   initialJson: string | null;
-  hasPdf: boolean;
   profileMeta: {
     displayName: string;
     professionField: string;
@@ -24,13 +23,11 @@ type Props = {
   };
 };
 
-export function CvBuilder({ initialJson, hasPdf, profileMeta }: Props) {
+export function CvBuilder({ initialJson, profileMeta }: Props) {
   const [draft, setDraft] = useState<CvDraft>(() => parseCvDraft(initialJson));
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [savedPdf, setSavedPdf] = useState(hasPdf);
-
   const skillsText = useMemo(() => joinLinesInput(draft.skills), [draft.skills]);
   const languagesText = useMemo(() => joinLinesInput(draft.languages), [draft.languages]);
   const certificatesText = useMemo(() => joinLinesInput(draft.certificates), [draft.certificates]);
@@ -62,8 +59,7 @@ export function CvBuilder({ initialJson, hasPdf, profileMeta }: Props) {
       setStatus(res.error ?? "Speichern fehlgeschlagen.");
       return;
     }
-    setSavedPdf(true);
-    setStatus("Lebenslauf gespeichert und als PDF erzeugt.");
+    setStatus("Lebenslauf gespeichert.");
   }
 
   function resetForm() {
@@ -75,9 +71,8 @@ export function CvBuilder({ initialJson, hasPdf, profileMeta }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gj-muted)]">
-        Erstellen Sie Ihren Lebenslauf direkt hier. Nach dem Speichern wird automatisch eine PDF
-        erzeugt — Arbeitgeber sehen sie erst nach einem angenommenen Match (zusätzlich können Sie
-        unten eine eigene PDF hochladen).
+        Erstellen Sie Ihren Lebenslauf direkt hier. Die Daten bleiben in Ihrem Profil gespeichert.
+        Optional können Sie unten eine PDF für Arbeitgeber hochladen (sichtbar erst nach Match).
       </p>
 
       <div className="inline-flex rounded-full border border-[var(--gj-border)] bg-white p-1">
@@ -322,16 +317,11 @@ export function CvBuilder({ initialJson, hasPdf, profileMeta }: Props) {
 
       <div className="flex flex-wrap gap-3 border-t border-[var(--gj-border)] pt-4">
         <button type="button" className="gj-btn-primary" disabled={busy} onClick={() => void handleSave()}>
-          {busy ? "Speichern…" : "Lebenslauf speichern & PDF erzeugen"}
+          {busy ? "Speichern…" : "Lebenslauf speichern"}
         </button>
         <button type="button" className="gj-btn-ghost" disabled={busy} onClick={resetForm}>
           Zurücksetzen
         </button>
-        {savedPdf ? (
-          <a href="/api/cv/self" target="_blank" rel="noreferrer" className="gj-btn-ghost">
-            PDF ansehen
-          </a>
-        ) : null}
       </div>
     </div>
   );

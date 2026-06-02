@@ -14,9 +14,9 @@ export function CvUploadField() {
 
   return (
     <label className="block">
-      <span className="gj-label">Eigene PDF-Lebenslauf (max. 5 MB)</span>
+      <span className="gj-label">PDF-Lebenslauf (max. 5 MB)</span>
       <span className="mt-0.5 block text-xs text-[var(--gj-muted)]">
-        Ersetzt die PDF aus dem Lebenslauf-Editor, falls vorhanden.
+        Für Arbeitgeber nach angenommenem Match — getrennt vom Lebenslauf-Editor oben.
       </span>
       <input
         type="file"

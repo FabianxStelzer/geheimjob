@@ -116,7 +116,6 @@ export default async function WorkerProfilPage() {
         <h2 className="mb-1 text-base font-semibold">Lebenslauf erstellen</h2>
         <CvBuilder
           initialJson={profile.cvDraftJson}
-          hasPdf={!!profile.cvPdfFilename}
           profileMeta={{
             displayName: profile.displayName,
             professionField: profile.professionField,
