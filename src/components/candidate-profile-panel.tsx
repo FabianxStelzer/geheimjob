@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/components/icons";
+import { CvDraftPreview } from "@/components/cv-draft-preview";
 import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
 import type { CandidateCardData } from "@/components/candidate-card";
 
@@ -102,6 +103,29 @@ export function CandidateProfilePanel({
         Name und Kontakt werden erst nach Match-Freigabe über die Plattform geteilt. Videos sind in
         dieser Ansicht ausgeblendet.
       </p>
+
+      {profile.hasCv ? (
+        <section className="space-y-3 border-t border-[var(--gj-border)] pt-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--gj-muted)]">
+            Lebenslauf
+          </h4>
+          {profile.cvShareMode === "IMMEDIATE" && profile.cvDraftJson ? (
+            <CvDraftPreview
+              draftJson={profile.cvDraftJson}
+              meta={{
+                displayName: profile.professionField,
+                professionField: profile.professionField,
+                region: profile.region,
+              }}
+            />
+          ) : (
+            <p className="rounded-lg border border-[var(--gj-border)] bg-[var(--gj-bg)] px-3 py-2 text-sm text-[var(--gj-muted)]">
+              Lebenslauf erst nach Kontaktaufnahme und Freigabe durch den Kandidaten (Einstellung:
+              „Erst nach meiner Freigabe“).
+            </p>
+          )}
+        </section>
+      ) : null}
 
       {onContact ? (
         <div className="flex flex-wrap gap-2 border-t border-[var(--gj-border)] pt-4">

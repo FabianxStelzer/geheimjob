@@ -3,6 +3,7 @@ import { getEmployerEntitlements } from "@/lib/employer-billing";
 import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
 import { employerIsBlockedFromWorker } from "@/lib/platform";
 import { primaryWorkerPhotoUrl } from "@/lib/worker-profile-photos";
+import { workerHasCv } from "@/lib/cv-access";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -44,6 +45,10 @@ export async function GET(_req: Request, props: Params) {
     return Response.json({ error: "Profil nicht verfügbar." }, { status: 403 });
   }
 
+  const hasCv = workerHasCv(profile);
+  const showCvDraft =
+    profile.cvShareMode === "IMMEDIATE" && hasCv ? profile.cvDraftJson : null;
+
   const out: PublicAnonymousProfile = {
     professionField: profile.professionField,
     region: profile.region,
@@ -56,6 +61,9 @@ export async function GET(_req: Request, props: Params) {
     salaryPublic: profile.salaryPublic,
     bio: profile.bio,
     photoUrl: primaryWorkerPhotoUrl(profile.profilePhotosJson, profile.photoUrl),
+    cvShareMode: profile.cvShareMode,
+    hasCv,
+    cvDraftJson: showCvDraft,
   };
 
   return Response.json({ profile: out });

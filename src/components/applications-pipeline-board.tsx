@@ -102,6 +102,13 @@ export function ApplicationsPipelineBoard({ cards }: { cards: PipelineCardVM[] }
     setOpen(true);
   }
 
+  const activeMatchId = active?.matchId;
+  useEffect(() => {
+    if (!activeMatchId) return;
+    const card = cards.find((c) => c.drawer.matchId === activeMatchId);
+    if (card) setActive(card.drawer);
+  }, [cards, activeMatchId]);
+
   const columns = listPipelineBoardColumns();
 
   return (

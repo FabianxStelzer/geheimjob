@@ -7,4 +7,7 @@ export type PublicAnonymousProfile = {
   salaryPublic: boolean;
   bio: string | null;
   photoUrl: string | null;
+  cvShareMode: "IMMEDIATE" | "ON_REQUEST";
+  hasCv: boolean;
+  cvDraftJson: string | null;
 };

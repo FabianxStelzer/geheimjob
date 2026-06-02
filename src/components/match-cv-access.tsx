@@ -1,9 +1,23 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { CvDraftPreview } from "@/components/cv-draft-preview";
 import type { CvAccessUiState } from "@/lib/cv-access";
+
+type CvStatusPayload = {
+  status: string;
+  cvAccess: CvAccessUiState;
+  hasPdf: boolean;
+  cvDraftJson: string | null;
+  employerCompanyName: string;
+  workerMeta: {
+    displayName: string;
+    professionField: string;
+    region: string;
+  };
+};
+
 export type MatchCvAccessProps = {
   matchId: string;
   viewerRole: "WORKER" | "EMPLOYER";
@@ -22,21 +36,60 @@ export type MatchCvAccessProps = {
 export function MatchCvAccess({
   matchId,
   viewerRole,
-  status,
-  cvAccess,
-  hasPdf,
-  cvDraftJson,
-  workerMeta,
-  employerCompanyName,
+  status: initialStatus,
+  cvAccess: initialCvAccess,
+  hasPdf: initialHasPdf,
+  cvDraftJson: initialCvDraftJson,
+  workerMeta: initialWorkerMeta,
+  employerCompanyName: initialEmployerName,
 }: MatchCvAccessProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [live, setLive] = useState<CvStatusPayload | null>(null);
 
-  if (status !== "ACCEPTED") return null;
+  const reload = useCallback(async () => {
+    const res = await fetch(`/api/matches/${matchId}/cv-status`);
+    if (!res.ok) return;
+    const data = (await res.json()) as CvStatusPayload;
+    setLive(data);
+  }, [matchId]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const status = live?.status ?? initialStatus;
+  const cvAccess = live?.cvAccess ?? initialCvAccess;
+  const hasPdf = live?.hasPdf ?? initialHasPdf;
+  const cvDraftJson = live?.cvDraftJson ?? initialCvDraftJson;
+  const workerMeta = live?.workerMeta ?? initialWorkerMeta;
+  const employerCompanyName = live?.employerCompanyName ?? initialEmployerName;
+
+  if (status !== "ACCEPTED") {
+    if (cvAccess.hasCv) {
+      return (
+        <section className="space-y-2 border-t border-[var(--gj-border)] pt-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--gj-muted)]">
+            Lebenslauf
+          </h4>
+          <p className="text-sm text-[var(--gj-muted)]">
+            Verfügbar, sobald die Anfrage angenommen wurde.
+          </p>
+        </section>
+      );
+    }
+    return null;
+  }
+
   if (!cvAccess.hasCv) {
     return (
-      <p className="text-sm text-[var(--gj-muted)]">Kein Lebenslauf vom Kandidaten hinterlegt.</p>
+      <section className="space-y-2 border-t border-[var(--gj-border)] pt-4">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--gj-muted)]">
+          Lebenslauf
+        </h4>
+        <p className="text-sm text-[var(--gj-muted)]">Kein Lebenslauf vom Kandidaten hinterlegt.</p>
+      </section>
     );
   }
 
@@ -51,6 +104,7 @@ export function MatchCvAccess({
       return;
     }
     setMsg("Anfrage gesendet. Der Kandidat wird benachrichtigt.");
+    await reload();
     router.refresh();
   }
 
@@ -65,6 +119,7 @@ export function MatchCvAccess({
       return;
     }
     setMsg("Lebenslauf für dieses Unternehmen freigegeben.");
+    await reload();
     router.refresh();
   }
 
@@ -136,21 +191,22 @@ function EmployerCvPanel({
 }) {
   if (cvAccess.canView) {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="space-y-2">
         {hasPdf ? (
           <a
             href={`/api/cv/match/${matchId}`}
             target="_blank"
             rel="noreferrer"
-            className="gj-btn-primary"
+            className="gj-btn-primary inline-flex"
           >
             PDF herunterladen
           </a>
         ) : null}
-        <p className="w-full text-xs text-[var(--gj-muted)]">
+        <p className="text-xs text-[var(--gj-muted)]">
           {cvAccess.shareMode === "IMMEDIATE"
             ? "Der Kandidat stellt den Lebenslauf nach Match automatisch bereit."
             : "Der Kandidat hat den Lebenslauf freigegeben."}
+          {!hasPdf ? " Lebenslauf aus dem Profil-Editor siehe unten." : ""}
         </p>
       </div>
     );
