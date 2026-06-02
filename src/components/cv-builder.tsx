@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { saveWorkerCvDraft } from "@/app/actions/cv";
 import {
   emptyCvDraft,
@@ -28,9 +28,15 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const skillsText = useMemo(() => joinLinesInput(draft.skills), [draft.skills]);
-  const languagesText = useMemo(() => joinLinesInput(draft.languages), [draft.languages]);
-  const certificatesText = useMemo(() => joinLinesInput(draft.certificates), [draft.certificates]);
+  const [skillsText, setSkillsText] = useState(() =>
+    joinLinesInput(parseCvDraft(initialJson).skills),
+  );
+  const [languagesText, setLanguagesText] = useState(() =>
+    joinLinesInput(parseCvDraft(initialJson).languages),
+  );
+  const [certificatesText, setCertificatesText] = useState(() =>
+    joinLinesInput(parseCvDraft(initialJson).certificates),
+  );
 
   function update(patch: Partial<CvDraft>) {
     setDraft((d) => ({ ...d, ...patch }));
@@ -65,6 +71,9 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
   function resetForm() {
     if (!confirm("Alle Eingaben zurücksetzen?")) return;
     setDraft(emptyCvDraft());
+    setSkillsText("");
+    setLanguagesText("");
+    setCertificatesText("");
     setStatus(null);
   }
 
@@ -288,7 +297,10 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
                 className="gj-textarea font-mono text-xs"
                 rows={4}
                 value={skillsText}
-                onChange={(e) => update({ skills: splitLinesInput(e.target.value) })}
+                onChange={(e) => {
+                  setSkillsText(e.target.value);
+                  update({ skills: splitLinesInput(e.target.value) });
+                }}
                 placeholder={"Vertrieb\nCRM\nVerhandlung"}
               />
             </label>
@@ -298,7 +310,10 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
                 className="gj-textarea font-mono text-xs"
                 rows={4}
                 value={languagesText}
-                onChange={(e) => update({ languages: splitLinesInput(e.target.value) })}
+                onChange={(e) => {
+                  setLanguagesText(e.target.value);
+                  update({ languages: splitLinesInput(e.target.value) });
+                }}
                 placeholder={"Deutsch (Muttersprache)\nEnglisch (fließend)"}
               />
             </label>
@@ -308,7 +323,10 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
                 className="gj-textarea font-mono text-xs"
                 rows={3}
                 value={certificatesText}
-                onChange={(e) => update({ certificates: splitLinesInput(e.target.value) })}
+                onChange={(e) => {
+                  setCertificatesText(e.target.value);
+                  update({ certificates: splitLinesInput(e.target.value) });
+                }}
               />
             </label>
           </div>

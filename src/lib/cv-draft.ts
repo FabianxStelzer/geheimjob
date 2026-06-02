@@ -130,7 +130,7 @@ export function serializeCvDraft(draft: CvDraft): string {
 
 export function splitLinesInput(text: string): string[] {
   return text
-    .split(/\n|,/)
+    .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
 }
