@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AnonymousProfileTrigger } from "@/components/anonymous-profile-modal";
 import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/components/icons";
 
 export type CandidateCardData = {
@@ -16,11 +15,18 @@ export type CandidateCardData = {
   photoUrl: string | null;
 };
 
-export function CandidateCard({ data }: { data: CandidateCardData }) {
+export function CandidateCard({
+  data,
+  onOpen,
+}: {
+  data: CandidateCardData;
+  onOpen: (data: CandidateCardData) => void;
+}) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  async function contact() {
+  async function contact(e: React.MouseEvent) {
+    e.stopPropagation();
     setBusy(true);
     const res = await fetch("/api/matches", {
       method: "POST",
@@ -40,56 +46,65 @@ export function CandidateCard({ data }: { data: CandidateCardData }) {
   }
 
   return (
-    <article className="gj-card gj-card-interactive relative overflow-hidden p-5">
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--gj-primary-soft)] text-[var(--gj-primary)]">
-          {data.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={data.photoUrl} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <UserIcon />
-          )}
+    <article className="gj-card gj-card-interactive overflow-hidden p-0 shadow-sm">
+      <button
+        type="button"
+        onClick={() => onOpen(data)}
+        className="block w-full p-5 text-left"
+      >
+        <div className="flex gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--gj-primary-soft)] text-[var(--gj-primary)] ring-2 ring-[var(--gj-primary-soft)]">
+            {data.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={data.photoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <UserIcon />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-sm font-semibold leading-snug text-[var(--gj-text)]">
+                {data.professionField}
+              </h3>
+              <span className="shrink-0 rounded-md bg-[var(--gj-primary-softer)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--gj-primary)]">
+                Detail
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-[var(--gj-muted)]">
+              {data.region} · {data.experienceYears} J.
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold text-[var(--gj-text)]">{data.professionField}</h3>
-          <p className="mt-1 text-xs text-[var(--gj-muted)]">Anonymes Profil</p>
-        </div>
-      </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        <span className="gj-chip gj-chip-neutral">
-          <MapPinIcon /> {data.region}
-        </span>
-        <span className="gj-chip gj-chip-neutral">
-          <ClockIcon /> {data.availability}
-        </span>
-        <span className="gj-chip">
-          {data.experienceYears} J. Erfahrung
-        </span>
-        {data.salaryExpectation != null ? (
-          <span className="gj-chip gj-chip-neutral">
-            <EuroIcon /> {data.salaryExpectation.toLocaleString("de-DE")} €
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <span className="gj-chip gj-chip-neutral text-[11px]">
+            <MapPinIcon /> {data.region}
           </span>
+          <span className="gj-chip gj-chip-neutral text-[11px]">
+            <ClockIcon /> {data.availability}
+          </span>
+          {data.salaryExpectation != null ? (
+            <span className="gj-chip gj-chip-neutral text-[11px]">
+              <EuroIcon /> {data.salaryExpectation.toLocaleString("de-DE")} €
+            </span>
+          ) : null}
+        </div>
+
+        {data.bioPreview ? (
+          <p className="mt-3 line-clamp-2 text-[11px] italic text-[var(--gj-text)]/75">
+            “{data.bioPreview}…”
+          </p>
         ) : null}
-      </div>
+      </button>
 
-      {data.bioPreview ? (
-        <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-[var(--gj-text)]/80">
-          {data.bioPreview}…
-        </p>
-      ) : (
-        <p className="mt-4 text-sm italic text-[var(--gj-muted)]">Kein Kurzprofil hinterlegt.</p>
-      )}
-
-      <div className="mt-5 flex items-center justify-between gap-2 border-t border-[var(--gj-border)] pt-4">
-        <AnonymousProfileTrigger slug={data.anonymousSlug} />
+      <div className="flex items-center justify-end gap-2 border-t border-[var(--gj-border)] px-4 py-3">
         <button
           type="button"
           disabled={busy || sent}
-          onClick={() => void contact()}
-          className="gj-btn-primary"
+          onClick={(e) => void contact(e)}
+          className="gj-btn-primary text-sm"
         >
-          <ChatIcon /> {sent ? "Anfrage gesendet" : busy ? "Sende…" : "Kontakt aufnehmen"}
+          <ChatIcon /> {sent ? "Gesendet" : busy ? "Sende…" : "Kontakt"}
         </button>
       </div>
     </article>

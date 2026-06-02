@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AnonymousProfileTrigger } from "@/components/anonymous-profile-modal";
 import type { HiringStage } from "@prisma/client";
 import { BriefcaseIcon, ClockIcon, EuroIcon, MapPinIcon } from "@/components/icons";
 import { MatchRespondButtons } from "@/components/match-respond-buttons";
@@ -187,11 +186,6 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
                 : payload.worker.bio}
             </p>
           ) : null}
-          <AnonymousProfileTrigger
-            slug={payload.worker.anonymousSlug}
-            label="Profil ansehen"
-            className="gj-btn-ghost mt-2"
-          />
           <MatchCvAccess
             matchId={payload.matchId}
             viewerRole="EMPLOYER"
