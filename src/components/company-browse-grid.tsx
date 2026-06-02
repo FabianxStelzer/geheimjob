@@ -14,7 +14,6 @@ export type CompanyBrowseItem = {
   openPositionsNote: string | null;
   descriptionPreview: string | null;
   publishedJobsCount: number;
-  isNew?: boolean;
 };
 
 export function CompanyBrowseGrid({ companies }: { companies: CompanyBrowseItem[] }) {
@@ -34,13 +33,8 @@ export function CompanyBrowseGrid({ companies }: { companies: CompanyBrowseItem[
           <Link
             key={c.id}
             href={`/dashboard/worker/unternehmen/${c.publicSlug}`}
-            className="group gj-card gj-card-interactive relative block overflow-hidden p-5 transition hover:shadow-md"
+            className="gj-card gj-card-interactive block overflow-hidden p-5 transition hover:shadow-md"
           >
-            {c.publishedJobsCount > 0 ? (
-              <div className="gj-ribbon pointer-events-none transition-opacity duration-200 group-hover:opacity-0">
-                Stellen offen
-              </div>
-            ) : null}
             <div className="flex items-start gap-4">
               {c.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element

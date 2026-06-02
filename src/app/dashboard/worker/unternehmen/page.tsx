@@ -39,7 +39,6 @@ export default async function WorkerUnternehmenPage() {
     openPositionsNote: e.openPositionsNote,
     descriptionPreview: e.companyDescription?.slice(0, 140) ?? e.openPositionsNote?.slice(0, 140) ?? null,
     publishedJobsCount: e._count.jobPostings,
-    isNew: e._count.jobPostings > 0,
   }));
 
   return (
