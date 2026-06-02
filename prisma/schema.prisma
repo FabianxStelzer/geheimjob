@@ -180,10 +180,23 @@ model JobPosting {
   weeklyHoursHint   String?
   published         Boolean         @default(false)
   highlighted       Boolean         @default(false)
+  detailViewCount   Int             @default(0)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
   matches MatchRequest[]
+  views   JobPostingView[]
+}
+
+model JobPostingView {
+  id           String     @id @default(cuid())
+  jobPostingId String
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  workerUserId String
+  createdAt    DateTime   @default(now())
+
+  @@unique([jobPostingId, workerUserId])
+  @@index([jobPostingId])
 }
 
 model MatchRequest {

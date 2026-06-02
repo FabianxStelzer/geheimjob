@@ -82,8 +82,14 @@ export default function WorkerJobExplorer({
     return n;
   }, [filters]);
 
+  function openJobDetail(job: JobFeedItem) {
+    setDetail(job);
+    void fetch(`/api/jobs/${encodeURIComponent(job.id)}/view`, { method: "POST" });
+  }
+
   function openApply(job: JobFeedItem) {
     setDetail(null);
+    void fetch(`/api/jobs/${encodeURIComponent(job.id)}/view`, { method: "POST" });
     setApplyJob(job);
     setCoverLetter("");
   }
@@ -369,7 +375,7 @@ export default function WorkerJobExplorer({
                         Aktualisiert {new Date(job.updatedAt).toLocaleDateString("de-DE")}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={() => setDetail(job)} className="gj-btn-ghost">
+                        <button type="button" onClick={() => openJobDetail(job)} className="gj-btn-ghost">
                           Details
                         </button>
                         <button

@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { deleteJobPosting, upsertJobPosting } from "@/app/actions/jobs";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
+import { getEmployerJobPostingStats } from "@/lib/job-posting-stats";
+import { JobStatsCompact, JobStatsGrid } from "@/components/job-posting-stats";
 
 export default async function EmployerStellenPage() {
   const session = await auth();
@@ -15,20 +18,43 @@ export default async function EmployerStellenPage() {
 
   if (!employer) return <p className="text-sm text-red-600">Kein Unternehmensprofil.</p>;
 
+  const analytics = await getEmployerJobPostingStats(employer.id);
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <header>
-        <h1 className="text-xl font-semibold tracking-tight">Stellen veröffentlichen</h1>
-        <p className="mt-1 text-sm text-[var(--gj-muted)]">
-          {ent.canPublishJobs
-            ? `Veröffentlichte Stellen: ${ent.publishedJobsCount} / ${ent.maxPublishedJobs} · Paket ${ent.planName}`
-            : "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."}
-        </p>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Stellenanzeigen</h1>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
+            {ent.canPublishJobs
+              ? `${ent.publishedJobsCount} / ${ent.maxPublishedJobs} veröffentlicht · Paket ${ent.planName}`
+              : "Ihr Paket enthält keine Stellenanzeigen (Starter). Bitte Plus oder Premium unter Abrechnung buchen."}
+          </p>
+        </div>
+        {employer.jobPostings.length > 0 ? (
+          <Link href="/dashboard/employer/anfragen" className="gj-btn-ghost text-sm">
+            Bewerbungen ansehen →
+          </Link>
+        ) : null}
       </header>
 
-      <details className="gj-card group-open:shadow-md" open>
+      {employer.jobPostings.length > 0 ? (
+        <section className="gj-card p-5 md:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--gj-muted)]">
+            Auswertung (alle Stellen)
+          </h2>
+          <p className="mt-1 text-xs text-[var(--gj-muted)]">
+            Aufrufe zählen, wenn Kandidaten die Detail-Ansicht einer Stelle öffnen.
+          </p>
+          <div className="mt-4">
+            <JobStatsGrid stats={analytics.totals} />
+          </div>
+        </section>
+      ) : null}
+
+      <details className="gj-card group-open:shadow-md">
         <summary className="cursor-pointer select-none px-5 py-4 text-base font-semibold">
-          Neue Stellenanzeige
+          + Neue Stellenanzeige
         </summary>
         <div className="border-t border-[var(--gj-border)] px-5 py-4">
           <JobForm
@@ -43,47 +69,82 @@ export default async function EmployerStellenPage() {
           Ihre Ausschreibungen ({employer.jobPostings.length})
         </h2>
         {employer.jobPostings.length === 0 ? (
-          <p className="text-sm text-[var(--gj-muted)]">Noch keine Einträge.</p>
+          <p className="gj-card p-8 text-center text-sm text-[var(--gj-muted)]">
+            Noch keine Einträge — legen Sie oben Ihre erste Stelle an.
+          </p>
         ) : (
-          <ul className="space-y-3">
-            {employer.jobPostings.map((j) => (
-              <li key={j.id}>
-                <details className="gj-card">
-                  <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium">
-                    <span>{j.title}</span>
-                    <span
-                      className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        j.published
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-zinc-100 text-[var(--gj-muted)]"
-                      }`}
-                    >
-                      {j.published ? "Live" : "Entwurf"}
-                    </span>
-                  </summary>
-                  <div className="border-t border-[var(--gj-border)] px-5 py-4">
-                    <JobForm
-                      canHighlight={ent.canHighlightJobs}
-                      job={{
-                        id: j.id,
-                        title: j.title,
-                        headline: j.headline,
-                        tags: j.tags,
-                        productCostHint: j.productCostHint,
-                        commissionHint: j.commissionHint,
-                        targetIncomeHint: j.targetIncomeHint,
-                        targetIncomeKind: j.targetIncomeKind,
-                        workModeHint: j.workModeHint,
-                        weeklyHoursHint: j.weeklyHoursHint,
-                        richDescription: j.richDescription,
-                        published: j.published,
-                        highlighted: j.highlighted,
-                      }}
-                    />
+          <ul className="space-y-4">
+            {employer.jobPostings.map((j) => {
+              const stats = analytics.byJobId[j.id];
+              return (
+                <li key={j.id} className="gj-card overflow-hidden">
+                  <div className="border-b border-[var(--gj-border)] px-5 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-base font-semibold text-[var(--gj-text)]">{j.title}</h3>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                              j.published
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-zinc-100 text-[var(--gj-muted)]"
+                            }`}
+                          >
+                            {j.published ? "Live" : "Entwurf"}
+                          </span>
+                          {j.highlighted ? (
+                            <span className="rounded-full bg-[var(--gj-primary-softer)] px-2 py-0.5 text-[10px] font-semibold text-[var(--gj-primary)]">
+                              Hervorgehoben
+                            </span>
+                          ) : null}
+                        </div>
+                        {j.headline ? (
+                          <p className="mt-1 text-sm text-[var(--gj-muted)]">{j.headline}</p>
+                        ) : null}
+                        <p className="mt-2 text-xs text-[var(--gj-muted)]">
+                          Zuletzt bearbeitet{" "}
+                          {new Date(j.updatedAt).toLocaleDateString("de-DE", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    {stats ? (
+                      <div className="mt-4">
+                        <JobStatsCompact stats={stats} />
+                      </div>
+                    ) : null}
                   </div>
-                </details>
-              </li>
-            ))}
+                  <details className="group">
+                    <summary className="cursor-pointer select-none px-5 py-3 text-sm font-medium text-[var(--gj-primary)] hover:bg-[var(--gj-bg)]/50">
+                      Anzeige bearbeiten
+                    </summary>
+                    <div className="border-t border-[var(--gj-border)] px-5 py-4">
+                      <JobForm
+                        canHighlight={ent.canHighlightJobs}
+                        job={{
+                          id: j.id,
+                          title: j.title,
+                          headline: j.headline,
+                          tags: j.tags,
+                          productCostHint: j.productCostHint,
+                          commissionHint: j.commissionHint,
+                          targetIncomeHint: j.targetIncomeHint,
+                          targetIncomeKind: j.targetIncomeKind,
+                          workModeHint: j.workModeHint,
+                          weeklyHoursHint: j.weeklyHoursHint,
+                          richDescription: j.richDescription,
+                          published: j.published,
+                          highlighted: j.highlighted,
+                        }}
+                      />
+                    </div>
+                  </details>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
