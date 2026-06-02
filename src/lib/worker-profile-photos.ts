@@ -1,3 +1,5 @@
+import { resolveLegacyPhotoUrl } from "@/lib/profile-photo-storage";
+
 export type WorkerProfilePhoto = {
   id: string;
   url: string;
@@ -45,7 +47,8 @@ export function primaryWorkerPhotoUrl(
   legacyPhotoUrl: string | null | undefined,
 ): string | null {
   const photos = parseWorkerProfilePhotos(profilePhotosJson, legacyPhotoUrl);
-  return photos[0]?.url ?? null;
+  const url = photos[0]?.url ?? null;
+  return url ? resolveLegacyPhotoUrl(url) : null;
 }
 
 export function workerPhotosToDb(

@@ -1,7 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ProfilePhotoCropModal } from "@/components/profile-photo-crop-modal";
+import { isLikelyImageFile, readFileAsObjectUrl } from "@/lib/crop-image";
+import { resolveLegacyPhotoUrl } from "@/lib/profile-photo-storage";
 import type { WorkerProfilePhoto } from "@/lib/worker-profile-photos";
 import { MAX_PHOTOS } from "@/lib/worker-profile-photos";
 
@@ -11,66 +14,137 @@ export function ProfilePhotosUpload({
   initialPhotos: WorkerProfilePhoto[];
 }) {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState(initialPhotos);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
+
+  useEffect(() => {
+    return () => {
+      if (cropSrc?.startsWith("blob:")) URL.revokeObjectURL(cropSrc);
+    };
+  }, [cropSrc]);
 
   async function refresh() {
     router.refresh();
   }
 
-  async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
-    if (!files?.length) return;
-    setBusy(true);
-    let current = [...photos];
-    for (let i = 0; i < files.length; i++) {
-      if (current.length >= MAX_PHOTOS) break;
-      const fd = new FormData();
-      fd.append("file", files[i]);
-      const res = await fetch("/api/upload/profile-photo", { method: "POST", body: fd });
-      const data = (await res.json()) as {
-        photos?: WorkerProfilePhoto[];
-        error?: string;
-      };
-      if (!res.ok) {
-        alert(data.error || "Upload fehlgeschlagen.");
-        break;
-      }
-      if (data.photos) current = data.photos;
+  async function uploadBlob(blob: Blob) {
+    const fd = new FormData();
+    fd.append("file", new File([blob], "profile.jpg", { type: "image/jpeg" }));
+    const res = await fetch("/api/upload/profile-photo", {
+      method: "POST",
+      body: fd,
+      credentials: "same-origin",
+    });
+    const data = (await res.json()) as {
+      photos?: WorkerProfilePhoto[];
+      error?: string;
+    };
+    if (!res.ok) {
+      throw new Error(data.error || `Upload fehlgeschlagen (${res.status}).`);
     }
-    setPhotos(current);
-    setBusy(false);
+    if (data.photos) setPhotos(data.photos);
+    return data;
+  }
+
+  async function startCropForFile(file: File) {
+    setStatus(null);
+    try {
+      const src = await readFileAsObjectUrl(file);
+      setCropSrc(src);
+    } catch {
+      setStatus("Datei konnte nicht gelesen werden.");
+    }
+  }
+
+  async function onFilePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const list = e.target.files;
+    if (!list?.length) return;
+
+    const files = [...list].filter(isLikelyImageFile);
     e.target.value = "";
-    await refresh();
+
+    if (!files.length) {
+      setStatus("Bitte ein Bild (JPEG, PNG, WebP oder HEIC) wählen.");
+      return;
+    }
+
+    const slots = MAX_PHOTOS - photos.length;
+    if (slots <= 0) {
+      setStatus(`Maximal ${MAX_PHOTOS} Fotos.`);
+      return;
+    }
+
+    const queue = files.slice(0, slots);
+    setPendingFiles(queue.slice(1));
+    await startCropForFile(queue[0]);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await uploadBlob(blob);
+      setStatus("Foto gespeichert.");
+      await refresh();
+      setCropSrc(null);
+      if (pendingFiles.length > 0) {
+        const [next, ...rest] = pendingFiles;
+        setPendingFiles(rest);
+        await startCropForFile(next);
+      }
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Upload fehlgeschlagen.");
+      setCropSrc(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function closeCrop() {
+    setCropSrc(null);
+    setPendingFiles([]);
   }
 
   async function remove(photoId: string) {
     if (!confirm("Dieses Foto wirklich entfernen?")) return;
     setBusy(true);
+    setStatus(null);
     const res = await fetch(`/api/upload/profile-photo?id=${encodeURIComponent(photoId)}`, {
       method: "DELETE",
+      credentials: "same-origin",
     });
     const data = (await res.json()) as { photos?: WorkerProfilePhoto[]; error?: string };
     setBusy(false);
     if (!res.ok) {
-      alert(data.error || "Löschen fehlgeschlagen.");
+      setStatus(data.error || "Löschen fehlgeschlagen.");
       return;
     }
     setPhotos(data.photos ?? []);
+    setStatus("Foto entfernt.");
     await refresh();
   }
 
   async function setPrimary(photoId: string) {
     setBusy(true);
+    setStatus(null);
     const res = await fetch("/api/upload/profile-photo", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ photoId }),
     });
     const data = (await res.json()) as { photos?: WorkerProfilePhoto[]; error?: string };
     setBusy(false);
     if (!res.ok) {
-      alert(data.error || "Aktion fehlgeschlagen.");
+      setStatus(data.error || "Aktion fehlgeschlagen.");
       return;
     }
     setPhotos(data.photos ?? []);
@@ -80,9 +154,22 @@ export function ProfilePhotosUpload({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gj-muted)]">
-        Bis zu {MAX_PHOTOS} Bilder (JPEG, PNG, WebP, max. 3 MB). Das erste Foto erscheint in der
-        Arbeitgeber-Suche und bei Bewerbungen.
+        Bis zu {MAX_PHOTOS} Bilder. Nach Auswahl schneiden Sie jedes Foto quadratisch zu — das
+        Hauptfoto erscheint in der Arbeitgeber-Suche.
       </p>
+
+      {status ? (
+        <p
+          className={`rounded-lg px-3 py-2 text-sm ${
+            status.includes("gespeichert") || status.includes("entfernt")
+              ? "bg-emerald-50 text-emerald-900"
+              : "bg-rose-50 text-rose-800"
+          }`}
+          role="status"
+        >
+          {status}
+        </p>
+      ) : null}
 
       {photos.length > 0 ? (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -96,7 +183,11 @@ export function ProfilePhotosUpload({
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt="" className="aspect-square w-full object-cover" />
+              <img
+                src={resolveLegacyPhotoUrl(p.url)}
+                alt=""
+                className="aspect-square w-full object-cover"
+              />
               {idx === 0 ? (
                 <span className="absolute left-2 top-2 rounded-md bg-[var(--gj-primary)] px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
                   Hauptfoto
@@ -127,23 +218,35 @@ export function ProfilePhotosUpload({
         </ul>
       ) : (
         <p className="rounded-xl border border-dashed border-[var(--gj-border)] px-4 py-8 text-center text-sm text-[var(--gj-muted)]">
-          Noch keine Profilfotos hochgeladen.
+          Noch keine Profilfotos. Klicken Sie auf „Foto hinzufügen“.
         </p>
       )}
 
-      <label className="block">
-        <span className="gj-label">
-          {photos.length >= MAX_PHOTOS ? "Limit erreicht" : "Fotos hinzufügen"}
-        </span>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          disabled={busy || photos.length >= MAX_PHOTOS}
-          onChange={(e) => void onUpload(e)}
-          className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--gj-primary-soft)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[var(--gj-primary)] hover:file:bg-[var(--gj-primary-softer)] disabled:opacity-50"
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        disabled={busy || photos.length >= MAX_PHOTOS}
+        onChange={(e) => void onFilePick(e)}
+      />
+
+      <button
+        type="button"
+        disabled={busy || photos.length >= MAX_PHOTOS}
+        onClick={() => inputRef.current?.click()}
+        className="gj-btn-primary"
+      >
+        {busy ? "Bitte warten…" : photos.length >= MAX_PHOTOS ? "Limit erreicht" : "Foto hinzufügen"}
+      </button>
+
+      {cropSrc ? (
+        <ProfilePhotoCropModal
+          imageSrc={cropSrc}
+          onClose={closeCrop}
+          onConfirm={handleCropConfirm}
         />
-      </label>
+      ) : null}
     </div>
   );
 }
