@@ -99,14 +99,15 @@ export function ChatThread({
         <div ref={bottom} />
       </div>
 
-      <form onSubmit={send} className="flex items-center gap-2 border-t border-[var(--gj-border)] bg-white p-3">
-        <input
-          className="gj-input mt-0 flex-1"
+      <form onSubmit={send} className="flex items-end gap-2 border-t border-[var(--gj-border)] bg-white p-3">
+        <textarea
+          className="gj-textarea mt-0 max-h-32 min-h-[2.75rem] flex-1 resize-none"
+          rows={2}
           placeholder="Nachricht eingeben…"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button type="submit" className="gj-btn-primary !p-2.5">
+        <button type="submit" className="gj-btn-primary shrink-0 !p-2.5">
           <SendIcon />
         </button>
       </form>
