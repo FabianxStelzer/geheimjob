@@ -72,6 +72,7 @@ export default async function EmployerStellenPage() {
                         productCostHint: j.productCostHint,
                         commissionHint: j.commissionHint,
                         targetIncomeHint: j.targetIncomeHint,
+                        targetIncomeKind: j.targetIncomeKind,
                         workModeHint: j.workModeHint,
                         weeklyHoursHint: j.weeklyHoursHint,
                         richDescription: j.richDescription,
@@ -103,6 +104,7 @@ function JobForm({
     productCostHint: string | null;
     commissionHint: string | null;
     targetIncomeHint: string | null;
+    targetIncomeKind: "BRUTTO" | "NETTO";
     workModeHint: string | null;
     weeklyHoursHint: string | null;
     richDescription: string;
@@ -139,8 +141,24 @@ function JobForm({
           <input name="commissionHint" className="gj-input" defaultValue={job?.commissionHint ?? ""} />
         </label>
         <label>
-          <span className="gj-label">Zieleinkommen</span>
-          <input name="targetIncomeHint" className="gj-input" defaultValue={job?.targetIncomeHint ?? ""} placeholder="€75.000/Jahr" />
+          <span className="gj-label">Zieleinkommen (€)</span>
+          <input
+            name="targetIncomeHint"
+            className="gj-input"
+            defaultValue={job?.targetIncomeHint ?? ""}
+            placeholder="75.000/Jahr oder 5.000/Monat"
+          />
+        </label>
+        <label>
+          <span className="gj-label">Angabe als</span>
+          <select
+            name="targetIncomeKind"
+            className="gj-input"
+            defaultValue={job?.targetIncomeKind ?? "BRUTTO"}
+          >
+            <option value="BRUTTO">Brutto</option>
+            <option value="NETTO">Netto</option>
+          </select>
         </label>
         <label>
           <span className="gj-label">Arbeitsmodell</span>

@@ -46,6 +46,11 @@ enum CvShareMode {
   ON_REQUEST
 }
 
+enum IncomeKind {
+  BRUTTO
+  NETTO
+}
+
 enum EmployerPlan {
   NONE
   STARTER
@@ -105,6 +110,10 @@ model WorkerProfile {
   region            String
   salaryExpectation Int?
   salaryPublic      Boolean  @default(true)
+  salaryKind        IncomeKind @default(BRUTTO)
+  taxClass          Int?
+  churchTax         Boolean  @default(false)
+  federalState      String?
   availability      String
   socialLinkedin    String?
   socialXing        String?
@@ -163,6 +172,7 @@ model JobPosting {
   productCostHint   String?
   commissionHint    String?
   targetIncomeHint  String?
+  targetIncomeKind  IncomeKind @default(BRUTTO)
   workModeHint      String?
   weeklyHoursHint   String?
   published         Boolean         @default(false)

@@ -13,5 +13,14 @@ export default async function WorkerHome() {
   if (!worker) return <p className="text-sm text-red-600">Kein Profil gefunden.</p>;
 
   const jobs = await listPublishedJobsForWorkerProfile(worker.id);
-  return <WorkerJobExplorer initialJobs={jobs} />;
+  const netCalcSettings =
+    worker.taxClass && worker.taxClass >= 1 && worker.taxClass <= 6
+      ? {
+          taxClass: worker.taxClass,
+          churchTax: worker.churchTax,
+          federalState: worker.federalState,
+        }
+      : null;
+
+  return <WorkerJobExplorer initialJobs={jobs} netCalcSettings={netCalcSettings} />;
 }

@@ -9,6 +9,7 @@ export type JobFeedItem = {
   productCostHint: string | null;
   commissionHint: string | null;
   targetIncomeHint: string | null;
+  targetIncomeKind: "BRUTTO" | "NETTO";
   workModeHint: string | null;
   weeklyHoursHint: string | null;
   richDescription: string;
@@ -74,6 +75,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
       productCostHint: p.productCostHint,
       commissionHint: p.commissionHint,
       targetIncomeHint: p.targetIncomeHint,
+      targetIncomeKind: p.targetIncomeKind,
       workModeHint: p.workModeHint,
       weeklyHoursHint: p.weeklyHoursHint,
       richDescription: p.richDescription,

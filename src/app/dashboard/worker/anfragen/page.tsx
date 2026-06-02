@@ -13,6 +13,18 @@ import { buildMatchCvFields } from "@/lib/match-cv-props";
 
 export default async function WorkerAnfragenPage() {
   const session = await auth();
+  const worker = await prisma.workerProfile.findUnique({
+    where: { userId: session!.user.id },
+  });
+  const workerNetCalcSettings =
+    worker?.taxClass && worker.taxClass >= 1 && worker.taxClass <= 6
+      ? {
+          taxClass: worker.taxClass,
+          churchTax: worker.churchTax,
+          federalState: worker.federalState,
+        }
+      : null;
+
   const matches = await prisma.matchRequest.findMany({
     where: { workerProfile: { userId: session!.user.id } },
     include: { employerProfile: true, workerProfile: true, jobPosting: true },
@@ -32,6 +44,7 @@ export default async function WorkerAnfragenPage() {
           productCostHint: m.jobPosting.productCostHint,
           commissionHint: m.jobPosting.commissionHint,
           targetIncomeHint: m.jobPosting.targetIncomeHint,
+          targetIncomeKind: m.jobPosting.targetIncomeKind,
           workModeHint: m.jobPosting.workModeHint,
           weeklyHoursHint: m.jobPosting.weeklyHoursHint,
         }
@@ -52,6 +65,7 @@ export default async function WorkerAnfragenPage() {
       },
       job,
       showRespondButtons: m.status === "PENDING" && isRecipient,
+      workerNetCalcSettings,
       ...buildMatchCvFields(m, m.workerProfile),
     };
 

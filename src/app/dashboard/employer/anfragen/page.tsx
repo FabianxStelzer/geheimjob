@@ -32,6 +32,7 @@ export default async function EmployerAnfragenPage() {
           productCostHint: m.jobPosting.productCostHint,
           commissionHint: m.jobPosting.commissionHint,
           targetIncomeHint: m.jobPosting.targetIncomeHint,
+          targetIncomeKind: m.jobPosting.targetIncomeKind,
           workModeHint: m.jobPosting.workModeHint,
           weeklyHoursHint: m.jobPosting.weeklyHoursHint,
         }

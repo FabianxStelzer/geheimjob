@@ -65,6 +65,15 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
     ? Number(formData.get("salaryExpectation"))
     : null;
   const salaryPublic = formData.get("salaryPublic") === "on";
+  const salaryKindRaw = String(formData.get("salaryKind") || "BRUTTO").trim();
+  const salaryKind = salaryKindRaw === "NETTO" ? "NETTO" : "BRUTTO";
+  const taxClassRaw = formData.get("taxClass");
+  const taxClass =
+    taxClassRaw != null && String(taxClassRaw).trim() !== ""
+      ? Number(taxClassRaw)
+      : null;
+  const churchTax = formData.get("churchTax") === "on";
+  const federalState = String(formData.get("federalState") || "").trim() || null;
   const bio = String(formData.get("bio") || "").trim() || null;
   const socialLinkedin =
     String(formData.get("socialLinkedin") || "").trim() || null;
@@ -87,6 +96,13 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
           ? salaryExpectation
           : null,
       salaryPublic,
+      salaryKind,
+      taxClass:
+        taxClass != null && Number.isFinite(taxClass) && taxClass >= 1 && taxClass <= 6
+          ? taxClass
+          : null,
+      churchTax,
+      federalState,
       bio,
       socialLinkedin,
       socialXing,
@@ -96,6 +112,7 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/dashboard/worker/profil");
+  revalidatePath("/dashboard/worker");
   revalidatePath("/dashboard/employer");
 }
 

@@ -26,6 +26,8 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const productCostHint = String(formData.get("productCostHint") || "").trim() || null;
   const commissionHint = String(formData.get("commissionHint") || "").trim() || null;
   const targetIncomeHint = String(formData.get("targetIncomeHint") || "").trim() || null;
+  const targetIncomeKindRaw = String(formData.get("targetIncomeKind") || "BRUTTO").trim();
+  const targetIncomeKind = targetIncomeKindRaw === "NETTO" ? "NETTO" : "BRUTTO";
   const workModeHint = String(formData.get("workModeHint") || "").trim() || null;
   const weeklyHoursHint = String(formData.get("weeklyHoursHint") || "").trim() || null;
   const richDescription = String(formData.get("richDescription") || "").trim();
@@ -60,6 +62,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         productCostHint,
         commissionHint,
         targetIncomeHint,
+        targetIncomeKind,
         workModeHint,
         weeklyHoursHint,
         richDescription,
@@ -91,6 +94,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
         productCostHint,
         commissionHint,
         targetIncomeHint,
+        targetIncomeKind,
         workModeHint,
         weeklyHoursHint,
         richDescription,

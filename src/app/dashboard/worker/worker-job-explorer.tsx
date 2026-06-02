@@ -12,6 +12,11 @@ import {
 } from "@/lib/job-feed-filters";
 import { BriefcaseIcon, MapPinIcon, ClockIcon } from "@/components/icons";
 import { SlideOver } from "@/components/slide-over";
+import {
+  formatTargetIncomeDisplay,
+  hasNetCalcSettings,
+  type WorkerNetCalcSettings,
+} from "@/lib/income-display";
 
 const SAVED_JOBS_LS = "geheimjob-saved-job-ids";
 
@@ -34,7 +39,17 @@ function toggleSaved(jobId: string) {
   localStorage.setItem(SAVED_JOBS_LS, JSON.stringify([...s]));
 }
 
-export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFeedItem[] }) {
+export default function WorkerJobExplorer({
+  initialJobs,
+  netCalcSettings,
+}: {
+  initialJobs: JobFeedItem[];
+  netCalcSettings: {
+    taxClass: number;
+    churchTax: boolean;
+    federalState: string | null;
+  } | null;
+}) {
   const [tab, setTab] = useState<"all" | "saved">("all");
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
   const [detail, setDetail] = useState<JobFeedItem | null>(null);
@@ -264,6 +279,14 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
         </div>
       ) : (
         <ul className="flex flex-col gap-6">
+          {!hasNetCalcSettings(netCalcSettings) ? (
+            <li className="gj-card border border-[var(--gj-border)] bg-[var(--gj-primary-softer)]/30 px-4 py-3 text-sm text-[var(--gj-text-secondary)]">
+              <Link href="/dashboard/worker/profil" className="font-medium text-[var(--gj-primary)] hover:underline">
+                Steuerdaten im Profil hinterlegen
+              </Link>
+              , um bei Brutto-Gehältern automatisch eine Netto-Schätzung (ca.) zu sehen.
+            </li>
+          ) : null}
           {jobs.map((job, idx) => (
             <li key={job.id} className="w-full">
               <article
@@ -327,7 +350,7 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
                       ) : null}
                     </div>
 
-                    <SummaryRow job={job} />
+                    <SummaryRow job={job} netCalcSettings={netCalcSettings} />
 
                     <div className="flex flex-wrap gap-2">
                       {job.tags.map((t) => (
@@ -379,7 +402,7 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
                 </p>
               </div>
             </div>
-            <SummaryRow job={detail} variant="compact" />
+            <SummaryRow job={detail} variant="compact" netCalcSettings={netCalcSettings} />
             <div className="flex flex-wrap gap-2">
               {detail.tags.map((t) => (
                 <span key={`d-${detail.id}-${t}`} className="gj-chip gj-chip-neutral">
@@ -475,15 +498,29 @@ export default function WorkerJobExplorer({ initialJobs }: { initialJobs: JobFee
 function SummaryRow({
   job,
   variant = "default",
+  netCalcSettings,
 }: {
   job: JobFeedItem;
   variant?: "default" | "compact";
+  netCalcSettings: WorkerNetCalcSettings | null;
 }) {
+  const incomeDisplay = job.targetIncomeHint
+    ? formatTargetIncomeDisplay(
+        job.targetIncomeHint,
+        job.targetIncomeKind,
+        hasNetCalcSettings(netCalcSettings) ? netCalcSettings : null,
+      )
+    : null;
+
   const rows = [
     job.productCostHint && { label: "Produkte / Projekt", value: job.productCostHint },
     job.commissionHint && { label: "Provision / Bonus", value: job.commissionHint },
-    job.targetIncomeHint && { label: "Zieleinkommen", value: job.targetIncomeHint },
-  ].filter(Boolean) as { label: string; value: string }[];
+    incomeDisplay && {
+      label: "Zieleinkommen",
+      value: incomeDisplay.primary,
+      sub: incomeDisplay.secondary,
+    },
+  ].filter(Boolean) as { label: string; value: string; sub?: string | null }[];
 
   if (!rows.length) return null;
 
@@ -498,6 +535,9 @@ function SummaryRow({
         >
           <span className="text-[11px] text-[var(--gj-muted)]">{r.label}</span>
           <span className="font-medium leading-snug text-[var(--gj-text)]">{r.value}</span>
+          {r.sub ? (
+            <span className="mt-1 text-[11px] leading-snug text-[var(--gj-primary)]">{r.sub}</span>
+          ) : null}
         </div>
       ))}
     </div>

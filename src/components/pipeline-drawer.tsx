@@ -8,6 +8,8 @@ import { MatchRespondButtons } from "@/components/match-respond-buttons";
 import { MatchCvAccess } from "@/components/match-cv-access";
 import { HIRING_STAGE_SEQUENCE } from "@/lib/application-pipeline";
 import type { CvAccessUiState } from "@/lib/cv-access";
+import { formatTargetIncomeDisplay, hasNetCalcSettings, type WorkerNetCalcSettings } from "@/lib/income-display";
+import type { IncomeKind } from "@prisma/client";
 
 export type PipelineDrawerPayload = {
   viewerRole: "WORKER" | "EMPLOYER";
@@ -41,6 +43,7 @@ export type PipelineDrawerPayload = {
     productCostHint: string | null;
     commissionHint: string | null;
     targetIncomeHint: string | null;
+    targetIncomeKind?: IncomeKind | null;
     workModeHint: string | null;
     weeklyHoursHint: string | null;
   } | null;
@@ -48,6 +51,7 @@ export type PipelineDrawerPayload = {
   cvAccess: CvAccessUiState;
   hasPdf: boolean;
   cvDraftJson: string | null;
+  workerNetCalcSettings?: WorkerNetCalcSettings | null;
 };
 
 const STAGE_LABEL: Record<HiringStage, string> = {
@@ -149,7 +153,17 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
               <Row label="Details" val={payload.job.productCostHint} />
             ) : null}
             {payload.job.commissionHint ? <Row label="Provision" val={payload.job.commissionHint} /> : null}
-            {payload.job.targetIncomeHint ? <Row label="Zieleinkommen" val={payload.job.targetIncomeHint} /> : null}
+            {payload.job.targetIncomeHint ? (
+              <IncomeRow
+                hint={payload.job.targetIncomeHint}
+                kind={payload.job.targetIncomeKind}
+                netSettings={
+                  payload.viewerRole === "WORKER" && hasNetCalcSettings(payload.workerNetCalcSettings)
+                    ? payload.workerNetCalcSettings
+                    : null
+                }
+              />
+            ) : null}
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
             {payload.job.tags.map((t) => (
@@ -269,6 +283,30 @@ function Row({ label, val }: { label: string; val: string }) {
     <div className="flex justify-between gap-3">
       <dt className="text-[var(--gj-muted)]">{label}</dt>
       <dd className="font-medium text-[var(--gj-text)]">{val}</dd>
+    </div>
+  );
+}
+
+function IncomeRow({
+  hint,
+  kind,
+  netSettings,
+}: {
+  hint: string;
+  kind?: IncomeKind | null;
+  netSettings: WorkerNetCalcSettings | null;
+}) {
+  const display = formatTargetIncomeDisplay(hint, kind, netSettings);
+  if (!display) return null;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex justify-between gap-3">
+        <dt className="text-[var(--gj-muted)]">Zieleinkommen</dt>
+        <dd className="text-right font-medium text-[var(--gj-text)]">{display.primary}</dd>
+      </div>
+      {display.secondary ? (
+        <dd className="text-right text-xs text-[var(--gj-primary)]">{display.secondary}</dd>
+      ) : null}
     </div>
   );
 }
