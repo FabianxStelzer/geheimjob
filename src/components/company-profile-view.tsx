@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { BrandAvatar } from "@/components/brand-logo";
 import { BriefcaseIcon, ChatIcon, MapPinIcon } from "@/components/icons";
+import { companyAgeYears } from "@/lib/employee-count-ranges";
 
 type PublishedJob = {
   id: string;
@@ -13,25 +14,50 @@ type PublishedJob = {
   workModeHint: string | null;
 };
 
+export type CompanyProfileData = {
+  id: string;
+  companyName: string;
+  industry: string;
+  region: string;
+  logoUrl: string | null;
+  website: string | null;
+  openPositionsNote: string | null;
+  companyDescription: string | null;
+  productsAndServices: string | null;
+  employeeCountRange: string | null;
+  foundedYear: number | null;
+  companyBenefits: string | null;
+  companyCulture: string | null;
+};
+
+function FactChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="gj-chip gj-chip-neutral text-[11px]">{children}</span>
+  );
+}
+
+function ProfileSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--gj-muted)]">
+        {title}
+      </h2>
+      <div className="mt-3 text-sm leading-relaxed text-[var(--gj-text)]/90">{children}</div>
+    </section>
+  );
+}
+
 export function CompanyProfileView({
   company,
   jobs,
 }: {
-  company: {
-    id: string;
-    companyName: string;
-    industry: string;
-    region: string;
-    logoUrl: string | null;
-    website: string | null;
-    openPositionsNote: string | null;
-    companyDescription: string | null;
-  };
+  company: CompanyProfileData;
   jobs: PublishedJob[];
 }) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const initial = company.companyName.slice(0, 2).toUpperCase();
+  const ageYears = companyAgeYears(company.foundedYear);
 
   async function showInterest() {
     setBusy(true);
@@ -51,6 +77,13 @@ export function CompanyProfileView({
       alert(j.error || "Anfrage fehlgeschlagen.");
     }
   }
+
+  const hasContent =
+    company.productsAndServices ||
+    company.companyDescription ||
+    company.companyBenefits ||
+    company.companyCulture ||
+    company.openPositionsNote;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -77,9 +110,22 @@ export function CompanyProfileView({
                   <MapPinIcon className="h-4 w-4" /> {company.region}
                 </span>
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {company.employeeCountRange ? (
+                  <FactChip>{company.employeeCountRange} Mitarbeitende</FactChip>
+                ) : null}
+                {company.foundedYear ? (
+                  <FactChip>
+                    Seit {company.foundedYear}
+                    {ageYears != null ? ` (${ageYears} Jahre)` : ""}
+                  </FactChip>
+                ) : null}
+              </div>
               {company.website ? (
                 <a
-                  href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
+                  href={
+                    company.website.startsWith("http") ? company.website : `https://${company.website}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 inline-block text-sm font-medium text-[var(--gj-primary)] hover:underline"
@@ -99,32 +145,40 @@ export function CompanyProfileView({
           </div>
         </div>
 
-        <div className="space-y-6 p-6 md:p-8">
+        <div className="space-y-8 p-6 md:p-8">
+          {company.productsAndServices ? (
+            <ProfileSection title="Was wir machen">
+              <p className="whitespace-pre-wrap">{company.productsAndServices}</p>
+            </ProfileSection>
+          ) : null}
+
           {company.companyDescription ? (
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--gj-muted)]">
-                Über das Unternehmen
-              </h2>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--gj-text)]/90">
-                {company.companyDescription}
-              </p>
-            </section>
+            <ProfileSection title="Über uns">
+              <p className="whitespace-pre-wrap">{company.companyDescription}</p>
+            </ProfileSection>
+          ) : null}
+
+          {company.companyCulture ? (
+            <ProfileSection title="Kultur & Arbeitsweise">
+              <p className="whitespace-pre-wrap">{company.companyCulture}</p>
+            </ProfileSection>
+          ) : null}
+
+          {company.companyBenefits ? (
+            <ProfileSection title="Benefits">
+              <p className="whitespace-pre-wrap">{company.companyBenefits}</p>
+            </ProfileSection>
           ) : null}
 
           {company.openPositionsNote ? (
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--gj-muted)]">
-                Offene Stellen / Hinweise
-              </h2>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--gj-text)]/90">
-                {company.openPositionsNote}
-              </p>
-            </section>
+            <ProfileSection title="Offene Stellen / Hinweise">
+              <p className="whitespace-pre-wrap">{company.openPositionsNote}</p>
+            </ProfileSection>
           ) : null}
 
-          {!company.companyDescription && !company.openPositionsNote ? (
+          {!hasContent ? (
             <p className="text-sm text-[var(--gj-muted)]">
-              Das Unternehmen hat noch keine ausführliche Beschreibung hinterlegt.
+              Das Unternehmen hat noch keine ausführliche Vorstellung hinterlegt.
             </p>
           ) : null}
         </div>

@@ -14,6 +14,8 @@ export type CompanyBrowseItem = {
   openPositionsNote: string | null;
   descriptionPreview: string | null;
   publishedJobsCount: number;
+  employeeCountRange?: string | null;
+  foundedYear?: number | null;
 };
 
 export function CompanyBrowseGrid({ companies }: { companies: CompanyBrowseItem[] }) {
@@ -53,6 +55,12 @@ export function CompanyBrowseGrid({ companies }: { companies: CompanyBrowseItem[
               <span className="gj-chip text-[11px]">
                 <BriefcaseIcon className="h-3.5 w-3.5" /> {c.industry}
               </span>
+              {c.employeeCountRange ? (
+                <span className="gj-chip gj-chip-neutral text-[11px]">{c.employeeCountRange}</span>
+              ) : null}
+              {c.foundedYear ? (
+                <span className="gj-chip gj-chip-neutral text-[11px]">seit {c.foundedYear}</span>
+              ) : null}
               {c.publishedJobsCount > 0 ? (
                 <span className="gj-chip gj-chip-solid text-[11px]">
                   {c.publishedJobsCount} Stelle{c.publishedJobsCount === 1 ? "" : "n"}

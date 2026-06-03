@@ -58,6 +58,11 @@ export default async function CompanyDetailPage({
         website: employer.website,
         openPositionsNote: employer.openPositionsNote,
         companyDescription: employer.companyDescription,
+        productsAndServices: employer.productsAndServices,
+        employeeCountRange: employer.employeeCountRange,
+        foundedYear: employer.foundedYear,
+        companyBenefits: employer.companyBenefits,
+        companyCulture: employer.companyCulture,
       }}
       jobs={employer.jobPostings}
     />

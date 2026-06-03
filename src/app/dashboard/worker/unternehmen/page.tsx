@@ -25,6 +25,9 @@ export default async function WorkerUnternehmenPage() {
       logoUrl: true,
       openPositionsNote: true,
       companyDescription: true,
+      productsAndServices: true,
+      employeeCountRange: true,
+      foundedYear: true,
       _count: { select: { jobPostings: { where: { published: true } } } },
     },
   });
@@ -37,7 +40,13 @@ export default async function WorkerUnternehmenPage() {
     region: e.region,
     logoUrl: e.logoUrl,
     openPositionsNote: e.openPositionsNote,
-    descriptionPreview: e.companyDescription?.slice(0, 140) ?? e.openPositionsNote?.slice(0, 140) ?? null,
+    descriptionPreview:
+      e.productsAndServices?.slice(0, 140) ??
+      e.companyDescription?.slice(0, 140) ??
+      e.openPositionsNote?.slice(0, 140) ??
+      null,
+    employeeCountRange: e.employeeCountRange,
+    foundedYear: e.foundedYear,
     publishedJobsCount: e._count.jobPostings,
   }));
 

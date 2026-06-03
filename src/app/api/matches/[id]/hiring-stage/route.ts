@@ -56,6 +56,7 @@ export async function PATCH(req: Request, props: Params) {
     "Stand Ihrer Bewerbung",
     `Neuer Status: ${LABELS[next]}`,
     `/dashboard/worker/anfragen`,
+    "hiringStage",
   );
 
   return Response.json({ ok: true, hiringStage: next });

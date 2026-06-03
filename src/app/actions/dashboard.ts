@@ -9,6 +9,7 @@ const slugNano = customAlphabet("23456789abcdefghjkmnpqrstuvwxyz", 12);
 
 import { normalizeWebsiteDomain } from "@/lib/employer-block-match";
 import { isValidEmploymentKind } from "@/lib/employment-kinds";
+import { isValidEmployeeCountRange } from "@/lib/employee-count-ranges";
 
 export async function addEmployerBlock(formData: FormData): Promise<void> {
   const session = await auth();
@@ -159,6 +160,21 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
   const logoUrl = String(formData.get("logoUrl") || "").trim() || null;
   const companyDescription =
     String(formData.get("companyDescription") || "").trim() || null;
+  const productsAndServices =
+    String(formData.get("productsAndServices") || "").trim() || null;
+  const companyBenefits = String(formData.get("companyBenefits") || "").trim() || null;
+  const companyCulture = String(formData.get("companyCulture") || "").trim() || null;
+  const employeeCountRangeRaw = String(formData.get("employeeCountRange") || "").trim();
+  const employeeCountRange =
+    employeeCountRangeRaw && isValidEmployeeCountRange(employeeCountRangeRaw)
+      ? employeeCountRangeRaw
+      : null;
+  const foundedYearRaw = String(formData.get("foundedYear") || "").trim();
+  const foundedYearNum = foundedYearRaw ? Number(foundedYearRaw) : null;
+  const foundedYear =
+    foundedYearNum && Number.isFinite(foundedYearNum) && foundedYearNum >= 1800
+      ? Math.min(foundedYearNum, new Date().getFullYear())
+      : null;
 
   if (!companyName || !industry || !region || !contactName) return;
 
@@ -175,6 +191,11 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
       openPositionsNote,
       logoUrl,
       companyDescription,
+      productsAndServices,
+      companyBenefits,
+      companyCulture,
+      employeeCountRange,
+      foundedYear,
     },
   });
 

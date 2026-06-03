@@ -3,6 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { AccountNameForm } from "@/components/account-name-form";
 import { DeleteAccountButton } from "@/components/delete-account-button";
+import { NotificationEmailPrefsForm } from "@/components/notification-email-prefs-form";
+import { getOrCreateNotificationPrefs } from "@/lib/email-notifications";
+import { prefsToUi } from "@/lib/notification-prefs-ui";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -35,6 +38,13 @@ export default async function SettingsPage() {
         ? "/dashboard/employer/profil"
         : "/dashboard/admin";
 
+  const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+  let emailPrefs = null;
+  if (role === "WORKER" || role === "EMPLOYER" || role === "ADMIN") {
+    const prefs = await getOrCreateNotificationPrefs(session.user.id);
+    emailPrefs = prefsToUi(prefs);
+  }
+
   return (
     <div className="space-y-6">
       <section className="gj-card p-6">
@@ -53,6 +63,22 @@ export default async function SettingsPage() {
           <AccountNameForm defaultName={displayName} label={nameLabel} />
         ) : null}
       </section>
+
+      {emailPrefs && (role === "WORKER" || role === "EMPLOYER" || role === "ADMIN") ? (
+        <section className="gj-card p-6">
+          <h2 className="text-base font-semibold">E-Mail-Benachrichtigungen</h2>
+          <p className="mt-2 text-sm text-[var(--gj-muted)]">
+            Wählen Sie, bei welchen Aktionen Sie zusätzlich eine E-Mail erhalten möchten.
+          </p>
+          <div className="mt-4">
+            <NotificationEmailPrefsForm
+              role={role as "WORKER" | "EMPLOYER" | "ADMIN"}
+              prefs={emailPrefs}
+              smtpConfigured={smtpConfigured}
+            />
+          </div>
+        </section>
+      ) : null}
 
       <section className="gj-card p-6">
         <h2 className="text-base font-semibold">Profil &amp; Datenschutz</h2>

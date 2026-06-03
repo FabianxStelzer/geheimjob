@@ -49,7 +49,7 @@ export async function POST(_req: Request, props: Params) {
 
   await notifyUser(
     match.employerProfile.userId,
-    NotificationKind.MATCH_ACCEPTED,
+    NotificationKind.CV_GRANTED,
     "Lebenslauf freigegeben",
     `${match.workerProfile.displayName} hat den Lebenslauf freigegeben.`,
     `/dashboard/employer/anfragen`,

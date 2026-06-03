@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { notifyUser } from "@/lib/platform";
 import { prisma } from "@/lib/prisma";
 import { NotificationKind } from "@prisma/client";
 
@@ -85,15 +86,13 @@ export async function POST(req: Request, props: Params) {
     ? `/dashboard/worker/chat/${matchId}`
     : `/dashboard/employer/chat/${matchId}`;
 
-  await prisma.notification.create({
-    data: {
-      userId: recipientId,
-      kind: NotificationKind.NEW_MESSAGE,
-      title: "Neue Chat-Nachricht",
-      body: text.slice(0, 140),
-      href,
-    },
-  });
+  await notifyUser(
+    recipientId,
+    NotificationKind.NEW_MESSAGE,
+    "Neue Chat-Nachricht",
+    text.slice(0, 140),
+    href,
+  );
 
   return Response.json({ id: msg.id });
 }

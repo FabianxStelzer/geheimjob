@@ -39,6 +39,7 @@ enum NotificationKind {
   NEW_TALENT
   NEW_JOB_MATCH
   CV_REQUEST
+  CV_GRANTED
 }
 
 enum CvShareMode {
@@ -96,6 +97,7 @@ model User {
   blocksFromWorkers WorkerEmployerBlock[] @relation("BlockedEmployerUser")
   referrerRewards   ReferralReward[]      @relation("ReferrerRewards")
   referredReward    ReferralReward?       @relation("ReferredRewards")
+  notificationPrefs UserNotificationPrefs?
 }
 
 model WorkerProfile {
@@ -143,6 +145,11 @@ model EmployerProfile {
   industry          String
   region            String
   companyDescription String?
+  productsAndServices String?
+  employeeCountRange String?
+  foundedYear       Int?
+  companyBenefits   String?
+  companyCulture    String?
   contactName       String
   contactPhone      String?
   website           String?
@@ -233,6 +240,23 @@ model ChatMessage {
   sender         User         @relation(fields: [senderUserId], references: [id])
   body           String
   createdAt      DateTime     @default(now())
+}
+
+model UserNotificationPrefs {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailMatchRequest  Boolean  @default(true)
+  emailMatchAccepted Boolean  @default(true)
+  emailMatchRejected Boolean  @default(true)
+  emailCvRequest     Boolean  @default(true)
+  emailCvGranted     Boolean  @default(true)
+  emailNewMessage    Boolean  @default(true)
+  emailHiringStage   Boolean  @default(true)
+  emailNewJobMatch   Boolean  @default(true)
+  emailNewTalent     Boolean  @default(true)
+  emailBilling       Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
 }
 
 model Notification {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { ensureEmployerSubscription } from "@/lib/employer-billing";
+import { notifyUser } from "@/lib/platform";
 import { prisma } from "@/lib/prisma";
 import { NotificationKind } from "@prisma/client";
 
@@ -30,15 +31,13 @@ export async function requestInvoiceBilling(formData: FormData): Promise<void> {
     select: { id: true },
   });
   for (const a of admins) {
-    await prisma.notification.create({
-      data: {
-        userId: a.id,
-        kind: NotificationKind.BILLING,
-        title: "Rechnungsanfrage",
-        body: `${session.user.email} möchte Paket ${plan} auf Rechnung.`,
-        href: "/dashboard/admin/unternehmen",
-      },
-    });
+    await notifyUser(
+      a.id,
+      NotificationKind.BILLING,
+      "Rechnungsanfrage",
+      `${session.user.email} möchte Paket ${plan} auf Rechnung.`,
+      "/dashboard/admin/unternehmen",
+    );
   }
 
   revalidatePath("/dashboard/employer/abrechnung");

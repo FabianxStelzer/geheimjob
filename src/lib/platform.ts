@@ -4,6 +4,11 @@ import {
   blockMatchesEmployer,
   type EmployerBlockCheckInput,
 } from "@/lib/employer-block-match";
+import {
+  emailEventForNotificationKind,
+  type EmailNotificationEvent,
+} from "@/lib/email-notification-events";
+import { sendNotificationEmail } from "@/lib/email-notifications";
 
 export async function notifyUser(
   userId: string,
@@ -11,10 +16,18 @@ export async function notifyUser(
   title: string,
   body: string,
   href?: string,
+  emailEvent?: EmailNotificationEvent,
 ) {
   await prisma.notification.create({
     data: { userId, kind, title, body, href },
   });
+
+  const event = emailEvent ?? emailEventForNotificationKind(kind);
+  if (event) {
+    await sendNotificationEmail({ userId, event, title, body, href }).catch(() => {
+      /* E-Mail optional; In-App-Benachrichtigung bleibt */
+    });
+  }
 }
 
 export async function employerIsBlockedFromWorker(opts: EmployerBlockCheckInput) {
@@ -71,6 +84,12 @@ export async function softDeleteUser(userId: string) {
         website: null,
         managingDirectorName: null,
         openPositionsNote: null,
+        companyDescription: null,
+        productsAndServices: null,
+        companyBenefits: null,
+        companyCulture: null,
+        employeeCountRange: null,
+        foundedYear: null,
       },
     }),
   ]);

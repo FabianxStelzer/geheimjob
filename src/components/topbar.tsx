@@ -4,18 +4,22 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { BrandAvatar } from "@/components/brand-logo";
-import { BellIcon, ChevronDownIcon } from "@/components/icons";
+import { BellIcon, ChevronDownIcon, CloseIcon, MenuIcon } from "@/components/icons";
 
 export function Topbar({
   title,
   email,
   role,
   unread,
+  onMenuToggle,
+  menuOpen = false,
 }: {
   title: string;
   email: string | null | undefined;
   role: string | undefined;
   unread: number;
+  onMenuToggle?: () => void;
+  menuOpen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,10 +38,23 @@ export function Topbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[var(--gj-border)] bg-white/95 px-4 backdrop-blur md:px-8">
-      <h1 className="truncate text-lg font-semibold tracking-tight text-[var(--gj-text)]">
-        {title}
-      </h1>
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-[var(--gj-border)] bg-white/95 px-4 backdrop-blur md:px-8">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {onMenuToggle ? (
+          <button
+            type="button"
+            onClick={onMenuToggle}
+            className="shrink-0 rounded-lg p-2 text-[var(--gj-muted)] transition hover:bg-[var(--gj-primary-softer)] hover:text-[var(--gj-primary)] md:hidden"
+            aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon />}
+          </button>
+        ) : null}
+        <h1 className="truncate text-lg font-semibold tracking-tight text-[var(--gj-text)]">
+          {title}
+        </h1>
+      </div>
 
       <div className="flex items-center gap-3">
         <Link
