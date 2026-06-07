@@ -66,7 +66,12 @@ export default async function AdminDashboardPage() {
               {recentMatches.map((m) => (
                 <tr key={m.id} className="border-b border-[var(--gj-border)]">
                   <td className="py-2 pr-4">{m.status}</td>
-                  <td className="py-2 pr-4">{m.workerProfile.professionField}</td>
+                  <td className="py-2 pr-4">
+                    {m.workerProfile.displayName}
+                    <span className="block text-xs text-[var(--gj-muted)]">
+                      {m.workerProfile.professionField}
+                    </span>
+                  </td>
                   <td className="py-2 pr-4">{m.employerProfile.companyName}</td>
                   <td className="py-2 text-[var(--gj-muted)]">{m.createdAt.toLocaleDateString("de-DE")}</td>
                 </tr>

@@ -16,7 +16,10 @@ export function AdminNav() {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-[var(--gj-border)] pb-4">
       {links.map((l) => {
-        const active = pathname === l.href;
+        const active =
+          l.href === "/dashboard/admin"
+            ? pathname === l.href
+            : pathname === l.href || pathname.startsWith(`${l.href}/`);
         return (
           <Link
             key={l.href}
