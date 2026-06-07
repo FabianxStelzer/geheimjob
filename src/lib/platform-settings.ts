@@ -98,3 +98,10 @@ export async function getAdminBootstrapEmail(): Promise<string | null> {
   if (fromDb) return fromDb;
   return process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim() || null;
 }
+
+export async function getBillingAutomationWebhookUrl(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.billingOverrides.billingAutomationWebhookUrl?.trim();
+  if (fromDb) return fromDb;
+  return process.env.BILLING_AUTOMATION_WEBHOOK_URL?.trim() || null;
+}

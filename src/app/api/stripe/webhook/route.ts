@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { notifyAdminOfPackagePurchase } from "@/lib/billing-purchase-notify";
 import { notifyUser } from "@/lib/platform";
 import { applySubscriptionFromStripe, parseStripeMetadata } from "@/lib/stripe-billing";
 import { getStripeWebhookSecret } from "@/lib/platform-settings";
 import { getStripe } from "@/lib/stripe";
+import { prisma } from "@/lib/prisma";
 import { NotificationKind } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -62,6 +64,24 @@ export async function POST(req: Request) {
             "Ihr Paket ist aktiv — vielen Dank für Ihre Zahlung.",
             "/dashboard/employer",
           );
+
+          const user = await prisma.user.findUnique({
+            where: { id: meta.userId },
+            select: {
+              email: true,
+              employerProfile: { select: { companyName: true } },
+            },
+          });
+          if (user?.email) {
+            await notifyAdminOfPackagePurchase({
+              employerUserId: meta.userId,
+              employerEmail: user.email,
+              companyName: user.employerProfile?.companyName ?? null,
+              plan: meta.plan,
+              addons: meta.addons,
+              paymentMethod: "STRIPE",
+            });
+          }
         }
       }
     }

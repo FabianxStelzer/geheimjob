@@ -1,5 +1,6 @@
 import {
   saveAdminBootstrapEmail,
+  saveBillingAutomationSettings,
   saveBillingCatalogSettings,
   saveLegalContent,
   saveStripePlatformSettings,
@@ -313,6 +314,33 @@ export default async function AdminEinstellungenPage() {
           </label>
           <button type="submit" className="gj-btn-primary">
             Rechtstexte speichern
+          </button>
+        </form>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="text-lg font-semibold text-[var(--gj-text)]">Automatisierung (n8n / Zapier)</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Optional: Webhook-URL, die bei jeder Paketbuchung (Rechnung oder Stripe) einen JSON-POST
+          erhält — z. B. für Rechnungsstellung in n8n, Zapier oder Make.
+        </p>
+        <form action={saveBillingAutomationSettings} className="mt-4 space-y-3">
+          <label className="block">
+            <span className="gj-label">Webhook-URL</span>
+            <input
+              name="billingAutomationWebhookUrl"
+              type="url"
+              defaultValue={settings.billingOverrides.billingAutomationWebhookUrl ?? ""}
+              className="gj-input font-mono text-sm"
+              placeholder="https://hooks.zapier.com/… oder https://n8n.example.com/webhook/…"
+            />
+          </label>
+          <p className="text-xs text-[var(--gj-muted)]">
+            Payload: <code className="text-[var(--gj-primary)]">event: package.purchased</code> mit
+            Unternehmen, Paket, Add-ons und Zahlungsart.
+          </p>
+          <button type="submit" className="gj-btn-secondary w-fit">
+            Webhook speichern
           </button>
         </form>
       </section>

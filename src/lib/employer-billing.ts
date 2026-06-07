@@ -1,7 +1,7 @@
 import type { AddonCode } from "@/lib/billing-plans";
 import { addonByCode, getAddonCatalog, getPlanCatalog, planByCode } from "@/lib/billing-catalog";
 import { prisma } from "@/lib/prisma";
-import type { BillingStatus, EmployerPlan, Subscription } from "@prisma/client";
+import type { BillingStatus, EmployerPlan, PaymentMethod, Subscription } from "@prisma/client";
 
 export type EmployerEntitlements = {
   isActive: boolean;
@@ -111,4 +111,37 @@ export async function parseCheckoutSelection(body: {
     addonList.some((x) => x.code === a),
   );
   return { plan, addons };
+}
+
+export function subscriptionAddonFields(addons: AddonCode[]) {
+  return {
+    extraJobSlots: addons.filter((a) => a === "EXTRA_JOB").length,
+    addonHighlight: addons.includes("HIGHLIGHT"),
+    addonContactAll: addons.includes("CONTACT_ALL"),
+  };
+}
+
+export async function activateEmployerSubscription(opts: {
+  userId: string;
+  plan: EmployerPlan;
+  addons: AddonCode[];
+  paymentMethod: PaymentMethod;
+  adminNote?: string | null;
+  periodDays?: number;
+}): Promise<void> {
+  const periodEnd = new Date();
+  periodEnd.setDate(periodEnd.getDate() + (opts.periodDays ?? 30));
+
+  await prisma.subscription.update({
+    where: { userId: opts.userId },
+    data: {
+      plan: opts.plan,
+      billingStatus: "ACTIVE",
+      paymentMethod: opts.paymentMethod,
+      status: "active",
+      currentPeriodEnd: periodEnd,
+      adminNote: opts.adminNote ?? null,
+      ...subscriptionAddonFields(opts.addons),
+    },
+  });
 }

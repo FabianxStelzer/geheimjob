@@ -20,6 +20,8 @@ export type AddonOverride = {
 
 export type BillingCatalogOverrides = {
   adminBootstrapEmail?: string;
+  /** Webhook-URL für n8n, Zapier, Make o. Ä. bei Paketbuchungen */
+  billingAutomationWebhookUrl?: string;
   plans?: Partial<Record<EmployerPlan, PlanOverride>>;
   addons?: Partial<Record<AddonCode, AddonOverride>>;
 };

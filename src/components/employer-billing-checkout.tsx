@@ -1,10 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { AddonCode } from "@/lib/billing-plans";
 import type { AddonDefinition, PlanDefinition } from "@/lib/billing-plans";
 import type { EmployerPlan } from "@prisma/client";
-import { requestInvoiceBilling } from "@/app/actions/billing";
+import { activateInvoiceBilling } from "@/app/actions/billing";
+
+function planCardClass(opts: { isPurchased: boolean; isSelected: boolean }): string {
+  const base = "gj-card w-full p-5 text-left transition border-2";
+  if (opts.isPurchased && opts.isSelected) {
+    return `${base} border-emerald-500 ring-2 ring-emerald-400/60 shadow-md`;
+  }
+  if (opts.isPurchased) {
+    return `${base} border-emerald-500 ring-2 ring-emerald-300/50`;
+  }
+  if (opts.isSelected) {
+    return `${base} border-[var(--gj-primary)] ring-2 ring-[var(--gj-primary)]/40 shadow-md`;
+  }
+  return `${base} border-transparent hover:border-[var(--gj-primary)]/30`;
+}
 
 export function EmployerBillingCheckout({
   plans,
@@ -23,6 +38,7 @@ export function EmployerBillingCheckout({
   isActive: boolean;
   currentPeriodEnd: string | null;
 }) {
+  const router = useRouter();
   const selectablePlans = plans.filter((p) => p.code !== "NONE");
   const initialPlan =
     selectablePlans.find((p) => p.code === currentPlanCode)?.code ??
@@ -32,7 +48,7 @@ export function EmployerBillingCheckout({
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan);
   const [selectedAddons, setSelectedAddons] = useState<AddonCode[]>([]);
   const [busy, setBusy] = useState(false);
-  const [invoicePending, setInvoicePending] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   function toggleAddon(code: AddonCode) {
     setSelectedAddons((prev) =>
@@ -46,6 +62,7 @@ export function EmployerBillingCheckout({
       return;
     }
     setBusy(true);
+    setStatus(null);
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,18 +77,25 @@ export function EmployerBillingCheckout({
     alert(data.error || "Checkout nicht möglich — Stripe-Preis-IDs im Super-Admin prüfen.");
   }
 
-  async function requestInvoice() {
+  async function activateOnInvoice() {
     if (!selectedPlan) {
       alert("Bitte wählen Sie ein Paket.");
       return;
     }
     const fd = new FormData();
     fd.set("plan", selectedPlan);
+    fd.set("addons", selectedAddons.join(","));
     fd.set("note", `Add-ons: ${selectedAddons.join(", ") || "keine"}`);
     setBusy(true);
-    await requestInvoiceBilling(fd);
+    setStatus(null);
+    const res = await activateInvoiceBilling(fd);
     setBusy(false);
-    setInvoicePending(true);
+    if (res.ok) {
+      setStatus("Paket aktiviert — Sie können sofort loslegen. Die Rechnung folgt per E-Mail.");
+      router.refresh();
+      return;
+    }
+    setStatus("Aktivierung fehlgeschlagen. Bitte erneut versuchen.");
   }
 
   return (
@@ -88,14 +112,9 @@ export function EmployerBillingCheckout({
             </p>
           ) : null}
           <p className="mt-3 text-xs text-emerald-800">
-            Unten können Sie ein anderes Paket wählen oder Add-ons hinzubuchen (Wechsel über Stripe oder
-            Rechnungsanfrage).
+            Unten können Sie ein anderes Paket wählen oder Add-ons hinzubuchen.
           </p>
         </div>
-      ) : billingStatus === "PENDING" ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Rechnungsanfrage liegt beim Support. Zugang wird nach Freigabe aktiviert.
-        </p>
       ) : (
         <p className="rounded-xl border border-[var(--gj-border)] bg-white px-4 py-3 text-sm text-[var(--gj-text-secondary)]">
           Wählen Sie ein Paket, um den Talentpool und ggf. Stellenanzeigen zu nutzen.
@@ -104,17 +123,22 @@ export function EmployerBillingCheckout({
 
       <div>
         <h3 className="text-sm font-semibold text-[var(--gj-text)]">Paket wählen</h3>
+        <p className="mt-1 text-xs text-[var(--gj-muted)]">
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--gj-primary)] align-middle" />{" "}
+          Ausgewählt ·{" "}
+          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 align-middle" /> Aktives
+          Paket
+        </p>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           {selectablePlans.map((plan) => {
-            const selected = selectedPlan === plan.code;
+            const isSelected = selectedPlan === plan.code;
+            const isPurchased = isActive && currentPlanCode === plan.code;
             return (
               <button
                 key={plan.code}
                 type="button"
                 onClick={() => setSelectedPlan(plan.code)}
-                className={`gj-card w-full p-5 text-left transition ${
-                  selected ? "ring-2 ring-[var(--gj-primary)] shadow-md" : "hover:border-[var(--gj-primary)]/40"
-                }`}
+                className={planCardClass({ isPurchased, isSelected })}
               >
                 <p className="text-lg font-bold text-[var(--gj-text)]">{plan.name}</p>
                 <p className="mt-1 text-2xl font-extrabold text-[var(--gj-primary)]">
@@ -126,11 +150,18 @@ export function EmployerBillingCheckout({
                     <li key={f}>✓ {f}</li>
                   ))}
                 </ul>
-                {selected ? (
-                  <span className="mt-4 inline-block rounded-full bg-[var(--gj-primary-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--gj-primary)]">
-                    Ausgewählt
-                  </span>
-                ) : null}
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {isPurchased ? (
+                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                      Aktives Paket
+                    </span>
+                  ) : null}
+                  {isSelected ? (
+                    <span className="inline-block rounded-full bg-[var(--gj-primary-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--gj-primary)]">
+                      Ausgewählt
+                    </span>
+                  ) : null}
+                </div>
               </button>
             );
           })}
@@ -178,16 +209,21 @@ export function EmployerBillingCheckout({
         </button>
         <button
           type="button"
-          disabled={busy || invoicePending}
-          onClick={() => void requestInvoice()}
+          disabled={busy}
+          onClick={() => void activateOnInvoice()}
           className="gj-btn-secondary"
         >
-          Auf Rechnung anfragen
+          Auf Rechnung aktivieren
         </button>
       </div>
+      {status ? (
+        <p className="text-sm text-[var(--gj-muted)]" role="status">
+          {status}
+        </p>
+      ) : null}
       <p className="text-xs text-[var(--gj-muted)]">
-        Nach erfolgreicher Zahlung (Stripe) oder Freigabe durch den Super-Admin (Rechnung) wird der Zugang
-        aktiviert bzw. aktualisiert.
+        Bei „Auf Rechnung aktivieren“ ist der Zugang sofort frei — Sie erhalten die Rechnung separat per
+        E-Mail. Stripe-Zahlungen werden ebenfalls sofort aktiviert.
       </p>
     </div>
   );

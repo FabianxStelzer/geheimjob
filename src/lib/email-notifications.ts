@@ -1,5 +1,6 @@
 import type { UserNotificationPrefs } from "@prisma/client";
 import nodemailer from "nodemailer";
+import { getAdminBootstrapEmail } from "@/lib/platform-settings";
 import { prisma } from "@/lib/prisma";
 import {
   EMAIL_PREF_FIELD,
@@ -82,6 +83,45 @@ export async function sendNotificationEmail(opts: {
     subject: `[Geheimjob] ${opts.title}`,
     text,
     html: `<p style="font-family:sans-serif;line-height:1.5"><strong>${escapeHtml(opts.title)}</strong></p><p style="font-family:sans-serif;line-height:1.5">${escapeHtml(opts.body)}</p><p style="font-family:sans-serif"><a href="${escapeHtml(link)}">In Geheimjob öffnen</a></p><p style="font-family:sans-serif;color:#666;font-size:12px">E-Mail-Einstellungen: ${escapeHtml(`${appBaseUrl()}/dashboard/einstellungen`)}</p>`,
+  });
+}
+
+/** Direkt an Super-Admin(s) — unabhängig von Benachrichtigungs-Einstellungen. */
+export async function sendAdminAlertEmail(opts: {
+  subject: string;
+  title: string;
+  body: string;
+  href?: string;
+}): Promise<void> {
+  if (!smtpConfigured()) return;
+
+  const recipients = new Set<string>();
+  const bootstrap = await getAdminBootstrapEmail();
+  if (bootstrap) recipients.add(bootstrap);
+
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN", deletedAt: null },
+    select: { email: true },
+  });
+  for (const a of admins) {
+    if (a.email && !a.email.startsWith("deleted_")) recipients.add(a.email.toLowerCase());
+  }
+  if (recipients.size === 0) return;
+
+  const link = opts.href
+    ? `${appBaseUrl()}${opts.href.startsWith("/") ? opts.href : `/${opts.href}`}`
+    : `${appBaseUrl()}/dashboard/admin`;
+
+  const transporter = await getTransporter();
+  const from = process.env.SMTP_FROM!;
+  const text = `${opts.title}\n\n${opts.body}\n\nZur Plattform: ${link}\n\n— Geheimjob`;
+
+  await transporter.sendMail({
+    from,
+    to: [...recipients].join(", "),
+    subject: `[Geheimjob Admin] ${opts.subject}`,
+    text,
+    html: `<p style="font-family:sans-serif;line-height:1.5"><strong>${escapeHtml(opts.title)}</strong></p><p style="font-family:sans-serif;line-height:1.5">${escapeHtml(opts.body)}</p><p style="font-family:sans-serif"><a href="${escapeHtml(link)}">In Geheimjob öffnen</a></p>`,
   });
 }
 

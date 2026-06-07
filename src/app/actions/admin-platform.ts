@@ -158,6 +158,30 @@ export async function adminResetUserPassword(formData: FormData): Promise<void> 
   revalidatePath("/dashboard/admin/einstellungen");
 }
 
+export async function saveBillingAutomationSettings(formData: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+
+  const webhookUrl = str(formData, "billingAutomationWebhookUrl");
+  const row = await prisma.platformSettings.findUnique({ where: { id: "default" } });
+  let parsed: BillingCatalogOverrides = {};
+  if (row?.billingCatalogJson) {
+    try {
+      parsed = JSON.parse(row.billingCatalogJson) as BillingCatalogOverrides;
+    } catch {
+      parsed = {};
+    }
+  }
+  parsed.billingAutomationWebhookUrl = webhookUrl || undefined;
+
+  await prisma.platformSettings.upsert({
+    where: { id: "default" },
+    create: { id: "default", billingCatalogJson: JSON.stringify(parsed) },
+    update: { billingCatalogJson: JSON.stringify(parsed) },
+  });
+
+  revalidatePath("/dashboard/admin/einstellungen");
+}
+
 export async function saveAdminBootstrapEmail(formData: FormData): Promise<void> {
   if (!(await requireAdmin())) return;
 

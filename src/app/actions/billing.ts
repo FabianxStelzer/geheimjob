@@ -2,43 +2,69 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { ensureEmployerSubscription } from "@/lib/employer-billing";
+import {
+  activateEmployerSubscription,
+  ensureEmployerSubscription,
+  parseCheckoutSelection,
+} from "@/lib/employer-billing";
+import { notifyAdminOfPackagePurchase } from "@/lib/billing-purchase-notify";
 import { notifyUser } from "@/lib/platform";
 import { prisma } from "@/lib/prisma";
 import { NotificationKind } from "@prisma/client";
 
-export async function requestInvoiceBilling(formData: FormData): Promise<void> {
+export async function activateInvoiceBilling(formData: FormData): Promise<{ ok: boolean }> {
   const session = await auth();
-  if (!session?.user || session.user.role !== "EMPLOYER") return;
+  if (!session?.user || session.user.role !== "EMPLOYER") return { ok: false };
 
   const plan = String(formData.get("plan") || "STARTER");
+  const addonsRaw = String(formData.get("addons") || "");
+  const addonsList = addonsRaw
+    .split(",")
+    .map((a) => a.trim())
+    .filter(Boolean);
+
+  const parsed = await parseCheckoutSelection({ plan, addons: addonsList });
+  if (!parsed) return { ok: false };
+
   const note = String(formData.get("note") || "").trim() || null;
 
   await ensureEmployerSubscription(session.user.id);
-  await prisma.subscription.update({
-    where: { userId: session.user.id },
-    data: {
-      plan: plan as "STARTER" | "PLUS" | "PREMIUM",
-      billingStatus: "PENDING",
-      paymentMethod: "INVOICE",
-      status: "pending",
-      adminNote: note,
-    },
+  await activateEmployerSubscription({
+    userId: session.user.id,
+    plan: parsed.plan,
+    addons: parsed.addons,
+    paymentMethod: "INVOICE",
+    adminNote: note,
   });
 
-  const admins = await prisma.user.findMany({
-    where: { role: "ADMIN", deletedAt: null },
-    select: { id: true },
+  const employer = await prisma.employerProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { companyName: true },
   });
-  for (const a of admins) {
-    await notifyUser(
-      a.id,
-      NotificationKind.BILLING,
-      "Rechnungsanfrage",
-      `${session.user.email} möchte Paket ${plan} auf Rechnung.`,
-      "/dashboard/admin/unternehmen",
-    );
-  }
+
+  await notifyUser(
+    session.user.id,
+    NotificationKind.BILLING,
+    "Paket aktiviert",
+    "Ihr Paket ist sofort aktiv. Die Rechnung erhalten Sie in Kürze per E-Mail.",
+    "/dashboard/employer",
+  );
+
+  await notifyAdminOfPackagePurchase({
+    employerUserId: session.user.id,
+    employerEmail: session.user.email ?? "",
+    companyName: employer?.companyName ?? null,
+    plan: parsed.plan,
+    addons: parsed.addons,
+    paymentMethod: "INVOICE",
+  });
 
   revalidatePath("/dashboard/employer/abrechnung");
+  revalidatePath("/dashboard/employer");
+  return { ok: true };
+}
+
+/** @deprecated Alias — nutzt activateInvoiceBilling */
+export async function requestInvoiceBilling(formData: FormData): Promise<{ ok: boolean }> {
+  return activateInvoiceBilling(formData);
 }

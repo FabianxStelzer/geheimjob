@@ -9,7 +9,9 @@ export default async function AdminAbonnementsPage() {
     orderBy: { updatedAt: "desc" },
   });
 
-  const pending = subs.filter((s) => s.billingStatus === "PENDING");
+  const invoiceActive = subs.filter(
+    (s) => s.billingStatus === "ACTIVE" && s.paymentMethod === "INVOICE",
+  );
 
   const subsEnriched = await Promise.all(
     subs.map(async (s) => ({
@@ -20,9 +22,10 @@ export default async function AdminAbonnementsPage() {
 
   return (
     <div className="space-y-6">
-      {pending.length > 0 ? (
-        <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          <strong>{pending.length} Rechnungsanfrage(n)</strong> — unter Unternehmen freischalten (Status: Aktiv).
+      {invoiceActive.length > 0 ? (
+        <section className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
+          <strong>{invoiceActive.length} Rechnungs-Paket(e) aktiv</strong> — Rechnungen an diese
+          Unternehmen versenden (Details unter Unternehmen).
         </section>
       ) : null}
 

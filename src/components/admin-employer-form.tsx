@@ -49,7 +49,7 @@ export function AdminEmployerForm({
           <span className="gj-label">Status</span>
           <select name="billingStatus" defaultValue={billingStatus} className="gj-select">
             <option value="INACTIVE">Inaktiv</option>
-            <option value="PENDING">Rechnung ausstehend</option>
+            <option value="PENDING">Ausstehend (Legacy)</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PAST_DUE">Überfällig</option>
             <option value="CANCELED">Gekündigt</option>
