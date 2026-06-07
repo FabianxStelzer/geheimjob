@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { activateInvoiceBilling, cancelEmployerSubscription } from "@/app/actions/billing";
+import {
+  activateInvoiceBilling,
+  cancelEmployerAddon,
+  cancelEmployerSubscription,
+  type EmployerAddonCancelType,
+} from "@/app/actions/billing";
 import type { AddonDefinition, PlanDefinition } from "@/lib/billing-plans";
 import { MAX_EXTRA_JOB_SLOTS } from "@/lib/employer-billing";
 import type { EmployerPlan, PaymentMethod } from "@prisma/client";
@@ -16,6 +21,9 @@ type Props = {
   paymentMethod: PaymentMethod | null;
   isActive: boolean;
   cancelAtPeriodEnd: boolean;
+  cancelExtraJobsAtPeriodEnd: boolean;
+  cancelHighlightAtPeriodEnd: boolean;
+  cancelContactAllAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
   maxPublishedJobs: number;
   publishedJobsCount: number;
@@ -55,6 +63,9 @@ export function EmployerBillingCheckout({
   paymentMethod,
   isActive,
   cancelAtPeriodEnd,
+  cancelExtraJobsAtPeriodEnd,
+  cancelHighlightAtPeriodEnd,
+  cancelContactAllAtPeriodEnd,
   currentPeriodEnd,
   maxPublishedJobs,
   publishedJobsCount,
@@ -87,6 +98,13 @@ export function EmployerBillingCheckout({
   );
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+
+  const committedExtraJobs = isActive ? initialExtraJobCount : 0;
+  const committedHighlight = isActive && initialAddonHighlight;
+  const committedContact = isActive && initialAddonContactAll;
+  const periodEndLabel = currentPeriodEnd
+    ? new Date(currentPeriodEnd).toLocaleDateString("de-DE")
+    : null;
 
   const selectedPlanDef = selectablePlans.find((p) => p.code === selectedPlan);
   const selectedIncludesHighlight = selectedPlanDef?.includesHighlight ?? false;
@@ -160,6 +178,26 @@ export function EmployerBillingCheckout({
       return;
     }
     setStatus("Aktivierung fehlgeschlagen. Bitte erneut versuchen.");
+  }
+
+  async function cancelAddon(type: EmployerAddonCancelType, label: string) {
+    if (
+      !window.confirm(
+        `${label} wirklich kündigen? Es bleibt bis zum Laufzeitende aktiv.`,
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setStatus(null);
+    const res = await cancelEmployerAddon(type);
+    setBusy(false);
+    if (res.ok) {
+      setStatus(res.message ?? `${label} gekündigt.`);
+      router.refresh();
+      return;
+    }
+    setStatus(res.message ?? "Kündigung fehlgeschlagen.");
   }
 
   async function cancelSubscription() {
@@ -275,8 +313,8 @@ export function EmployerBillingCheckout({
                 onClick={() => {
                   setSelectedPlan(plan.code);
                   if (!plan.canPublishJobs) {
-                    setExtraJobCount(0);
-                    setAddonHighlight(false);
+                    setExtraJobCount(committedExtraJobs);
+                    if (!committedHighlight) setAddonHighlight(false);
                   }
                 }}
                 className={planCardClass({ isPurchased, isSelected, featured })}
@@ -324,43 +362,87 @@ export function EmployerBillingCheckout({
       <section className="rounded-2xl border border-[var(--gj-border)] bg-white p-6">
         <h3 className="text-lg font-semibold text-[var(--gj-text)]">Add-ons</h3>
         <p className="mt-1 text-sm text-[var(--gj-muted)]">
-          Monatlich optional — Zusatzstellen nach Bedarf wählen.
+          Gebuchte Add-ons bleiben aktiv, bis Sie sie kündigen. Sie können jederzeit weitere
+          hinzubuchen.
         </p>
 
         <div className="mt-6 space-y-4">
           {extraJobAddon && selectedPlanDef?.canPublishJobs ? (
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[var(--gj-border)] bg-[var(--gj-bg)] p-4">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-[var(--gj-text)]">{extraJobAddon.name}</p>
-                <p className="mt-1 text-sm text-[var(--gj-muted)]">{extraJobAddon.description}</p>
-                <p className="mt-2 text-sm font-medium text-[var(--gj-primary)]">
-                  {formatEur(extraJobAddon.priceEur)}€ / Stelle / Monat
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  aria-label="Weniger Stellen"
-                  disabled={extraJobCount <= 0}
-                  onClick={() => setExtraJobCount((n) => Math.max(0, n - 1))}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gj-border)] bg-white text-lg font-bold hover:border-[var(--gj-primary)] disabled:opacity-40"
-                >
-                  −
-                </button>
-                <span className="min-w-[3rem] text-center text-xl font-bold text-[var(--gj-text)]">
-                  {extraJobCount}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Mehr Stellen"
-                  disabled={extraJobCount >= MAX_EXTRA_JOB_SLOTS}
-                  onClick={() =>
-                    setExtraJobCount((n) => Math.min(MAX_EXTRA_JOB_SLOTS, n + 1))
-                  }
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gj-border)] bg-white text-lg font-bold hover:border-[var(--gj-primary)] disabled:opacity-40"
-                >
-                  +
-                </button>
+            <div
+              className={`rounded-xl border p-4 ${
+                committedExtraJobs > 0
+                  ? "border-emerald-200 bg-emerald-50/40"
+                  : "border-[var(--gj-border)] bg-[var(--gj-bg)]"
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-[var(--gj-text)]">{extraJobAddon.name}</p>
+                    {committedExtraJobs > 0 ? (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                        {cancelExtraJobsAtPeriodEnd ? "Gekündigt" : "Gebucht"}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-sm text-[var(--gj-muted)]">{extraJobAddon.description}</p>
+                  <p className="mt-2 text-sm font-medium text-[var(--gj-primary)]">
+                    {formatEur(extraJobAddon.priceEur)}€ / Stelle / Monat
+                  </p>
+                  {cancelExtraJobsAtPeriodEnd && periodEndLabel ? (
+                    <p className="mt-2 text-xs text-amber-800">
+                      Endet am {periodEndLabel} — bis dahin aktiv.
+                    </p>
+                  ) : committedExtraJobs > 0 ? (
+                    <p className="mt-2 text-xs text-[var(--gj-muted)]">
+                      Abwahl nur per Kündigung — weniger Stellen nicht per Klick möglich.
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label="Weniger Stellen"
+                      disabled={extraJobCount <= committedExtraJobs}
+                      onClick={() =>
+                        setExtraJobCount((n) => Math.max(committedExtraJobs, n - 1))
+                      }
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gj-border)] bg-white text-lg font-bold hover:border-[var(--gj-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                      title={
+                        extraJobCount <= committedExtraJobs
+                          ? "Gebuchte Stellen nur per Kündigung entfernen"
+                          : undefined
+                      }
+                    >
+                      −
+                    </button>
+                    <span className="min-w-[3rem] text-center text-xl font-bold text-[var(--gj-text)]">
+                      {extraJobCount}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Mehr Stellen"
+                      disabled={extraJobCount >= MAX_EXTRA_JOB_SLOTS}
+                      onClick={() =>
+                        setExtraJobCount((n) => Math.min(MAX_EXTRA_JOB_SLOTS, n + 1))
+                      }
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gj-border)] bg-white text-lg font-bold hover:border-[var(--gj-primary)] disabled:opacity-40"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {committedExtraJobs > 0 && !cancelExtraJobsAtPeriodEnd ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void cancelAddon("EXTRA_JOB", "Zusatzstellen")}
+                      className="text-sm font-medium text-red-700 hover:underline"
+                    >
+                      Kündigen
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : selectedPlanDef && !selectedPlanDef.canPublishJobs ? (
@@ -371,20 +453,48 @@ export function EmployerBillingCheckout({
 
           <div className="grid gap-4 sm:grid-cols-2">
             {showHighlightAddon && highlightAddon ? (
-              <button
-                type="button"
-                onClick={() => setAddonHighlight((v) => !v)}
-                className={`rounded-xl border p-4 text-left transition ${
-                  addonHighlight
-                    ? "border-[var(--gj-primary)] bg-[var(--gj-primary-soft)]"
-                    : "border-[var(--gj-border)] hover:border-[var(--gj-primary)]/40"
-                }`}
-              >
-                <p className="font-semibold text-[var(--gj-text)]">
-                  {highlightAddon.name} · {formatEur(highlightAddon.priceEur)}€/Mo.
-                </p>
-                <p className="mt-1 text-sm text-[var(--gj-muted)]">{highlightAddon.description}</p>
-              </button>
+              committedHighlight ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-[var(--gj-text)]">
+                        {highlightAddon.name} · {formatEur(highlightAddon.priceEur)}€/Mo.
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--gj-muted)]">{highlightAddon.description}</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                      {cancelHighlightAtPeriodEnd ? "Gekündigt" : "Gebucht"}
+                    </span>
+                  </div>
+                  {cancelHighlightAtPeriodEnd && periodEndLabel ? (
+                    <p className="mt-3 text-xs text-amber-800">Endet am {periodEndLabel}.</p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void cancelAddon("HIGHLIGHT", "Hervorhebung")}
+                      className="mt-3 text-sm font-medium text-red-700 hover:underline"
+                    >
+                      Kündigen
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddonHighlight((v) => !v)}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    addonHighlight
+                      ? "border-[var(--gj-primary)] bg-[var(--gj-primary-soft)]"
+                      : "border-[var(--gj-border)] hover:border-[var(--gj-primary)]/40"
+                  }`}
+                >
+                  <p className="font-semibold text-[var(--gj-text)]">
+                    {highlightAddon.name} · {formatEur(highlightAddon.priceEur)}€/Mo.
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--gj-muted)]">{highlightAddon.description}</p>
+                </button>
+              )
             ) : selectedIncludesHighlight ? (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 text-sm text-emerald-900">
                 <strong>Hervorhebung</strong> ist in Ihrem gewählten Paket inklusive.
@@ -392,20 +502,48 @@ export function EmployerBillingCheckout({
             ) : null}
 
             {contactAddon ? (
-              <button
-                type="button"
-                onClick={() => setAddonContactAll((v) => !v)}
-                className={`rounded-xl border p-4 text-left transition ${
-                  addonContactAll
-                    ? "border-[var(--gj-primary)] bg-[var(--gj-primary-soft)]"
-                    : "border-[var(--gj-border)] hover:border-[var(--gj-primary)]/40"
-                }`}
-              >
-                <p className="font-semibold text-[var(--gj-text)]">
-                  {contactAddon.name} · {formatEur(contactAddon.priceEur)}€/Mo.
-                </p>
-                <p className="mt-1 text-sm text-[var(--gj-muted)]">{contactAddon.description}</p>
-              </button>
+              committedContact ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-[var(--gj-text)]">
+                        {contactAddon.name} · {formatEur(contactAddon.priceEur)}€/Mo.
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--gj-muted)]">{contactAddon.description}</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                      {cancelContactAllAtPeriodEnd ? "Gekündigt" : "Gebucht"}
+                    </span>
+                  </div>
+                  {cancelContactAllAtPeriodEnd && periodEndLabel ? (
+                    <p className="mt-3 text-xs text-amber-800">Endet am {periodEndLabel}.</p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void cancelAddon("CONTACT_ALL", contactAddon.name)}
+                      className="mt-3 text-sm font-medium text-red-700 hover:underline"
+                    >
+                      Kündigen
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddonContactAll((v) => !v)}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    addonContactAll
+                      ? "border-[var(--gj-primary)] bg-[var(--gj-primary-soft)]"
+                      : "border-[var(--gj-border)] hover:border-[var(--gj-primary)]/40"
+                  }`}
+                >
+                  <p className="font-semibold text-[var(--gj-text)]">
+                    {contactAddon.name} · {formatEur(contactAddon.priceEur)}€/Mo.
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--gj-muted)]">{contactAddon.description}</p>
+                </button>
+              )
             ) : null}
           </div>
         </div>
@@ -475,7 +613,8 @@ export function EmployerBillingCheckout({
           </p>
         ) : null}
         <p className="mt-4 text-xs text-[var(--gj-muted)]">
-          Bei Rechnung ist der Zugang sofort frei. Kündigung zum Laufzeitende jederzeit möglich.
+          Gebuchte Add-ons können nur über „Kündigen“ entfernt werden (aktiv bis Laufzeitende).
+          Weitere Add-ons können Sie jederzeit hinzubuchen.
         </p>
       </section>
     </div>

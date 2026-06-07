@@ -1,5 +1,9 @@
 import { auth } from "@/auth";
-import { parseCheckoutSelection } from "@/lib/employer-billing";
+import {
+  buildAddonsFromSelection,
+  mergeWithCommittedAddons,
+  parseCheckoutSelection,
+} from "@/lib/employer-billing";
 import { getStripe } from "@/lib/stripe";
 import { buildStripeLineItems } from "@/lib/stripe-billing";
 
@@ -43,10 +47,16 @@ export async function POST(req: Request) {
     return Response.json({ url: checkout.url });
   }
 
-  const selection = await parseCheckoutSelection(body);
-  if (!selection) {
+  const parsed = await parseCheckoutSelection(body);
+  if (!parsed) {
     return Response.json({ error: "Ungültiges Paket." }, { status: 400 });
   }
+
+  const mergedSelection = await mergeWithCommittedAddons(session.user.id, parsed.selection);
+  const selection = {
+    plan: parsed.plan,
+    addons: buildAddonsFromSelection(mergedSelection),
+  };
 
   let lineItems: { price: string; quantity: number }[];
   try {

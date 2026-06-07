@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import {
   activateEmployerSubscription,
+  buildAddonsFromSelection,
   ensureEmployerSubscription,
+  mergeWithCommittedAddons,
   parseCheckoutSelection,
+  subscriptionIsActive,
 } from "@/lib/employer-billing";
 import { notifyAdminOfPackagePurchase } from "@/lib/billing-purchase-notify";
 import { notifyUser } from "@/lib/platform";
@@ -34,13 +37,23 @@ export async function activateInvoiceBilling(formData: FormData): Promise<{ ok: 
   const addonHighlight = formData.get("addonHighlight") === "on";
   const addonContactAll = formData.get("addonContactAll") === "on";
 
-  const parsed = await parseCheckoutSelection({
+  const parsedRaw = await parseCheckoutSelection({
     plan,
     extraJobCount,
     addonHighlight,
     addonContactAll,
   });
-  if (!parsed) return { ok: false };
+  if (!parsedRaw) return { ok: false };
+
+  const mergedSelection = await mergeWithCommittedAddons(
+    session.user.id,
+    parsedRaw.selection,
+  );
+  const parsed = {
+    plan: parsedRaw.plan,
+    selection: mergedSelection,
+    addons: buildAddonsFromSelection(mergedSelection),
+  };
 
   const note = String(formData.get("note") || "").trim() || addonNote(parsed.selection);
 
@@ -130,6 +143,88 @@ export async function cancelEmployerSubscription(): Promise<{ ok: boolean; messa
   revalidatePath("/dashboard/employer/abrechnung");
   revalidatePath("/dashboard/employer");
   return { ok: true, message: `Gekündigt — Zugang bis ${endLabel}.` };
+}
+
+export type EmployerAddonCancelType = "EXTRA_JOB" | "HIGHLIGHT" | "CONTACT_ALL";
+
+const ADDON_CANCEL_LABELS: Record<EmployerAddonCancelType, string> = {
+  EXTRA_JOB: "Zusatzstellen",
+  HIGHLIGHT: "Hervorhebung",
+  CONTACT_ALL: "Alle kontaktieren",
+};
+
+export async function cancelEmployerAddon(
+  type: EmployerAddonCancelType,
+): Promise<{ ok: boolean; message?: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "EMPLOYER") {
+    return { ok: false, message: "Nicht berechtigt." };
+  }
+
+  const sub = await prisma.subscription.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!sub || !subscriptionIsActive(sub) || sub.plan === "NONE") {
+    return { ok: false, message: "Kein aktives Paket vorhanden." };
+  }
+
+  const endLabel = sub.currentPeriodEnd
+    ? sub.currentPeriodEnd.toLocaleDateString("de-DE")
+    : "Ende der Laufzeit";
+
+  const patch: {
+    cancelExtraJobsAtPeriodEnd?: boolean;
+    cancelHighlightAtPeriodEnd?: boolean;
+    cancelContactAllAtPeriodEnd?: boolean;
+  } = {};
+
+  if (type === "EXTRA_JOB") {
+    if (sub.extraJobSlots <= 0) {
+      return { ok: false, message: "Keine Zusatzstellen gebucht." };
+    }
+    if (sub.cancelExtraJobsAtPeriodEnd) {
+      return { ok: false, message: "Zusatzstellen sind bereits gekündigt." };
+    }
+    patch.cancelExtraJobsAtPeriodEnd = true;
+  } else if (type === "HIGHLIGHT") {
+    if (!sub.addonHighlight) {
+      return { ok: false, message: "Hervorhebung ist nicht gebucht." };
+    }
+    if (sub.cancelHighlightAtPeriodEnd) {
+      return { ok: false, message: "Hervorhebung ist bereits gekündigt." };
+    }
+    patch.cancelHighlightAtPeriodEnd = true;
+  } else {
+    if (!sub.addonContactAll) {
+      return { ok: false, message: "Add-on ist nicht gebucht." };
+    }
+    if (sub.cancelContactAllAtPeriodEnd) {
+      return { ok: false, message: "Add-on ist bereits gekündigt." };
+    }
+    patch.cancelContactAllAtPeriodEnd = true;
+  }
+
+  await prisma.subscription.update({
+    where: { userId: session.user.id },
+    data: patch,
+  });
+
+  const label = ADDON_CANCEL_LABELS[type];
+  await notifyUser(
+    session.user.id,
+    NotificationKind.BILLING,
+    `${label} gekündigt`,
+    `${label} endet am ${endLabel}. Bis dahin bleibt es aktiv.`,
+    "/dashboard/employer/abrechnung",
+  );
+
+  revalidatePath("/dashboard/employer/abrechnung");
+  revalidatePath("/dashboard/employer");
+  return {
+    ok: true,
+    message: `${label} gekündigt — aktiv bis ${endLabel}.`,
+  };
 }
 
 /** @deprecated Alias — nutzt activateInvoiceBilling */

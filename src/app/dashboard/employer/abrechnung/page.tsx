@@ -38,6 +38,9 @@ export default async function EmployerBillingPage({
         paymentMethod={ent.paymentMethod}
         isActive={ent.isActive}
         cancelAtPeriodEnd={ent.cancelAtPeriodEnd}
+        cancelExtraJobsAtPeriodEnd={ent.cancelExtraJobsAtPeriodEnd}
+        cancelHighlightAtPeriodEnd={ent.cancelHighlightAtPeriodEnd}
+        cancelContactAllAtPeriodEnd={ent.cancelContactAllAtPeriodEnd}
         currentPeriodEnd={ent.currentPeriodEnd?.toISOString() ?? null}
         maxPublishedJobs={ent.maxPublishedJobs}
         publishedJobsCount={ent.publishedJobsCount}

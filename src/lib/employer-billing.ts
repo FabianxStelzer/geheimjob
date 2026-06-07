@@ -24,6 +24,9 @@ export type EmployerEntitlements = {
   billingStatus: BillingStatus;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
+  cancelExtraJobsAtPeriodEnd: boolean;
+  cancelHighlightAtPeriodEnd: boolean;
+  cancelContactAllAtPeriodEnd: boolean;
   extraJobSlots: number;
   addonHighlight: boolean;
   addonContactAll: boolean;
@@ -83,6 +86,9 @@ export async function getEmployerEntitlements(userId: string): Promise<EmployerE
     billingStatus: sub.billingStatus,
     currentPeriodEnd: sub.currentPeriodEnd,
     cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+    cancelExtraJobsAtPeriodEnd: active && sub.cancelExtraJobsAtPeriodEnd,
+    cancelHighlightAtPeriodEnd: active && sub.cancelHighlightAtPeriodEnd,
+    cancelContactAllAtPeriodEnd: active && sub.cancelContactAllAtPeriodEnd,
     extraJobSlots: active ? sub.extraJobSlots : 0,
     addonHighlight: active && sub.addonHighlight,
     addonContactAll: active && sub.addonContactAll,
@@ -120,6 +126,20 @@ export async function canPublishAnotherJob(userId: string): Promise<{ ok: boolea
     };
   }
   return { ok: true };
+}
+
+/** Gebuchte Add-ons dürfen nicht ohne Kündigung entfernt werden. */
+export async function mergeWithCommittedAddons(
+  userId: string,
+  selection: AddonSelection,
+): Promise<AddonSelection> {
+  const sub = await prisma.subscription.findUnique({ where: { userId } });
+  if (!sub || !subscriptionIsActive(sub)) return selection;
+  return {
+    extraJobCount: Math.max(selection.extraJobCount, sub.extraJobSlots),
+    addonHighlight: selection.addonHighlight || sub.addonHighlight,
+    addonContactAll: selection.addonContactAll || sub.addonContactAll,
+  };
 }
 
 export function buildAddonsFromSelection(sel: AddonSelection): AddonCode[] {
@@ -210,6 +230,9 @@ export async function activateEmployerSubscription(opts: {
       currentPeriodEnd: periodEnd,
       adminNote: opts.adminNote ?? null,
       cancelAtPeriodEnd: false,
+      cancelExtraJobsAtPeriodEnd: false,
+      cancelHighlightAtPeriodEnd: false,
+      cancelContactAllAtPeriodEnd: false,
       ...subscriptionAddonFields(opts.addons),
     },
   });

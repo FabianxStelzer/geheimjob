@@ -34,6 +34,10 @@ export async function applySubscriptionFromStripe(opts: {
       extraJobSlots,
       addonHighlight: opts.addons.includes("HIGHLIGHT"),
       addonContactAll: opts.addons.includes("CONTACT_ALL"),
+      cancelAtPeriodEnd: false,
+      cancelExtraJobsAtPeriodEnd: false,
+      cancelHighlightAtPeriodEnd: false,
+      cancelContactAllAtPeriodEnd: false,
     },
     update: {
       plan: opts.plan,
@@ -48,6 +52,9 @@ export async function applySubscriptionFromStripe(opts: {
       addonHighlight: opts.addons.includes("HIGHLIGHT"),
       addonContactAll: opts.addons.includes("CONTACT_ALL"),
       cancelAtPeriodEnd: false,
+      cancelExtraJobsAtPeriodEnd: false,
+      cancelHighlightAtPeriodEnd: false,
+      cancelContactAllAtPeriodEnd: false,
     },
   });
 
