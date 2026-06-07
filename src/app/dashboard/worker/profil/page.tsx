@@ -34,7 +34,8 @@ export default async function WorkerProfilPage() {
         <div>
           <h2 className="text-base font-semibold text-[var(--gj-text)]">Profil einrichten</h2>
           <p className="mt-1 text-sm text-[var(--gj-muted)]">
-            Schritt für Schritt durch Verfügbarkeit, Gehalt, Fotos und Bewerbungsdaten führen.
+            Schritt für Schritt durch Bewerbungsprofil, Kenntnisse, Sprachen, Zertifikate und
+            Dateien führen.
           </p>
         </div>
         <Link href="/dashboard/worker/einrichtung" className="gj-btn-secondary shrink-0">

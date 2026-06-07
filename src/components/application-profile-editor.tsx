@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { saveApplicationProfile } from "@/app/actions/application-profile";
 import { ApplicationProfileDisplay } from "@/components/application-profile-display";
 import {
-  emptyApplicationProfile,
   newEducation,
   newExperience,
   parseApplicationProfile,
@@ -12,20 +11,51 @@ import {
 } from "@/lib/application-profile";
 import { joinLinesInput, splitLinesInput } from "@/lib/cv-draft";
 
-export function ApplicationProfileEditor({
-  initialJson,
-  previewContext,
-}: {
-  initialJson: string | null;
-  previewContext: {
-    bio: string | null;
-    contactPhone: string | null;
-    contactEmail: string | null;
-    socialLinkedin: string | null;
-    socialXing: string | null;
-    socialWebsite: string | null;
-  };
-}) {
+export type ApplicationProfileSection =
+  | "headline"
+  | "experiences"
+  | "education"
+  | "skills"
+  | "languages"
+  | "certificates"
+  | "interests";
+
+export type ApplicationProfileEditorHandle = {
+  save: () => Promise<boolean>;
+};
+
+type PreviewContext = {
+  bio: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  socialLinkedin: string | null;
+  socialXing: string | null;
+  socialWebsite: string | null;
+};
+
+const ALL_SECTIONS: ApplicationProfileSection[] = [
+  "headline",
+  "experiences",
+  "education",
+  "skills",
+  "languages",
+  "certificates",
+  "interests",
+];
+
+export const ApplicationProfileEditor = forwardRef<
+  ApplicationProfileEditorHandle,
+  {
+    initialJson: string | null;
+    previewContext: PreviewContext;
+    sections?: ApplicationProfileSection[];
+    compact?: boolean;
+    hideSaveButton?: boolean;
+  }
+>(function ApplicationProfileEditor(
+  { initialJson, previewContext, sections, compact, hideSaveButton },
+  ref,
+) {
   const [profile, setProfile] = useState<ApplicationProfile>(() =>
     parseApplicationProfile(initialJson),
   );
@@ -49,7 +79,10 @@ export function ApplicationProfileEditor({
     setProfile((p) => ({ ...p, ...patch }));
   }
 
-  async function handleSave() {
+  const activeSections = sections ?? ALL_SECTIONS;
+  const show = (key: ApplicationProfileSection) => activeSections.includes(key);
+
+  async function handleSave(): Promise<boolean> {
     setBusy(true);
     setStatus(null);
     const payload: ApplicationProfile = {
@@ -63,34 +96,45 @@ export function ApplicationProfileEditor({
     setBusy(false);
     if (!res.ok) {
       setStatus(res.error ?? "Speichern fehlgeschlagen.");
-      return;
+      return false;
     }
     setProfile(payload);
     setStatus("Bewerbungsprofil gespeichert.");
+    return true;
   }
+
+  useImperativeHandle(ref, () => ({ save: handleSave }), [
+    profile,
+    skillsText,
+    languagesText,
+    certificatesText,
+    interestsText,
+  ]);
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-full border border-[var(--gj-border)] bg-white p-1">
-        <button
-          type="button"
-          onClick={() => setTab("edit")}
-          className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
-            tab === "edit" ? "bg-[var(--gj-primary)] text-white" : "text-[var(--gj-muted)]"
-          }`}
-        >
-          Bearbeiten
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("preview")}
-          className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
-            tab === "preview" ? "bg-[var(--gj-primary)] text-white" : "text-[var(--gj-muted)]"
-          }`}
-        >
-          Vorschau
-        </button>
-      </div>
+      {!compact ? (
+        <div className="inline-flex rounded-full border border-[var(--gj-border)] bg-white p-1">
+          <button
+            type="button"
+            onClick={() => setTab("edit")}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+              tab === "edit" ? "bg-[var(--gj-primary)] text-white" : "text-[var(--gj-muted)]"
+            }`}
+          >
+            Bearbeiten
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("preview")}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+              tab === "preview" ? "bg-[var(--gj-primary)] text-white" : "text-[var(--gj-muted)]"
+            }`}
+          >
+            Vorschau
+          </button>
+        </div>
+      ) : null}
 
       {status ? (
         <p
@@ -105,7 +149,7 @@ export function ApplicationProfileEditor({
         </p>
       ) : null}
 
-      {tab === "preview" ? (
+      {!compact && tab === "preview" ? (
         <div className="rounded-xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/60 p-5">
           <ApplicationProfileDisplay
             profile={{
@@ -122,16 +166,19 @@ export function ApplicationProfileEditor({
         </div>
       ) : (
         <div className="space-y-6">
-          <label>
-            <span className="gj-label">Berufsbezeichnung / Schwerpunkt</span>
-            <input
-              className="gj-input"
-              value={profile.headline}
-              onChange={(e) => update({ headline: e.target.value })}
-              placeholder="z. B. Kundenberater im Außendienst"
-            />
-          </label>
+          {show("headline") ? (
+            <label>
+              <span className="gj-label">Berufsbezeichnung / Schwerpunkt</span>
+              <input
+                className="gj-input"
+                value={profile.headline}
+                onChange={(e) => update({ headline: e.target.value })}
+                placeholder="z. B. Kundenberater im Außendienst"
+              />
+            </label>
+          ) : null}
 
+          {show("experiences") ? (
           <EditorSection
             title="Werdegang"
             onAdd={() => update({ experiences: [...profile.experiences, newExperience()] })}
@@ -241,7 +288,9 @@ export function ApplicationProfileEditor({
               ))
             )}
           </EditorSection>
+          ) : null}
 
+          {show("education") ? (
           <EditorSection
             title="Ausbildung"
             onAdd={() => update({ education: [...profile.education, newEducation()] })}
@@ -319,53 +368,69 @@ export function ApplicationProfileEditor({
               ))
             )}
           </EditorSection>
+          ) : null}
 
-          <label>
-            <span className="gj-label">Fähigkeiten (eine pro Zeile)</span>
-            <textarea
-              className="gj-textarea"
-              rows={4}
-              value={skillsText}
-              onChange={(e) => setSkillsText(e.target.value)}
-              placeholder="Vertrieb&#10;CRM&#10;Verhandlungsführung"
-            />
-          </label>
-          <label>
-            <span className="gj-label">Sprachen (eine pro Zeile)</span>
-            <textarea
-              className="gj-textarea"
-              rows={3}
-              value={languagesText}
-              onChange={(e) => setLanguagesText(e.target.value)}
-            />
-          </label>
-          <label>
-            <span className="gj-label">Zertifikate (eine pro Zeile)</span>
-            <textarea
-              className="gj-textarea"
-              rows={3}
-              value={certificatesText}
-              onChange={(e) => setCertificatesText(e.target.value)}
-            />
-          </label>
-          <label>
-            <span className="gj-label">Interessen (optional, eine pro Zeile)</span>
-            <textarea
-              className="gj-textarea"
-              rows={3}
-              value={interestsText}
-              onChange={(e) => setInterestsText(e.target.value)}
-            />
-          </label>
+          {show("skills") ? (
+            <label>
+              <span className="gj-label">Fähigkeiten (eine pro Zeile)</span>
+              <textarea
+                className="gj-textarea"
+                rows={4}
+                value={skillsText}
+                onChange={(e) => setSkillsText(e.target.value)}
+                placeholder="Vertrieb&#10;CRM&#10;Verhandlungsführung"
+              />
+            </label>
+          ) : null}
+          {show("languages") ? (
+            <label>
+              <span className="gj-label">Sprachen (eine pro Zeile)</span>
+              <textarea
+                className="gj-textarea"
+                rows={3}
+                value={languagesText}
+                onChange={(e) => setLanguagesText(e.target.value)}
+              />
+            </label>
+          ) : null}
+          {show("certificates") ? (
+            <label>
+              <span className="gj-label">Zertifikate (eine pro Zeile)</span>
+              <textarea
+                className="gj-textarea"
+                rows={3}
+                value={certificatesText}
+                onChange={(e) => setCertificatesText(e.target.value)}
+              />
+            </label>
+          ) : null}
+          {show("interests") ? (
+            <label>
+              <span className="gj-label">Interessen (optional, eine pro Zeile)</span>
+              <textarea
+                className="gj-textarea"
+                rows={3}
+                value={interestsText}
+                onChange={(e) => setInterestsText(e.target.value)}
+              />
+            </label>
+          ) : null}
 
-          <button type="button" disabled={busy} onClick={() => void handleSave()} className="gj-btn-primary">
-            {busy ? "Speichern…" : "Bewerbungsprofil speichern"}
-          </button>
+          {!hideSaveButton ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void handleSave()}
+              className="gj-btn-primary"
+            >
+              {busy ? "Speichern…" : "Bewerbungsprofil speichern"}
+            </button>
+          ) : null}
         </div>
       )}
     </div>
   );
-}
+});
 
 function EditorSection({
   title,

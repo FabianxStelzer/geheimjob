@@ -6,12 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { isValidEmploymentKind } from "@/lib/employment-kinds";
 import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
 import { normalizeWhatsAppPhone } from "@/lib/phone-utils";
-import {
-  parseApplicationProfile,
-  serializeApplicationProfile,
-} from "@/lib/application-profile";
-import { splitLinesInput } from "@/lib/cv-draft";
-import { newExperience } from "@/lib/cv-draft";
 
 const availabilitySet = new Set<string>(WORKER_AVAILABILITY_OPTIONS);
 
@@ -92,36 +86,3 @@ export async function saveOnboardingContact(formData: FormData): Promise<{ ok: b
   return { ok: true };
 }
 
-export async function saveOnboardingApplication(formData: FormData): Promise<{ ok: boolean }> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "WORKER") return { ok: false };
-
-  const row = await prisma.workerProfile.findUnique({
-    where: { userId: session.user.id },
-  });
-  if (!row) return { ok: false };
-
-  const profile = parseApplicationProfile(row.applicationProfileJson);
-  profile.headline = String(formData.get("headline") || "").trim();
-  profile.skills = splitLinesInput(String(formData.get("skills") || ""));
-
-  const expCompany = String(formData.get("expCompany") || "").trim();
-  const expRole = String(formData.get("expRole") || "").trim();
-  if (expCompany || expRole) {
-    const exp = profile.experiences[0] ?? newExperience();
-    exp.company = expCompany;
-    exp.role = expRole;
-    exp.from = String(formData.get("expFrom") || "").trim();
-    exp.to = String(formData.get("expTo") || "").trim();
-    exp.description = String(formData.get("expDescription") || "").trim();
-    profile.experiences = [exp, ...profile.experiences.filter((e) => e.id !== exp.id)];
-  }
-
-  await prisma.workerProfile.update({
-    where: { userId: session.user.id },
-    data: { applicationProfileJson: serializeApplicationProfile(profile) },
-  });
-
-  revalidateWorkerPaths();
-  return { ok: true };
-}
