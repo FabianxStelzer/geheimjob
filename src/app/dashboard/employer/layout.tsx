@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
-
-const ALLOWED_WITHOUT_BILLING = ["/dashboard/employer/abrechnung", "/dashboard/employer/profil"];
 
 export default async function EmployerDashboardLayout({
   children,
@@ -16,16 +13,7 @@ export default async function EmployerDashboardLayout({
     redirect("/dashboard");
   }
 
-  const pathname = (await headers()).get("x-pathname") || "";
   const ent = await getEmployerEntitlements(session.user.id);
-
-  if (
-    !ent.isActive &&
-    pathname.startsWith("/dashboard/employer") &&
-    !ALLOWED_WITHOUT_BILLING.some((p) => pathname === p || pathname.startsWith(`${p}/`))
-  ) {
-    redirect("/dashboard/employer/abrechnung");
-  }
 
   return (
     <>

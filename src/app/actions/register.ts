@@ -177,11 +177,15 @@ export async function registerEmployerAction(
   const result = await registerEmployerCore(formData);
   if (result.error) return result;
 
-  await signIn("credentials", {
+  const signInResult = await signIn("credentials", {
     email,
     password,
-    redirectTo: "/dashboard/employer",
+    redirect: false,
   });
 
-  redirect("/dashboard/employer");
+  if (signInResult?.error) {
+    return { error: "Konto angelegt, aber Anmeldung fehlgeschlagen. Bitte einloggen." };
+  }
+
+  redirect("/dashboard/employer/abrechnung");
 }
