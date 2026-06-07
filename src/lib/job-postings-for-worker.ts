@@ -12,6 +12,9 @@ export type JobFeedItem = {
   targetIncomeHint: string | null;
   targetIncomeKind: "BRUTTO" | "NETTO";
   workModeHint: string | null;
+  workLocationsHint: string | null;
+  startDateHint: string | null;
+  contractTermHint: string | null;
   weeklyHoursHint: string | null;
   employmentKind: string | null;
   richDescription: string;
@@ -87,6 +90,9 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
       targetIncomeHint: p.targetIncomeHint,
       targetIncomeKind: p.targetIncomeKind,
       workModeHint: p.workModeHint,
+      workLocationsHint: p.workLocationsHint,
+      startDateHint: p.startDateHint,
+      contractTermHint: p.contractTermHint,
       weeklyHoursHint: p.weeklyHoursHint,
       employmentKind: p.employmentKind,
       richDescription: p.richDescription,

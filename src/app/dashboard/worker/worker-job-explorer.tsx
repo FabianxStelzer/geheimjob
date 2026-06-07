@@ -327,10 +327,18 @@ export default function WorkerJobExplorer({
                         <BriefcaseIcon /> {job.employer.industry}
                       </span>
                       <span className="gj-chip gj-chip-neutral">
-                        <MapPinIcon /> {job.employer.region}
+                        <MapPinIcon /> {job.workLocationsHint ?? job.employer.region}
                       </span>
                       {job.workModeHint ? (
                         <span className="gj-chip gj-chip-neutral">{job.workModeHint}</span>
+                      ) : null}
+                      {job.startDateHint ? (
+                        <span className="gj-chip gj-chip-neutral">
+                          <ClockIcon /> Beginn: {job.startDateHint}
+                        </span>
+                      ) : null}
+                      {job.contractTermHint ? (
+                        <span className="gj-chip gj-chip-neutral">{job.contractTermHint}</span>
                       ) : null}
                       {job.employmentKind ? (
                         <span className="gj-chip gj-chip-neutral">{job.employmentKind}</span>
@@ -402,6 +410,7 @@ export default function WorkerJobExplorer({
               </div>
             </div>
             <SummaryRow job={detail} variant="compact" netCalcSettings={netCalcSettings} />
+            <JobConditions job={detail} />
             <div className="flex flex-wrap gap-2">
               {detail.tags.map((t) => (
                 <span key={`d-${detail.id}-${t}`} className="gj-chip gj-chip-neutral">
@@ -491,6 +500,33 @@ export default function WorkerJobExplorer({
         ) : null}
       </SlideOver>
     </div>
+  );
+}
+
+function JobConditions({ job }: { job: JobFeedItem }) {
+  const rows = [
+    job.workLocationsHint && { label: "Arbeitsorte", value: job.workLocationsHint },
+    job.startDateHint && { label: "Beginn", value: job.startDateHint },
+    job.contractTermHint && { label: "Befristung", value: job.contractTermHint },
+    job.workModeHint && { label: "Arbeitsmodell", value: job.workModeHint },
+    job.employmentKind && { label: "Beschäftigungsart", value: job.employmentKind },
+    job.weeklyHoursHint && { label: "Wochenstunden", value: job.weeklyHoursHint },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  if (!rows.length) return null;
+
+  return (
+    <section>
+      <h3 className="text-sm font-semibold text-[var(--gj-text)]">Rahmenbedingungen</h3>
+      <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.label} className="rounded-xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/50 px-3 py-2">
+            <dt className="text-[11px] text-[var(--gj-muted)]">{r.label}</dt>
+            <dd className="mt-0.5 text-sm font-medium text-[var(--gj-text)]">{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 

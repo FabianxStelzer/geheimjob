@@ -34,6 +34,9 @@ export default async function EmployerAnfragenPage() {
           targetIncomeHint: m.jobPosting.targetIncomeHint,
           targetIncomeKind: m.jobPosting.targetIncomeKind,
           workModeHint: m.jobPosting.workModeHint,
+          workLocationsHint: m.jobPosting.workLocationsHint,
+          startDateHint: m.jobPosting.startDateHint,
+          contractTermHint: m.jobPosting.contractTermHint,
           weeklyHoursHint: m.jobPosting.weeklyHoursHint,
         }
       : null;

@@ -45,6 +45,9 @@ export type PipelineDrawerPayload = {
     targetIncomeHint: string | null;
     targetIncomeKind?: IncomeKind | null;
     workModeHint: string | null;
+    workLocationsHint: string | null;
+    startDateHint: string | null;
+    contractTermHint: string | null;
     weeklyHoursHint: string | null;
   } | null;
   showRespondButtons: boolean;
@@ -163,6 +166,17 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
                     : null
                 }
               />
+            ) : null}
+            {payload.job.workLocationsHint ? (
+              <Row label="Arbeitsorte" val={payload.job.workLocationsHint} />
+            ) : null}
+            {payload.job.startDateHint ? <Row label="Beginn" val={payload.job.startDateHint} /> : null}
+            {payload.job.contractTermHint ? (
+              <Row label="Befristung" val={payload.job.contractTermHint} />
+            ) : null}
+            {payload.job.workModeHint ? <Row label="Arbeitsmodell" val={payload.job.workModeHint} /> : null}
+            {payload.job.weeklyHoursHint ? (
+              <Row label="Wochenstunden" val={payload.job.weeklyHoursHint} />
             ) : null}
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">

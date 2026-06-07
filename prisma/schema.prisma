@@ -193,6 +193,9 @@ model JobPosting {
   targetIncomeHint  String?
   targetIncomeKind  IncomeKind @default(BRUTTO)
   workModeHint      String?
+  workLocationsHint String?
+  startDateHint     String?
+  contractTermHint  String?
   weeklyHoursHint   String?
   employmentKind    String?
   published         Boolean         @default(false)

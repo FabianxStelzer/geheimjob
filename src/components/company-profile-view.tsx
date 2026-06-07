@@ -12,6 +12,9 @@ type PublishedJob = {
   headline: string | null;
   employmentKind: string | null;
   workModeHint: string | null;
+  workLocationsHint: string | null;
+  startDateHint: string | null;
+  contractTermHint: string | null;
 };
 
 export type CompanyProfileData = {
@@ -207,8 +210,17 @@ export function CompanyProfileView({
                   {job.employmentKind ? (
                     <span className="gj-chip gj-chip-neutral text-[11px]">{job.employmentKind}</span>
                   ) : null}
+                  {job.workLocationsHint ? (
+                    <span className="gj-chip gj-chip-neutral text-[11px]">{job.workLocationsHint}</span>
+                  ) : null}
                   {job.workModeHint ? (
                     <span className="gj-chip gj-chip-neutral text-[11px]">{job.workModeHint}</span>
+                  ) : null}
+                  {job.startDateHint ? (
+                    <span className="gj-chip gj-chip-neutral text-[11px]">Beginn: {job.startDateHint}</span>
+                  ) : null}
+                  {job.contractTermHint ? (
+                    <span className="gj-chip gj-chip-neutral text-[11px]">{job.contractTermHint}</span>
                   ) : null}
                 </div>
               </li>

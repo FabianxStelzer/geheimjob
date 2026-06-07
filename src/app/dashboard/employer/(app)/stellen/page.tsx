@@ -140,6 +140,9 @@ export default async function EmployerStellenPage() {
                           targetIncomeHint: j.targetIncomeHint,
                           targetIncomeKind: j.targetIncomeKind,
                           workModeHint: j.workModeHint,
+                          workLocationsHint: j.workLocationsHint,
+                          startDateHint: j.startDateHint,
+                          contractTermHint: j.contractTermHint,
                           weeklyHoursHint: j.weeklyHoursHint,
                           employmentKind: j.employmentKind,
                           richDescription: j.richDescription,
@@ -174,6 +177,9 @@ function JobForm({
     targetIncomeHint: string | null;
     targetIncomeKind: "BRUTTO" | "NETTO";
     workModeHint: string | null;
+    workLocationsHint: string | null;
+    startDateHint: string | null;
+    contractTermHint: string | null;
     weeklyHoursHint: string | null;
     employmentKind: string | null;
     richDescription: string;
@@ -232,6 +238,33 @@ function JobForm({
         <label>
           <span className="gj-label">Arbeitsmodell</span>
           <input name="workModeHint" className="gj-input" defaultValue={job?.workModeHint ?? ""} placeholder="Hybrid / Remote" />
+        </label>
+        <label>
+          <span className="gj-label">Arbeitsorte</span>
+          <input
+            name="workLocationsHint"
+            className="gj-input"
+            defaultValue={job?.workLocationsHint ?? ""}
+            placeholder="z. B. Berlin, Hamburg, bundesweit remote"
+          />
+        </label>
+        <label>
+          <span className="gj-label">Beginn</span>
+          <input
+            name="startDateHint"
+            className="gj-input"
+            defaultValue={job?.startDateHint ?? ""}
+            placeholder="z. B. ab sofort, 01.09.2026"
+          />
+        </label>
+        <label>
+          <span className="gj-label">Befristung</span>
+          <input
+            name="contractTermHint"
+            className="gj-input"
+            defaultValue={job?.contractTermHint ?? ""}
+            placeholder="z. B. unbefristet, 2 Jahre befristet"
+          />
         </label>
         <label>
           <span className="gj-label">Beschäftigungsart</span>
