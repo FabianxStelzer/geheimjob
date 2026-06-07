@@ -311,7 +311,7 @@ model Subscription {
   addonContactAll      Boolean        @default(false)
   currentPeriodEnd     DateTime?
   cancelAtPeriodEnd         Boolean        @default(false)
-  cancelExtraJobsAtPeriodEnd Boolean       @default(false)
+  extraJobsCancelCount      Int            @default(0)
   cancelHighlightAtPeriodEnd Boolean      @default(false)
   cancelContactAllAtPeriodEnd Boolean       @default(false)
   adminNote            String?

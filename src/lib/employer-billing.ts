@@ -24,10 +24,11 @@ export type EmployerEntitlements = {
   billingStatus: BillingStatus;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
-  cancelExtraJobsAtPeriodEnd: boolean;
+  extraJobsCancelCount: number;
   cancelHighlightAtPeriodEnd: boolean;
   cancelContactAllAtPeriodEnd: boolean;
   extraJobSlots: number;
+  remainingExtraJobSlots: number;
   addonHighlight: boolean;
   addonContactAll: boolean;
   planIncludesHighlight: boolean;
@@ -86,10 +87,13 @@ export async function getEmployerEntitlements(userId: string): Promise<EmployerE
     billingStatus: sub.billingStatus,
     currentPeriodEnd: sub.currentPeriodEnd,
     cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
-    cancelExtraJobsAtPeriodEnd: active && sub.cancelExtraJobsAtPeriodEnd,
+    extraJobsCancelCount: active ? sub.extraJobsCancelCount : 0,
     cancelHighlightAtPeriodEnd: active && sub.cancelHighlightAtPeriodEnd,
     cancelContactAllAtPeriodEnd: active && sub.cancelContactAllAtPeriodEnd,
     extraJobSlots: active ? sub.extraJobSlots : 0,
+    remainingExtraJobSlots: active
+      ? Math.max(0, sub.extraJobSlots - sub.extraJobsCancelCount)
+      : 0,
     addonHighlight: active && sub.addonHighlight,
     addonContactAll: active && sub.addonContactAll,
     planIncludesHighlight: def?.includesHighlight ?? false,
@@ -230,9 +234,42 @@ export async function activateEmployerSubscription(opts: {
       currentPeriodEnd: periodEnd,
       adminNote: opts.adminNote ?? null,
       cancelAtPeriodEnd: false,
-      cancelExtraJobsAtPeriodEnd: false,
+      extraJobsCancelCount: 0,
       cancelHighlightAtPeriodEnd: false,
       cancelContactAllAtPeriodEnd: false,
+      ...subscriptionAddonFields(opts.addons),
+    },
+  });
+}
+
+/** Paket/Add-ons ändern ohne neue Laufzeit — behält currentPeriodEnd. */
+export async function applyEmployerSubscriptionChange(opts: {
+  userId: string;
+  plan: EmployerPlan;
+  addons: AddonCode[];
+  adminNote?: string | null;
+}): Promise<void> {
+  const sub = await ensureEmployerSubscription(opts.userId);
+  if (!subscriptionIsActive(sub)) {
+    await activateEmployerSubscription({
+      userId: opts.userId,
+      plan: opts.plan,
+      addons: opts.addons,
+      paymentMethod: sub.paymentMethod ?? "INVOICE",
+      adminNote: opts.adminNote,
+    });
+    return;
+  }
+
+  await prisma.subscription.update({
+    where: { userId: opts.userId },
+    data: {
+      plan: opts.plan,
+      cancelAtPeriodEnd: false,
+      extraJobsCancelCount: 0,
+      cancelHighlightAtPeriodEnd: false,
+      cancelContactAllAtPeriodEnd: false,
+      adminNote: opts.adminNote ?? sub.adminNote,
       ...subscriptionAddonFields(opts.addons),
     },
   });

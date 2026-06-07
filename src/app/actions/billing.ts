@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import {
   activateEmployerSubscription,
+  applyEmployerSubscriptionChange,
   buildAddonsFromSelection,
   ensureEmployerSubscription,
   mergeWithCommittedAddons,
@@ -36,6 +37,7 @@ export async function activateInvoiceBilling(formData: FormData): Promise<{ ok: 
   const extraJobCount = Number(formData.get("extraJobCount") || 0);
   const addonHighlight = formData.get("addonHighlight") === "on";
   const addonContactAll = formData.get("addonContactAll") === "on";
+  const isChange = formData.get("mode") === "change";
 
   const parsedRaw = await parseCheckoutSelection({
     plan,
@@ -45,26 +47,37 @@ export async function activateInvoiceBilling(formData: FormData): Promise<{ ok: 
   });
   if (!parsedRaw) return { ok: false };
 
-  const mergedSelection = await mergeWithCommittedAddons(
-    session.user.id,
-    parsedRaw.selection,
-  );
+  const selection = isChange
+    ? parsedRaw.selection
+    : await mergeWithCommittedAddons(session.user.id, parsedRaw.selection);
   const parsed = {
     plan: parsedRaw.plan,
-    selection: mergedSelection,
-    addons: buildAddonsFromSelection(mergedSelection),
+    selection,
+    addons: buildAddonsFromSelection(selection),
   };
 
   const note = String(formData.get("note") || "").trim() || addonNote(parsed.selection);
 
   await ensureEmployerSubscription(session.user.id);
-  await activateEmployerSubscription({
-    userId: session.user.id,
-    plan: parsed.plan,
-    addons: parsed.addons,
-    paymentMethod: "INVOICE",
-    adminNote: note,
-  });
+  const sub = await prisma.subscription.findUnique({ where: { userId: session.user.id } });
+  const changing = isChange && sub && subscriptionIsActive(sub);
+
+  if (changing) {
+    await applyEmployerSubscriptionChange({
+      userId: session.user.id,
+      plan: parsed.plan,
+      addons: parsed.addons,
+      adminNote: note,
+    });
+  } else {
+    await activateEmployerSubscription({
+      userId: session.user.id,
+      plan: parsed.plan,
+      addons: parsed.addons,
+      paymentMethod: "INVOICE",
+      adminNote: note,
+    });
+  }
 
   const employer = await prisma.employerProfile.findUnique({
     where: { userId: session.user.id },
@@ -74,8 +87,10 @@ export async function activateInvoiceBilling(formData: FormData): Promise<{ ok: 
   await notifyUser(
     session.user.id,
     NotificationKind.BILLING,
-    "Paket aktiviert",
-    "Ihr Paket ist sofort aktiv. Die Rechnung erhalten Sie in Kürze per E-Mail.",
+    changing ? "Paket angepasst" : "Paket aktiviert",
+    changing
+      ? "Ihre Paketänderung ist aktiv. Die Rechnung erhalten Sie in Kürze per E-Mail."
+      : "Ihr Paket ist sofort aktiv. Die Rechnung erhalten Sie in Kürze per E-Mail.",
     "/dashboard/employer",
   );
 
@@ -155,6 +170,7 @@ const ADDON_CANCEL_LABELS: Record<EmployerAddonCancelType, string> = {
 
 export async function cancelEmployerAddon(
   type: EmployerAddonCancelType,
+  extraJobCancelCount?: number,
 ): Promise<{ ok: boolean; message?: string }> {
   const session = await auth();
   if (!session?.user || session.user.role !== "EMPLOYER") {
@@ -174,7 +190,7 @@ export async function cancelEmployerAddon(
     : "Ende der Laufzeit";
 
   const patch: {
-    cancelExtraJobsAtPeriodEnd?: boolean;
+    extraJobsCancelCount?: number;
     cancelHighlightAtPeriodEnd?: boolean;
     cancelContactAllAtPeriodEnd?: boolean;
   } = {};
@@ -183,10 +199,18 @@ export async function cancelEmployerAddon(
     if (sub.extraJobSlots <= 0) {
       return { ok: false, message: "Keine Zusatzstellen gebucht." };
     }
-    if (sub.cancelExtraJobsAtPeriodEnd) {
-      return { ok: false, message: "Zusatzstellen sind bereits gekündigt." };
+    const remaining = sub.extraJobSlots - sub.extraJobsCancelCount;
+    if (remaining <= 0) {
+      return { ok: false, message: "Alle Zusatzstellen sind bereits gekündigt." };
     }
-    patch.cancelExtraJobsAtPeriodEnd = true;
+    const toCancel = extraJobCancelCount ?? remaining;
+    if (!Number.isFinite(toCancel) || toCancel < 1 || toCancel > remaining) {
+      return {
+        ok: false,
+        message: `Bitte zwischen 1 und ${remaining} Stellen angeben.`,
+      };
+    }
+    patch.extraJobsCancelCount = sub.extraJobsCancelCount + toCancel;
   } else if (type === "HIGHLIGHT") {
     if (!sub.addonHighlight) {
       return { ok: false, message: "Hervorhebung ist nicht gebucht." };
@@ -211,11 +235,16 @@ export async function cancelEmployerAddon(
   });
 
   const label = ADDON_CANCEL_LABELS[type];
+  const detail =
+    type === "EXTRA_JOB" && patch.extraJobsCancelCount
+      ? `${patch.extraJobsCancelCount - sub.extraJobsCancelCount} Zusatzstelle(n) gekündigt — ${sub.extraJobSlots - patch.extraJobsCancelCount} bleiben aktiv. Bis ${endLabel} nutzbar.`
+      : `${label} endet am ${endLabel}. Bis dahin bleibt es aktiv.`;
+
   await notifyUser(
     session.user.id,
     NotificationKind.BILLING,
     `${label} gekündigt`,
-    `${label} endet am ${endLabel}. Bis dahin bleibt es aktiv.`,
+    detail,
     "/dashboard/employer/abrechnung",
   );
 
@@ -223,8 +252,114 @@ export async function cancelEmployerAddon(
   revalidatePath("/dashboard/employer");
   return {
     ok: true,
-    message: `${label} gekündigt — aktiv bis ${endLabel}.`,
+    message: detail,
   };
+}
+
+export async function reactivateEmployerSubscription(): Promise<{ ok: boolean; message?: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "EMPLOYER") {
+    return { ok: false, message: "Nicht berechtigt." };
+  }
+
+  const sub = await prisma.subscription.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!sub || !subscriptionIsActive(sub) || sub.plan === "NONE") {
+    return { ok: false, message: "Kein aktives Paket vorhanden." };
+  }
+  if (!sub.cancelAtPeriodEnd) {
+    return { ok: false, message: "Das Paket ist nicht gekündigt." };
+  }
+
+  if (sub.stripeSubscriptionId) {
+    const stripe = await getStripe();
+    if (stripe) {
+      try {
+        await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+          cancel_at_period_end: false,
+        });
+      } catch {
+        return { ok: false, message: "Stripe-Reaktivierung fehlgeschlagen. Bitte Support kontaktieren." };
+      }
+    }
+  }
+
+  await prisma.subscription.update({
+    where: { userId: session.user.id },
+    data: { cancelAtPeriodEnd: false },
+  });
+
+  await notifyUser(
+    session.user.id,
+    NotificationKind.BILLING,
+    "Paket reaktiviert",
+    "Ihre Kündigung wurde zurückgenommen. Das Paket läuft weiter.",
+    "/dashboard/employer/abrechnung",
+  );
+
+  revalidatePath("/dashboard/employer/abrechnung");
+  revalidatePath("/dashboard/employer");
+  return { ok: true, message: "Paket reaktiviert — läuft weiter." };
+}
+
+export async function reactivateEmployerAddon(
+  type: EmployerAddonCancelType,
+): Promise<{ ok: boolean; message?: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "EMPLOYER") {
+    return { ok: false, message: "Nicht berechtigt." };
+  }
+
+  const sub = await prisma.subscription.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!sub || !subscriptionIsActive(sub) || sub.plan === "NONE") {
+    return { ok: false, message: "Kein aktives Paket vorhanden." };
+  }
+
+  const patch: {
+    extraJobsCancelCount?: number;
+    cancelHighlightAtPeriodEnd?: boolean;
+    cancelContactAllAtPeriodEnd?: boolean;
+  } = {};
+
+  if (type === "EXTRA_JOB") {
+    if (sub.extraJobsCancelCount <= 0) {
+      return { ok: false, message: "Keine Zusatzstellen-Kündigung vorhanden." };
+    }
+    patch.extraJobsCancelCount = 0;
+  } else if (type === "HIGHLIGHT") {
+    if (!sub.cancelHighlightAtPeriodEnd) {
+      return { ok: false, message: "Hervorhebung ist nicht gekündigt." };
+    }
+    patch.cancelHighlightAtPeriodEnd = false;
+  } else {
+    if (!sub.cancelContactAllAtPeriodEnd) {
+      return { ok: false, message: "Add-on ist nicht gekündigt." };
+    }
+    patch.cancelContactAllAtPeriodEnd = false;
+  }
+
+  await prisma.subscription.update({
+    where: { userId: session.user.id },
+    data: patch,
+  });
+
+  const label = ADDON_CANCEL_LABELS[type];
+  await notifyUser(
+    session.user.id,
+    NotificationKind.BILLING,
+    `${label} reaktiviert`,
+    `${label} wurde reaktiviert und läuft weiter.`,
+    "/dashboard/employer/abrechnung",
+  );
+
+  revalidatePath("/dashboard/employer/abrechnung");
+  revalidatePath("/dashboard/employer");
+  return { ok: true, message: `${label} reaktiviert.` };
 }
 
 /** @deprecated Alias — nutzt activateInvoiceBilling */

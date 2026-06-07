@@ -52,10 +52,14 @@ export async function POST(req: Request) {
     return Response.json({ error: "Ungültiges Paket." }, { status: 400 });
   }
 
-  const mergedSelection = await mergeWithCommittedAddons(session.user.id, parsed.selection);
+  const isChange = body.mode === "change";
+  const mergedSelection = isChange
+    ? parsed.selection
+    : await mergeWithCommittedAddons(session.user.id, parsed.selection);
   const selection = {
     plan: parsed.plan,
     addons: buildAddonsFromSelection(mergedSelection),
+    mode: isChange ? "change" : "new",
   };
 
   let lineItems: { price: string; quantity: number }[];
@@ -79,12 +83,14 @@ export async function POST(req: Request) {
       userId: session.user.id,
       plan: selection.plan,
       addons: JSON.stringify(selection.addons),
+      mode: selection.mode,
     },
     subscription_data: {
       metadata: {
         userId: session.user.id,
         plan: selection.plan,
         addons: JSON.stringify(selection.addons),
+        mode: selection.mode,
       },
     },
   });
