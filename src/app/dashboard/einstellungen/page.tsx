@@ -5,7 +5,7 @@ import { AccountNameForm } from "@/components/account-name-form";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { NotificationEmailPrefsForm } from "@/components/notification-email-prefs-form";
 import { NotificationWhatsAppPrefsForm } from "@/components/notification-whatsapp-prefs-form";
-import { getOrCreateNotificationPrefs } from "@/lib/email-notifications";
+import { getOrCreateNotificationPrefs, isSmtpConfigured } from "@/lib/email-notifications";
 import { prefsToUi, whatsappPrefsToUi } from "@/lib/notification-prefs-ui";
 import { twilioWhatsAppConfigured } from "@/lib/whatsapp-notifications";
 
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
         ? "/dashboard/employer/profil"
         : "/dashboard/admin";
 
-  const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+  const smtpConfigured = await isSmtpConfigured();
   const whatsappConfigured = await twilioWhatsAppConfigured();
   let emailPrefs = null;
   let whatsappPrefs = null;

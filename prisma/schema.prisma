@@ -337,6 +337,7 @@ model PlatformSettings {
   twilioAccountSid     String?
   twilioAuthToken      String?
   twilioWhatsAppFrom   String?
+  smtpFromEmail        String?
   updatedAt            DateTime @updatedAt
 }
 

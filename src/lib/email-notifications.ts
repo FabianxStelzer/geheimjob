@@ -1,6 +1,6 @@
 import type { UserNotificationPrefs } from "@prisma/client";
 import nodemailer from "nodemailer";
-import { getAdminBootstrapEmail } from "@/lib/platform-settings";
+import { getAdminBootstrapEmail, getSmtpFromEmail } from "@/lib/platform-settings";
 import { prisma } from "@/lib/prisma";
 import {
   EMAIL_PREF_FIELD,
@@ -15,8 +15,9 @@ function appBaseUrl(): string {
   );
 }
 
-function smtpConfigured(): boolean {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+export async function isSmtpConfigured(): Promise<boolean> {
+  const from = await getSmtpFromEmail();
+  return Boolean(process.env.SMTP_HOST?.trim() && from);
 }
 
 async function getTransporter() {
@@ -30,6 +31,10 @@ async function getTransporter() {
         ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
         : undefined,
   });
+}
+
+async function resolveFromAddress(): Promise<string | null> {
+  return getSmtpFromEmail();
 }
 
 export async function getOrCreateNotificationPrefs(
@@ -57,7 +62,7 @@ export async function sendNotificationEmail(opts: {
   body: string;
   href?: string;
 }): Promise<void> {
-  if (!smtpConfigured()) return;
+  if (!(await isSmtpConfigured())) return;
 
   const user = await prisma.user.findUnique({
     where: { id: opts.userId },
@@ -74,7 +79,9 @@ export async function sendNotificationEmail(opts: {
     : `${appBaseUrl()}/dashboard/benachrichtigungen`;
 
   const transporter = await getTransporter();
-  const from = process.env.SMTP_FROM!;
+  const from = await resolveFromAddress();
+  if (!from) return;
+
   const text = `${opts.title}\n\n${opts.body}\n\nZur Plattform: ${link}\n\n— Geheimjob`;
 
   await transporter.sendMail({
@@ -93,7 +100,7 @@ export async function sendAdminAlertEmail(opts: {
   body: string;
   href?: string;
 }): Promise<void> {
-  if (!smtpConfigured()) return;
+  if (!(await isSmtpConfigured())) return;
 
   const recipients = new Set<string>();
   const bootstrap = await getAdminBootstrapEmail();
@@ -113,7 +120,9 @@ export async function sendAdminAlertEmail(opts: {
     : `${appBaseUrl()}/dashboard/admin`;
 
   const transporter = await getTransporter();
-  const from = process.env.SMTP_FROM!;
+  const from = await resolveFromAddress();
+  if (!from) return;
+
   const text = `${opts.title}\n\n${opts.body}\n\nZur Plattform: ${link}\n\n— Geheimjob`;
 
   await transporter.sendMail({

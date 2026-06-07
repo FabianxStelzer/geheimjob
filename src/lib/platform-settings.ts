@@ -9,6 +9,7 @@ export type PlatformSettingsRecord = {
   twilioAccountSid: string | null;
   twilioAuthToken: string | null;
   twilioWhatsAppFrom: string | null;
+  smtpFromEmail: string | null;
   billingOverrides: BillingCatalogOverrides;
   updatedAt: Date;
 };
@@ -37,6 +38,7 @@ async function loadSettings(): Promise<PlatformSettingsRecord> {
     twilioAccountSid: row.twilioAccountSid,
     twilioAuthToken: row.twilioAuthToken,
     twilioWhatsAppFrom: row.twilioWhatsAppFrom,
+    smtpFromEmail: row.smtpFromEmail,
     billingOverrides: parseOverrides(row.billingCatalogJson),
     updatedAt: row.updatedAt,
   };
@@ -97,6 +99,13 @@ export async function getAdminBootstrapEmail(): Promise<string | null> {
   const fromDb = s.billingOverrides.adminBootstrapEmail?.toLowerCase().trim();
   if (fromDb) return fromDb;
   return process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim() || null;
+}
+
+export async function getSmtpFromEmail(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.smtpFromEmail?.trim();
+  if (fromDb) return fromDb;
+  return process.env.SMTP_FROM?.trim() || null;
 }
 
 export async function getBillingAutomationWebhookUrl(): Promise<string | null> {

@@ -206,6 +206,21 @@ export async function saveAdminBootstrapEmail(formData: FormData): Promise<void>
   revalidatePath("/dashboard/admin/einstellungen");
 }
 
+export async function saveSmtpFromSettings(formData: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+
+  const smtpFromEmail = str(formData, "smtpFromEmail").toLowerCase() || null;
+
+  await prisma.platformSettings.upsert({
+    where: { id: "default" },
+    create: { id: "default", billingCatalogJson: "{}", smtpFromEmail },
+    update: { smtpFromEmail },
+  });
+
+  revalidatePath("/dashboard/admin/einstellungen");
+  revalidatePath("/dashboard/einstellungen");
+}
+
 export async function saveSupportSettings(formData: FormData): Promise<void> {
   if (!(await requireAdmin())) return;
 

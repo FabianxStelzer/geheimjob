@@ -3,6 +3,7 @@ import {
   saveBillingAutomationSettings,
   saveBillingCatalogSettings,
   saveLegalContent,
+  saveSmtpFromSettings,
   saveStripePlatformSettings,
   saveSupportSettings,
   adminResetUserPassword,
@@ -13,17 +14,19 @@ import { PLAN_CATALOG_DEFAULT, ADDON_CATALOG_DEFAULT } from "@/lib/billing-plans
 import {
   getAdminBootstrapEmail,
   getPlatformSettings,
+  getSmtpFromEmail,
   maskSecret,
 } from "@/lib/platform-settings";
 import type { AddonCode } from "@/lib/billing-plans";
 import type { EmployerPlan } from "@prisma/client";
 
 export default async function AdminEinstellungenPage() {
-  const [settings, catalog, bootstrapEmail, platformRow] = await Promise.all([
+  const [settings, catalog, bootstrapEmail, platformRow, smtpFromEmail] = await Promise.all([
     getPlatformSettings(),
     getBillingCatalog(),
     getAdminBootstrapEmail(),
     prisma.platformSettings.findUnique({ where: { id: "default" } }),
+    getSmtpFromEmail(),
   ]);
 
   const planRows = PLAN_CATALOG_DEFAULT.map((base) => {
@@ -101,6 +104,38 @@ export default async function AdminEinstellungenPage() {
           </p>
           <button type="submit" className="gj-btn-primary w-fit">
             Stripe speichern
+          </button>
+        </form>
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="text-lg font-semibold text-[var(--gj-text)]">E-Mail Versand</h2>
+        <p className="mt-1 text-sm text-[var(--gj-muted)]">
+          Absender-Adresse für alle Plattform-E-Mails (Benachrichtigungen, Admin-Alerts). SMTP-Server
+          (Host, Zugangsdaten) bleiben in der Server-<code className="text-xs">.env</code>.
+        </p>
+        <form action={saveSmtpFromSettings} className="mt-6 space-y-4">
+          <label className="block">
+            <span className="gj-label">Absender E-Mail</span>
+            <input
+              name="smtpFromEmail"
+              type="email"
+              defaultValue={platformRow?.smtpFromEmail ?? ""}
+              className="gj-input"
+              placeholder={process.env.SMTP_FROM || "noreply@geheimjob.de"}
+            />
+          </label>
+          <p className="text-xs text-[var(--gj-muted)]">
+            Aktuell aktiv:{" "}
+            <code className="text-[var(--gj-primary)]">{smtpFromEmail ?? "— (SMTP nicht konfiguriert)"}</code>
+            {platformRow?.smtpFromEmail
+              ? " (aus Einstellungen)"
+              : process.env.SMTP_FROM
+                ? " (aus .env)"
+                : null}
+          </p>
+          <button type="submit" className="gj-btn-primary w-fit">
+            Absender speichern
           </button>
         </form>
       </section>
