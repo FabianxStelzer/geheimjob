@@ -29,23 +29,23 @@ export default async function EmployerBillingPage({
         </p>
       ) : null}
 
-      <section className="gj-card p-6">
-        <h2 className="text-lg font-semibold text-[var(--gj-text)]">Mitgliedschaft verwalten</h2>
-        <p className="mt-1 text-sm text-[var(--gj-muted)]">
-          Paket wählen, Add-ons buchen und per Karte/SEPA (Stripe) oder auf Rechnung aktivieren.
-        </p>
-        <div className="mt-6">
-          <EmployerBillingCheckout
-            plans={plans}
-            addons={addons}
-            currentPlan={planLabel}
-            currentPlanCode={ent.plan}
-            billingStatus={ent.billingStatus}
-            isActive={ent.isActive}
-            currentPeriodEnd={ent.currentPeriodEnd?.toISOString() ?? null}
-          />
-        </div>
-      </section>
+      <EmployerBillingCheckout
+        plans={plans}
+        addons={addons}
+        currentPlan={planLabel}
+        currentPlanCode={ent.plan}
+        billingStatus={ent.billingStatus}
+        paymentMethod={ent.paymentMethod}
+        isActive={ent.isActive}
+        cancelAtPeriodEnd={ent.cancelAtPeriodEnd}
+        currentPeriodEnd={ent.currentPeriodEnd?.toISOString() ?? null}
+        maxPublishedJobs={ent.maxPublishedJobs}
+        publishedJobsCount={ent.publishedJobsCount}
+        initialExtraJobCount={ent.extraJobSlots}
+        initialAddonHighlight={ent.addonHighlight}
+        initialAddonContactAll={ent.addonContactAll}
+        planIncludesHighlight={ent.planIncludesHighlight}
+      />
     </div>
   );
 }

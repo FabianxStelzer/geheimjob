@@ -17,7 +17,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = (await req.json()) as { plan?: string; addons?: string[]; mode?: string };
+  const body = (await req.json()) as {
+    plan?: string;
+    addons?: string[];
+    extraJobCount?: number;
+    addonHighlight?: boolean;
+    addonContactAll?: boolean;
+    mode?: string;
+  };
 
   if (body.mode === "placement") {
     const priceId = process.env.STRIPE_PRICE_PLACEMENT;

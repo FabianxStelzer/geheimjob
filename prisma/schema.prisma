@@ -310,6 +310,7 @@ model Subscription {
   addonHighlight       Boolean        @default(false)
   addonContactAll      Boolean        @default(false)
   currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean        @default(false)
   adminNote            String?
   updatedAt            DateTime       @updatedAt
 }
