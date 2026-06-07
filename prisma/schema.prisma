@@ -337,6 +337,11 @@ model PlatformSettings {
   twilioAccountSid     String?
   twilioAuthToken      String?
   twilioWhatsAppFrom   String?
+  smtpHost             String?
+  smtpPort             Int      @default(587)
+  smtpSecure           Boolean  @default(false)
+  smtpUser             String?
+  smtpPass             String?
   smtpFromEmail        String?
   updatedAt            DateTime @updatedAt
 }

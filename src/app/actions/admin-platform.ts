@@ -206,19 +206,51 @@ export async function saveAdminBootstrapEmail(formData: FormData): Promise<void>
   revalidatePath("/dashboard/admin/einstellungen");
 }
 
-export async function saveSmtpFromSettings(formData: FormData): Promise<void> {
+export async function saveSmtpPlatformSettings(formData: FormData): Promise<void> {
   if (!(await requireAdmin())) return;
 
-  const smtpFromEmail = str(formData, "smtpFromEmail").toLowerCase() || null;
-
-  await prisma.platformSettings.upsert({
+  const row = await prisma.platformSettings.upsert({
     where: { id: "default" },
-    create: { id: "default", billingCatalogJson: "{}", smtpFromEmail },
-    update: { smtpFromEmail },
+    create: { id: "default", billingCatalogJson: "{}" },
+    update: {},
+  });
+
+  const portRaw = Number(formData.get("smtpPort") || 587);
+  const port = Number.isFinite(portRaw) && portRaw > 0 ? portRaw : 587;
+
+  const patch: {
+    smtpHost?: string | null;
+    smtpPort?: number;
+    smtpSecure?: boolean;
+    smtpUser?: string | null;
+    smtpPass?: string | null;
+    smtpFromEmail?: string | null;
+  } = {
+    smtpHost: str(formData, "smtpHost") || null,
+    smtpPort: port,
+    smtpSecure: formData.get("smtpSecure") === "on",
+    smtpUser: str(formData, "smtpUser") || null,
+    smtpFromEmail: str(formData, "smtpFromEmail").toLowerCase() || null,
+  };
+
+  if (formData.get("clearSmtpPass") === "on") patch.smtpPass = null;
+  else {
+    const pass = str(formData, "smtpPass");
+    if (pass) patch.smtpPass = pass;
+  }
+
+  await prisma.platformSettings.update({
+    where: { id: row.id },
+    data: patch,
   });
 
   revalidatePath("/dashboard/admin/einstellungen");
   revalidatePath("/dashboard/einstellungen");
+}
+
+/** @deprecated Alias */
+export async function saveSmtpFromSettings(formData: FormData): Promise<void> {
+  return saveSmtpPlatformSettings(formData);
 }
 
 export async function saveSupportSettings(formData: FormData): Promise<void> {

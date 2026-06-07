@@ -3,7 +3,7 @@ import {
   saveBillingAutomationSettings,
   saveBillingCatalogSettings,
   saveLegalContent,
-  saveSmtpFromSettings,
+  saveSmtpPlatformSettings,
   saveStripePlatformSettings,
   saveSupportSettings,
   adminResetUserPassword,
@@ -15,19 +15,26 @@ import {
   getAdminBootstrapEmail,
   getPlatformSettings,
   getSmtpFromEmail,
+  getSmtpHost,
+  isSmtpPlatformConfigured,
   maskSecret,
 } from "@/lib/platform-settings";
+import { isSmtpConfigured } from "@/lib/email-notifications";
 import type { AddonCode } from "@/lib/billing-plans";
 import type { EmployerPlan } from "@prisma/client";
 
 export default async function AdminEinstellungenPage() {
-  const [settings, catalog, bootstrapEmail, platformRow, smtpFromEmail] = await Promise.all([
-    getPlatformSettings(),
-    getBillingCatalog(),
-    getAdminBootstrapEmail(),
-    prisma.platformSettings.findUnique({ where: { id: "default" } }),
-    getSmtpFromEmail(),
-  ]);
+  const [settings, catalog, bootstrapEmail, platformRow, smtpFromEmail, smtpHost, smtpReady, smtpFromPlatform] =
+    await Promise.all([
+      getPlatformSettings(),
+      getBillingCatalog(),
+      getAdminBootstrapEmail(),
+      prisma.platformSettings.findUnique({ where: { id: "default" } }),
+      getSmtpFromEmail(),
+      getSmtpHost(),
+      isSmtpConfigured(),
+      isSmtpPlatformConfigured(),
+    ]);
 
   const planRows = PLAN_CATALOG_DEFAULT.map((base) => {
     const live = catalog.plans.find((p) => p.code === base.code);
@@ -109,34 +116,95 @@ export default async function AdminEinstellungenPage() {
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="text-lg font-semibold text-[var(--gj-text)]">E-Mail Versand</h2>
+        <h2 className="text-lg font-semibold text-[var(--gj-text)]">E-Mail Versand (SMTP)</h2>
         <p className="mt-1 text-sm text-[var(--gj-muted)]">
-          Absender-Adresse für alle Plattform-E-Mails (Benachrichtigungen, Admin-Alerts). SMTP-Server
-          (Host, Zugangsdaten) bleiben in der Server-<code className="text-xs">.env</code>.
+          Vollständige SMTP-Konfiguration für Benachrichtigungen und Admin-Alerts. Werte hier haben
+          Vorrang vor der Server-<code className="text-xs">.env</code>.
         </p>
-        <form action={saveSmtpFromSettings} className="mt-6 space-y-4">
+        <p className="mt-3 text-xs text-[var(--gj-muted)]">
+          Status:{" "}
+          {smtpReady ? (
+            <span className="font-medium text-emerald-700">
+              aktiv{smtpFromPlatform ? " (Plattform)" : " (.env-Fallback)"}
+            </span>
+          ) : (
+            <span className="font-medium text-amber-700">nicht konfiguriert</span>
+          )}
+          {smtpHost && smtpFromEmail ? (
+            <>
+              {" "}
+              — <code className="text-[var(--gj-primary)]">{smtpFromEmail}</code> via{" "}
+              <code className="text-[var(--gj-primary)]">{smtpHost}</code>
+            </>
+          ) : null}
+        </p>
+        <form action={saveSmtpPlatformSettings} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="block sm:col-span-2">
+            <span className="gj-label">SMTP Host</span>
+            <input
+              name="smtpHost"
+              type="text"
+              defaultValue={platformRow?.smtpHost ?? ""}
+              className="gj-input font-mono text-sm"
+              placeholder="smtp.example.com"
+            />
+          </label>
           <label className="block">
+            <span className="gj-label">Port</span>
+            <input
+              name="smtpPort"
+              type="number"
+              min={1}
+              defaultValue={platformRow?.smtpPort ?? 587}
+              className="gj-input"
+            />
+          </label>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm">
+            <input
+              type="checkbox"
+              name="smtpSecure"
+              defaultChecked={platformRow?.smtpSecure ?? false}
+            />
+            SSL/TLS (secure)
+          </label>
+          <label className="block">
+            <span className="gj-label">Benutzername (optional)</span>
+            <input
+              name="smtpUser"
+              type="text"
+              autoComplete="off"
+              defaultValue={platformRow?.smtpUser ?? ""}
+              className="gj-input"
+            />
+          </label>
+          <label className="block">
+            <span className="gj-label">Passwort (optional)</span>
+            <input
+              name="smtpPass"
+              type="password"
+              autoComplete="new-password"
+              className="gj-input"
+              placeholder={platformRow?.smtpPass ? maskSecret(platformRow.smtpPass) : "••••••••"}
+            />
+            <label className="mt-1 flex items-center gap-2 text-xs text-[var(--gj-muted)]">
+              <input type="checkbox" name="clearSmtpPass" /> Gespeichertes Passwort löschen
+            </label>
+          </label>
+          <label className="block sm:col-span-2">
             <span className="gj-label">Absender E-Mail</span>
             <input
               name="smtpFromEmail"
               type="email"
               defaultValue={platformRow?.smtpFromEmail ?? ""}
               className="gj-input"
-              placeholder={process.env.SMTP_FROM || "noreply@geheimjob.de"}
+              placeholder="noreply@geheimjob.de"
             />
           </label>
-          <p className="text-xs text-[var(--gj-muted)]">
-            Aktuell aktiv:{" "}
-            <code className="text-[var(--gj-primary)]">{smtpFromEmail ?? "— (SMTP nicht konfiguriert)"}</code>
-            {platformRow?.smtpFromEmail
-              ? " (aus Einstellungen)"
-              : process.env.SMTP_FROM
-                ? " (aus .env)"
-                : null}
-          </p>
-          <button type="submit" className="gj-btn-primary w-fit">
-            Absender speichern
-          </button>
+          <div className="sm:col-span-2">
+            <button type="submit" className="gj-btn-primary">
+              SMTP speichern
+            </button>
+          </div>
         </form>
       </section>
 

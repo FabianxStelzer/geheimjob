@@ -9,6 +9,11 @@ export type PlatformSettingsRecord = {
   twilioAccountSid: string | null;
   twilioAuthToken: string | null;
   twilioWhatsAppFrom: string | null;
+  smtpHost: string | null;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string | null;
+  smtpPass: string | null;
   smtpFromEmail: string | null;
   billingOverrides: BillingCatalogOverrides;
   updatedAt: Date;
@@ -38,6 +43,11 @@ async function loadSettings(): Promise<PlatformSettingsRecord> {
     twilioAccountSid: row.twilioAccountSid,
     twilioAuthToken: row.twilioAuthToken,
     twilioWhatsAppFrom: row.twilioWhatsAppFrom,
+    smtpHost: row.smtpHost,
+    smtpPort: row.smtpPort ?? 587,
+    smtpSecure: row.smtpSecure ?? false,
+    smtpUser: row.smtpUser,
+    smtpPass: row.smtpPass,
     smtpFromEmail: row.smtpFromEmail,
     billingOverrides: parseOverrides(row.billingCatalogJson),
     updatedAt: row.updatedAt,
@@ -101,11 +111,75 @@ export async function getAdminBootstrapEmail(): Promise<string | null> {
   return process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim() || null;
 }
 
+export async function getSmtpHost(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.smtpHost?.trim();
+  if (fromDb) return fromDb;
+  return process.env.SMTP_HOST?.trim() || null;
+}
+
+export async function getSmtpPort(): Promise<number> {
+  const s = await getPlatformSettings();
+  if (s.smtpHost?.trim()) return s.smtpPort || 587;
+  const envPort = Number(process.env.SMTP_PORT || 587);
+  return Number.isFinite(envPort) ? envPort : 587;
+}
+
+export async function getSmtpSecure(): Promise<boolean> {
+  const s = await getPlatformSettings();
+  if (s.smtpHost?.trim()) return s.smtpSecure;
+  return process.env.SMTP_SECURE === "true";
+}
+
+export async function getSmtpUser(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  if (s.smtpHost?.trim()) return s.smtpUser?.trim() || null;
+  return process.env.SMTP_USER?.trim() || null;
+}
+
+export async function getSmtpPass(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  if (s.smtpHost?.trim()) return s.smtpPass?.trim() || null;
+  return process.env.SMTP_PASS?.trim() || null;
+}
+
 export async function getSmtpFromEmail(): Promise<string | null> {
   const s = await getPlatformSettings();
   const fromDb = s.smtpFromEmail?.trim();
   if (fromDb) return fromDb;
   return process.env.SMTP_FROM?.trim() || null;
+}
+
+export type SmtpTransportConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  from: string;
+  auth?: { user: string; pass: string };
+};
+
+export async function getSmtpTransportConfig(): Promise<SmtpTransportConfig | null> {
+  const host = await getSmtpHost();
+  const from = await getSmtpFromEmail();
+  if (!host || !from) return null;
+
+  const port = await getSmtpPort();
+  const secure = (await getSmtpSecure()) || port === 465;
+  const user = await getSmtpUser();
+  const pass = await getSmtpPass();
+
+  return {
+    host,
+    port,
+    secure,
+    from,
+    auth: user && pass ? { user, pass } : undefined,
+  };
+}
+
+export async function isSmtpPlatformConfigured(): Promise<boolean> {
+  const s = await getPlatformSettings();
+  return Boolean(s.smtpHost?.trim() && s.smtpFromEmail?.trim());
 }
 
 export async function getBillingAutomationWebhookUrl(): Promise<string | null> {
