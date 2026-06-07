@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
-import { ApplicationProfileEditor } from "@/components/application-profile-editor";
 import { CvBuilder } from "@/components/cv-builder";
 import { ProfileVisibilitySettings } from "@/components/profile-visibility-settings";
 import { CvUploadField } from "@/components/cv-upload-field";
@@ -201,25 +200,6 @@ export default async function WorkerProfilPage() {
             </button>
           </div>
         </form>
-      </section>
-
-      <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold">Bewerbungsprofil</h2>
-        <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Klassische Bewerbungsinhalte für Arbeitgeber: Werdegang, Fähigkeiten, Ausbildung und mehr.
-          Der Lebenslauf als PDF/Builder bleibt separat und ist nur sichtbar, wenn Sie ihn freigeben.
-        </p>
-        <ApplicationProfileEditor
-          initialJson={profile.applicationProfileJson}
-          previewContext={{
-            bio: profile.bio,
-            contactPhone: profile.contactPhone,
-            contactEmail: profile.contactEmail,
-            socialLinkedin: profile.socialLinkedin,
-            socialXing: profile.socialXing,
-            socialWebsite: profile.socialWebsite,
-          }}
-        />
       </section>
 
       <section className="gj-card p-6">
