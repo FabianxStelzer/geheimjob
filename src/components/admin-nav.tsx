@@ -7,6 +7,8 @@ const links = [
   { href: "/dashboard/admin", label: "Übersicht" },
   { href: "/dashboard/admin/unternehmen", label: "Unternehmen" },
   { href: "/dashboard/admin/arbeitnehmer", label: "Arbeitnehmer" },
+  { href: "/dashboard/admin/whatsapp", label: "WhatsApp" },
+  { href: "/dashboard/admin/pakete", label: "Pakete" },
   { href: "/dashboard/admin/einstellungen", label: "Einstellungen" },
   { href: "/dashboard/admin/abonnements", label: "Abonnements" },
 ];

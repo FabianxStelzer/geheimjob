@@ -46,8 +46,10 @@ const adminNav: NavItem[] = [
   { href: "/dashboard/admin", label: "Super-Admin", Icon: ShieldIcon },
   { href: "/dashboard/admin/unternehmen", label: "Unternehmen", Icon: SettingsIcon },
   { href: "/dashboard/admin/arbeitnehmer", label: "Arbeitnehmer", Icon: UsersIcon },
+  { href: "/dashboard/admin/whatsapp", label: "WhatsApp", Icon: ChatIcon },
   { href: "/dashboard/admin/pakete", label: "Pakete", Icon: CreditCardIcon },
   { href: "/dashboard/admin/abonnements", label: "Abonnements", Icon: BriefcaseIcon },
+  { href: "/dashboard/admin/einstellungen", label: "Einstellungen", Icon: SettingsIcon },
 ];
 
 function normalize(p: string) {

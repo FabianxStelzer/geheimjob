@@ -41,7 +41,7 @@ export default async function SettingsPage() {
         : "/dashboard/admin";
 
   const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
-  const whatsappConfigured = twilioWhatsAppConfigured();
+  const whatsappConfigured = await twilioWhatsAppConfigured();
   let emailPrefs = null;
   let whatsappPrefs = null;
   let whatsappPhone = "";

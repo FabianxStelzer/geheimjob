@@ -6,6 +6,9 @@ export type PlatformSettingsRecord = {
   stripeSecretKey: string | null;
   stripeWebhookSecret: string | null;
   stripePublishableKey: string | null;
+  twilioAccountSid: string | null;
+  twilioAuthToken: string | null;
+  twilioWhatsAppFrom: string | null;
   billingOverrides: BillingCatalogOverrides;
   updatedAt: Date;
 };
@@ -31,6 +34,9 @@ async function loadSettings(): Promise<PlatformSettingsRecord> {
     stripeSecretKey: row.stripeSecretKey,
     stripeWebhookSecret: row.stripeWebhookSecret,
     stripePublishableKey: row.stripePublishableKey,
+    twilioAccountSid: row.twilioAccountSid,
+    twilioAuthToken: row.twilioAuthToken,
+    twilioWhatsAppFrom: row.twilioWhatsAppFrom,
     billingOverrides: parseOverrides(row.billingCatalogJson),
     updatedAt: row.updatedAt,
   };
@@ -63,6 +69,27 @@ export async function getStripePublishableKey(): Promise<string | null> {
   const fromDb = s.stripePublishableKey?.trim();
   if (fromDb) return fromDb;
   return process.env.STRIPE_PUBLISHABLE_KEY?.trim() || null;
+}
+
+export async function getTwilioAccountSid(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.twilioAccountSid?.trim();
+  if (fromDb) return fromDb;
+  return process.env.TWILIO_ACCOUNT_SID?.trim() || null;
+}
+
+export async function getTwilioAuthToken(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.twilioAuthToken?.trim();
+  if (fromDb) return fromDb;
+  return process.env.TWILIO_AUTH_TOKEN?.trim() || null;
+}
+
+export async function getTwilioWhatsAppFrom(): Promise<string | null> {
+  const s = await getPlatformSettings();
+  const fromDb = s.twilioWhatsAppFrom?.trim();
+  if (fromDb) return fromDb;
+  return process.env.TWILIO_WHATSAPP_FROM?.trim() || null;
 }
 
 export async function getAdminBootstrapEmail(): Promise<string | null> {

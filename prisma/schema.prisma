@@ -333,6 +333,9 @@ model PlatformSettings {
   supportIntro         String?
   privacyContent       String?
   termsContent         String?
+  twilioAccountSid     String?
+  twilioAuthToken      String?
+  twilioWhatsAppFrom   String?
   updatedAt            DateTime @updatedAt
 }
 

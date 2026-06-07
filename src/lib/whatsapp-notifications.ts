@@ -7,6 +7,11 @@ import {
 } from "@/lib/email-notification-events";
 import { getOrCreateNotificationPrefs } from "@/lib/email-notifications";
 import { normalizeWhatsAppPhone } from "@/lib/phone-utils";
+import {
+  getTwilioAccountSid,
+  getTwilioAuthToken,
+  getTwilioWhatsAppFrom,
+} from "@/lib/platform-settings";
 
 function appBaseUrl(): string {
   return (
@@ -16,12 +21,13 @@ function appBaseUrl(): string {
   );
 }
 
-export function twilioWhatsAppConfigured(): boolean {
-  return Boolean(
-    process.env.TWILIO_ACCOUNT_SID &&
-      process.env.TWILIO_AUTH_TOKEN &&
-      process.env.TWILIO_WHATSAPP_FROM,
-  );
+export async function twilioWhatsAppConfigured(): Promise<boolean> {
+  const [sid, token, from] = await Promise.all([
+    getTwilioAccountSid(),
+    getTwilioAuthToken(),
+    getTwilioWhatsAppFrom(),
+  ]);
+  return Boolean(sid && token && from);
 }
 
 function prefAllowsWhatsApp(
@@ -41,7 +47,12 @@ export async function sendNotificationWhatsApp(opts: {
   body: string;
   href?: string;
 }): Promise<void> {
-  if (!twilioWhatsAppConfigured()) return;
+  const [accountSid, authToken, fromRaw] = await Promise.all([
+    getTwilioAccountSid(),
+    getTwilioAuthToken(),
+    getTwilioWhatsAppFrom(),
+  ]);
+  if (!accountSid || !authToken || !fromRaw) return;
 
   const user = await prisma.user.findUnique({
     where: { id: opts.userId },
@@ -67,10 +78,9 @@ export async function sendNotificationWhatsApp(opts: {
 
   const text = `*Geheimjob*\n${opts.title}\n\n${opts.body}\n\nÖffnen: ${link}`;
 
-  const fromRaw = process.env.TWILIO_WHATSAPP_FROM!.trim();
   const from = fromRaw.startsWith("whatsapp:") ? fromRaw : `whatsapp:${fromRaw}`;
   const to = `whatsapp:${phone}`;
 
-  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  const client = twilio(accountSid, authToken);
   await client.messages.create({ from, to, body: text });
 }

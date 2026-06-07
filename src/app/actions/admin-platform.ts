@@ -55,6 +55,43 @@ export async function saveStripePlatformSettings(formData: FormData): Promise<vo
   revalidatePath("/dashboard/admin/einstellungen");
 }
 
+export async function saveWhatsAppPlatformSettings(formData: FormData): Promise<void> {
+  if (!(await requireAdmin())) return;
+
+  const row = await prisma.platformSettings.upsert({
+    where: { id: "default" },
+    create: { id: "default", billingCatalogJson: "{}" },
+    update: {},
+  });
+
+  const patch: {
+    twilioAccountSid?: string | null;
+    twilioAuthToken?: string | null;
+    twilioWhatsAppFrom?: string | null;
+  } = {};
+
+  const accountSid = str(formData, "twilioAccountSid");
+  const authToken = str(formData, "twilioAuthToken");
+  const whatsappFrom = str(formData, "twilioWhatsAppFrom");
+
+  if (formData.get("clearTwilioAccountSid") === "on") patch.twilioAccountSid = null;
+  else if (accountSid) patch.twilioAccountSid = accountSid;
+
+  if (formData.get("clearTwilioAuthToken") === "on") patch.twilioAuthToken = null;
+  else if (authToken) patch.twilioAuthToken = authToken;
+
+  if (formData.get("clearTwilioWhatsAppFrom") === "on") patch.twilioWhatsAppFrom = null;
+  else if (whatsappFrom) patch.twilioWhatsAppFrom = whatsappFrom;
+
+  await prisma.platformSettings.update({
+    where: { id: row.id },
+    data: patch,
+  });
+
+  revalidatePath("/dashboard/admin/whatsapp");
+  revalidatePath("/dashboard/einstellungen");
+}
+
 export async function saveBillingCatalogSettings(formData: FormData): Promise<void> {
   if (!(await requireAdmin())) return;
 
