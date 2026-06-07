@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { ApplicationProfileDisplay } from "@/components/application-profile-display";
 import { parseApplicationProfile } from "@/lib/application-profile";
+import { applyVisibilityToEmployerView } from "@/lib/apply-profile-visibility";
 import { prisma } from "@/lib/prisma";
 import { workerProfilePhotoUrls } from "@/lib/worker-profile-photos";
 
@@ -22,6 +23,12 @@ export default async function PublicTalentProfilePage(props: Props) {
 
   const photoUrls = workerProfilePhotoUrls(profile.profilePhotosJson, profile.photoUrl);
   const application = parseApplicationProfile(profile.applicationProfileJson);
+  const visible = applyVisibilityToEmployerView({
+    profile,
+    application,
+    photoUrls,
+    matchAccepted: false,
+  });
 
   return (
     <div className="min-h-screen bg-[var(--gj-bg)]">
@@ -38,9 +45,9 @@ export default async function PublicTalentProfilePage(props: Props) {
       </header>
       <main className="mx-auto max-w-2xl flex-1 px-4 py-12 sm:py-16">
         <div className="gj-card space-y-6 p-8 sm:p-10">
-          {photoUrls.length > 0 ? (
+          {visible.photoUrls.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-2">
-              {photoUrls.map((url) => (
+              {visible.photoUrls.map((url) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={url}
@@ -58,28 +65,36 @@ export default async function PublicTalentProfilePage(props: Props) {
             </h1>
             <p className="mt-2 text-sm text-[var(--gj-text-secondary)]">
               {profile.professionField}
-              {application.headline ? ` · ${application.headline}` : ""}
+              {visible.application.headline ? ` · ${visible.application.headline}` : ""}
             </p>
             <p className="mt-2 text-sm text-[var(--gj-text-secondary)]">
               {profile.region} · {profile.experienceYears} Jahre Erfahrung · Verfügbarkeit:{" "}
               {profile.availability}
             </p>
-            {profile.salaryPublic && profile.salaryExpectation != null ? (
+            {visible.salaryExpectation != null ? (
               <p className="mt-2 text-sm text-[var(--gj-text-secondary)]">
-                Gehaltsvorstellung: {profile.salaryExpectation.toLocaleString("de-DE")} € / Monat
+                Gehaltsvorstellung: {visible.salaryExpectation.toLocaleString("de-DE")} € / Monat
               </p>
             ) : null}
           </div>
 
+          {visible.videoIntroUrl ? (
+            <video
+              className="w-full rounded-xl border border-[var(--gj-border)]"
+              controls
+              src={visible.videoIntroUrl}
+            />
+          ) : null}
+
           <ApplicationProfileDisplay
             profile={{
-              bio: profile.bio,
-              contactPhone: profile.contactPhone,
-              contactEmail: profile.contactEmail,
-              socialLinkedin: profile.socialLinkedin,
-              socialXing: profile.socialXing,
-              socialWebsite: profile.socialWebsite,
-              application,
+              bio: visible.bio,
+              contactPhone: visible.contactPhone,
+              contactEmail: visible.contactEmail,
+              socialLinkedin: visible.socialLinkedin,
+              socialXing: visible.socialXing,
+              socialWebsite: visible.socialWebsite,
+              application: visible.application,
             }}
           />
 

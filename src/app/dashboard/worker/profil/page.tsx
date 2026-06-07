@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
 import { ApplicationProfileEditor } from "@/components/application-profile-editor";
 import { CvBuilder } from "@/components/cv-builder";
-import { CvShareModeSettings } from "@/components/cv-share-mode-settings";
+import { ProfileVisibilitySettings } from "@/components/profile-visibility-settings";
 import { CvUploadField } from "@/components/cv-upload-field";
 import { VideoUploadField } from "@/components/video-upload-field";
 import { ProfilePhotosUpload } from "@/components/profile-photos-upload";
@@ -12,6 +12,7 @@ import { parseWorkerProfilePhotos } from "@/lib/worker-profile-photos";
 import { CopyButton } from "@/components/copy-button";
 import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
 import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
+import { parseProfileVisibility } from "@/lib/worker-profile-visibility";
 
 export default async function WorkerProfilPage() {
   const session = await auth();
@@ -25,9 +26,21 @@ export default async function WorkerProfilPage() {
 
   const shareUrl = `${process.env.NEXTAUTH_URL ?? ""}/p/${profile.anonymousSlug}`;
   const profilePhotos = parseWorkerProfilePhotos(profile.profilePhotosJson, profile.photoUrl);
+  const visibility = parseProfileVisibility(profile.profileVisibilityJson, profile);
 
   return (
     <div className="space-y-6">
+      <section className="gj-card p-6">
+        <header className="mb-4">
+          <h2 className="text-base font-semibold">Sichtbarkeit</h2>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
+            Legen Sie fest, was Arbeitgeber sofort sehen, was erst nach Match oder auf Anfrage
+            freigegeben wird — und was verborgen bleibt.
+          </p>
+        </header>
+        <ProfileVisibilitySettings initial={visibility} />
+      </section>
+
       <section className="gj-card p-6">
         <header className="mb-4">
           <h2 className="text-base font-semibold">Profil-Link</h2>
@@ -153,16 +166,6 @@ export default async function WorkerProfilPage() {
               Netto-Schätzung für die Job-Suche einrichten →
             </Link>
           </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="salaryPublic" defaultChecked={profile.salaryPublic} />
-              Gehalt öffentlich
-            </label>
-          </div>
-          <label className="flex items-center gap-2 text-sm md:col-span-2">
-            <input type="checkbox" name="profileVisible" defaultChecked={profile.profileVisible} />
-            Profil in Arbeitgeber-Suche sichtbar
-          </label>
           <label className="md:col-span-2">
             <span className="gj-label">Über mich (Kurztext)</span>
             <textarea name="bio" rows={4} defaultValue={profile.bio ?? ""} className="gj-textarea" />
@@ -209,12 +212,8 @@ export default async function WorkerProfilPage() {
       <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold">Lebenslauf (geschützt)</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Vollständiger Lebenslauf — nur sichtbar bei „Sofort teilen“ oder nach Ihrer Freigabe auf
-          Anfrage.
+          Vollständiger Lebenslauf — Freigabe-Modus oben unter „Sichtbarkeit“ einstellen.
         </p>
-        <div className="mb-6">
-          <CvShareModeSettings currentMode={profile.cvShareMode} />
-        </div>
         <CvBuilder
           initialJson={profile.cvDraftJson}
           profileMeta={{

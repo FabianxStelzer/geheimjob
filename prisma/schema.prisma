@@ -126,6 +126,7 @@ model WorkerProfile {
   contactEmail      String?
   whatsappPhone     String?
   applicationProfileJson String?
+  profileVisibilityJson String?
   anonymousSlug     String   @unique @default(cuid())
   videoIntroUrl     String?
   cvPdfFilename     String?

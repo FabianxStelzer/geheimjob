@@ -5,7 +5,9 @@ import {
   employerIsBlockedFromWorker,
   parseSalaryRange,
 } from "@/lib/platform";
-import { primaryWorkerPhotoUrl } from "@/lib/worker-profile-photos";
+import { parseApplicationProfile } from "@/lib/application-profile";
+import { applyVisibilityToEmployerView } from "@/lib/apply-profile-visibility";
+import { workerProfilePhotoUrls } from "@/lib/worker-profile-photos";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -62,6 +64,21 @@ export async function GET(req: Request) {
       contactName: employer.contactName,
     });
     if (blocked) continue;
+
+    const acceptedMatch = await prisma.matchRequest.findFirst({
+      where: {
+        workerProfileId: w.id,
+        employerProfileId: employer.id,
+        status: "ACCEPTED",
+      },
+    });
+    const photoUrls = workerProfilePhotoUrls(w.profilePhotosJson, w.photoUrl);
+    const visible = applyVisibilityToEmployerView({
+      profile: w,
+      application: parseApplicationProfile(w.applicationProfileJson),
+      photoUrls,
+      matchAccepted: Boolean(acceptedMatch),
+    });
     out.push({
       id: w.id,
       displayName: w.displayName,
@@ -70,10 +87,10 @@ export async function GET(req: Request) {
       region: w.region,
       availability: w.availability,
       employmentKind: w.employmentKind,
-      salaryExpectation: w.salaryPublic ? w.salaryExpectation : null,
+      salaryExpectation: visible.salaryExpectation,
       anonymousSlug: w.anonymousSlug,
-      bioPreview: w.bio ? w.bio.slice(0, 160) : null,
-      photoUrl: primaryWorkerPhotoUrl(w.profilePhotosJson, w.photoUrl),
+      bioPreview: visible.bio ? visible.bio.slice(0, 160) : null,
+      photoUrl: visible.photoUrls[0] ?? null,
     });
   }
 

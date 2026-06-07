@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
 import type { PublicTalentProfile } from "@/lib/anonymous-profile";
 import { parseApplicationProfile } from "@/lib/application-profile";
+import { applyVisibilityToEmployerView } from "@/lib/apply-profile-visibility";
 import { employerIsBlockedFromWorker } from "@/lib/platform";
 import { workerProfilePhotoUrls } from "@/lib/worker-profile-photos";
 import { cvAccessUiState, workerHasCv } from "@/lib/cv-access";
@@ -68,9 +69,19 @@ export async function GET(_req: Request, props: Params) {
       }
     : null;
 
+  const matchAccepted = existingMatch?.status === "ACCEPTED";
+  const photoUrls = workerProfilePhotoUrls(profile.profilePhotosJson, profile.photoUrl);
+  const application = parseApplicationProfile(profile.applicationProfileJson);
+  const visible = applyVisibilityToEmployerView({
+    profile,
+    application,
+    photoUrls,
+    matchAccepted,
+  });
+
   const canViewCv =
     hasCv &&
-    (profile.cvShareMode === "IMMEDIATE" || Boolean(employerMatch?.cvAccess.canView));
+    (visible.visibility.cv === "IMMEDIATE" || Boolean(employerMatch?.cvAccess.canView));
 
   let showCvDraft: string | null = null;
   if (canViewCv && profile.cvDraftJson) {
@@ -84,20 +95,17 @@ export async function GET(_req: Request, props: Params) {
     experienceYears: profile.experienceYears,
     availability: profile.availability,
     employmentKind: profile.employmentKind,
-    salaryExpectation:
-      profile.salaryPublic && profile.salaryExpectation != null
-        ? profile.salaryExpectation
-        : null,
-    salaryPublic: profile.salaryPublic,
-    bio: profile.bio,
-    contactPhone: profile.contactPhone,
-    contactEmail: profile.contactEmail,
-    socialLinkedin: profile.socialLinkedin,
-    socialXing: profile.socialXing,
-    socialWebsite: profile.socialWebsite,
-    photoUrls: workerProfilePhotoUrls(profile.profilePhotosJson, profile.photoUrl),
-    application: parseApplicationProfile(profile.applicationProfileJson),
-    cvShareMode: profile.cvShareMode,
+    salaryExpectation: visible.salaryExpectation,
+    salaryPublic: visible.salaryPublic,
+    bio: visible.bio,
+    contactPhone: visible.contactPhone,
+    contactEmail: visible.contactEmail,
+    socialLinkedin: visible.socialLinkedin,
+    socialXing: visible.socialXing,
+    socialWebsite: visible.socialWebsite,
+    photoUrls: visible.photoUrls,
+    application: visible.application,
+    cvShareMode: visible.visibility.cv,
     hasCv,
     cvDraftJson: showCvDraft,
     cvPdfAvailable: Boolean(profile.cvPdfFilename) && canViewCv,

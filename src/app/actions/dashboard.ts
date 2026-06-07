@@ -74,7 +74,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
   const salaryExpectation = formData.get("salaryExpectation")
     ? Number(formData.get("salaryExpectation"))
     : null;
-  const salaryPublic = formData.get("salaryPublic") === "on";
   const salaryKindRaw = String(formData.get("salaryKind") || "BRUTTO").trim();
   const salaryKind = salaryKindRaw === "NETTO" ? "NETTO" : "BRUTTO";
   const bio = String(formData.get("bio") || "").trim() || null;
@@ -87,7 +86,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
   const contactEmail = String(formData.get("contactEmail") || "").trim() || null;
   const whatsappPhoneRaw = String(formData.get("whatsappPhone") || "").trim();
   const whatsappPhone = normalizeWhatsAppPhone(whatsappPhoneRaw) ?? (whatsappPhoneRaw || null);
-  const profileVisible = formData.get("profileVisible") === "on";
   if (!displayName || !professionField || !region || !availability) return;
   if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
 
@@ -104,7 +102,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
         salaryExpectation && Number.isFinite(salaryExpectation)
           ? salaryExpectation
           : null,
-      salaryPublic,
       salaryKind,
       bio,
       socialLinkedin,
@@ -113,7 +110,6 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       contactPhone,
       contactEmail,
       whatsappPhone,
-      profileVisible,
     },
   });
 
