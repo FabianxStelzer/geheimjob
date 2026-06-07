@@ -30,6 +30,18 @@ export default async function WorkerProfilPage() {
 
   return (
     <div className="space-y-6">
+      <section className="gj-card flex flex-wrap items-center justify-between gap-4 p-6">
+        <div>
+          <h2 className="text-base font-semibold text-[var(--gj-text)]">Profil einrichten</h2>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
+            Schritt für Schritt durch Verfügbarkeit, Gehalt, Fotos und Bewerbungsdaten führen.
+          </p>
+        </div>
+        <Link href="/dashboard/worker/einrichtung" className="gj-btn-secondary shrink-0">
+          Einrichtung starten
+        </Link>
+      </section>
+
       <section className="gj-card p-6">
         <header className="mb-4">
           <h2 className="text-base font-semibold">Sichtbarkeit</h2>

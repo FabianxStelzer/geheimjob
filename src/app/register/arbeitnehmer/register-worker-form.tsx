@@ -3,8 +3,6 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { registerWorkerAction } from "@/app/actions/register";
-import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
-import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
 
 export function RegisterWorkerForm({ referralCode }: { referralCode?: string }) {
   const [state, action, pending] = useActionState(registerWorkerAction, {});
@@ -43,42 +41,11 @@ export function RegisterWorkerForm({ referralCode }: { referralCode?: string }) 
         <span className="gj-label">PLZ, Ort</span>
         <input name="region" required className="gj-input" placeholder="10115 Berlin" />
       </label>
-      <label className="block">
-        <span className="gj-label">Gehaltswunsch (brutto / Monat, optional)</span>
-        <input name="salaryExpectation" type="number" className="gj-input" />
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="salaryPublic" defaultChecked />
-        Gehaltswunsch öffentlich zeigen
-      </label>
-      <label className="block">
-        <span className="gj-label">Verfügbarkeit</span>
-        <select name="availability" required className="gj-input" defaultValue="">
-          <option value="" disabled>
-            Bitte wählen…
-          </option>
-          {WORKER_AVAILABILITY_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="block">
-        <span className="gj-label">Beschäftigungsart</span>
-        <select name="employmentKind" className="gj-input" defaultValue="">
-          <option value="">Bitte wählen… (optional)</option>
-          {EMPLOYMENT_KIND_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="block">
-        <span className="gj-label">Kurzprofil</span>
-        <textarea name="bio" rows={4} className="gj-textarea" />
-      </label>
+
+      <p className="rounded-xl border border-[var(--gj-border)] bg-[var(--gj-bg)] px-4 py-3 text-sm text-[var(--gj-muted)]">
+        Gehaltswunsch, Verfügbarkeit, Beschäftigungsart und Kurzprofil füllen Sie gleich nach der
+        Registrierung Schritt für Schritt aus.
+      </p>
 
       <div className="space-y-3 border-t border-[var(--gj-border)] pt-4">
         <div className="flex items-start gap-3 text-sm leading-relaxed text-[var(--gj-text-secondary)]">

@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { notifyPremiumEmployersOnNewTalent } from "@/lib/billing-notifications";
 import { prisma } from "@/lib/prisma";
-import { WORKER_AVAILABILITY_OPTIONS } from "@/lib/worker-availability";
-import { isValidEmploymentKind } from "@/lib/employment-kinds";
 
 function parseCheckbox(formData: FormData, key: string) {
   return formData.get(key) === "on";
@@ -22,18 +20,8 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
   const displayName = String(formData.get("displayName") || "").trim();
   const professionField = String(formData.get("professionField") || "").trim();
   const region = String(formData.get("region") || "").trim();
-  const availability = String(formData.get("availability") || "").trim();
-  const employmentKindRaw = String(formData.get("employmentKind") || "").trim();
-  const employmentKind = employmentKindRaw || null;
   const experienceYears = Number(formData.get("experienceYears") || 0);
-  const salaryExpectation = formData.get("salaryExpectation")
-    ? Number(formData.get("salaryExpectation"))
-    : null;
-  const salaryPublic = parseCheckbox(formData, "salaryPublic");
-  const bio = String(formData.get("bio") || "").trim() || null;
   const referralCode = String(formData.get("referralCode") || "").trim() || null;
-
-  const availabilityOptions = new Set<string>(WORKER_AVAILABILITY_OPTIONS);
 
   if (!parseCheckbox(formData, "gdprConsent"))
     return { error: "Bitte Datenschutzerklärung und Einwilligung bestätigen." };
@@ -41,12 +29,8 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
     return { error: "Bitte Nutzungsbedingungen akzeptieren." };
   if (!email || !password || password.length < 8)
     return { error: "Gültige E-Mail und Passwort (min. 8 Zeichen) erforderlich." };
-  if (!displayName || !professionField || !region || !availability)
+  if (!displayName || !professionField || !region)
     return { error: "Bitte alle Pflichtfelder ausfüllen." };
-  if (!availabilityOptions.has(availability))
-    return { error: "Bitte eine gültige Verfügbarkeit wählen." };
-  if (employmentKind && !isValidEmploymentKind(employmentKind))
-    return { error: "Bitte eine gültige Beschäftigungsart wählen." };
 
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) return { error: "Diese E-Mail ist bereits registriert." };
@@ -74,14 +58,7 @@ async function registerWorkerCore(formData: FormData): Promise<RegisterState> {
           professionField,
           experienceYears: Number.isFinite(experienceYears) ? experienceYears : 0,
           region,
-          salaryExpectation:
-            salaryExpectation && Number.isFinite(salaryExpectation)
-              ? salaryExpectation
-              : null,
-          salaryPublic,
-          availability,
-          employmentKind,
-          bio,
+          availability: "Nach Vereinbarung",
         },
       },
     },
@@ -182,10 +159,10 @@ export async function registerWorkerAction(
   await signIn("credentials", {
     email,
     password,
-    redirectTo: "/dashboard/worker",
+    redirectTo: "/dashboard/worker/einrichtung",
   });
 
-  redirect("/dashboard/worker");
+  redirect("/dashboard/worker/einrichtung");
 }
 
 export async function registerEmployerAction(
