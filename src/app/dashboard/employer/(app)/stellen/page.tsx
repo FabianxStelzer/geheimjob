@@ -6,6 +6,7 @@ import { getEmployerEntitlements } from "@/lib/employer-billing";
 import { getEmployerJobPostingStats } from "@/lib/job-posting-stats";
 import { JobStatsCompact, JobStatsGrid } from "@/components/job-posting-stats";
 import { EMPLOYMENT_KIND_OPTIONS } from "@/lib/employment-kinds";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 export default async function EmployerStellenPage() {
   const session = await auth();
@@ -281,15 +282,13 @@ function JobForm({
           <span className="gj-label">Wochenstunden</span>
           <input name="weeklyHoursHint" className="gj-input" defaultValue={job?.weeklyHoursHint ?? ""} placeholder="40 Stunden / Wo" />
         </label>
-        <label className="md:col-span-2">
+        <div className="md:col-span-2">
           <span className="gj-label">Vollständige Jobbeschreibung</span>
-          <textarea
-            name="richDescription"
-            rows={12}
-            className="gj-textarea"
-            defaultValue={job?.richDescription ?? ""}
-          />
-        </label>
+          <p className="mb-2 text-xs text-[var(--gj-muted)]">
+            Formatierung mit Fett, Kursiv, Farbe und Aufzählungen möglich.
+          </p>
+          <RichTextEditor name="richDescription" defaultValue={job?.richDescription ?? ""} rows={12} />
+        </div>
         <label className="flex items-center gap-2 text-sm md:col-span-2">
           <input type="checkbox" name="published" defaultChecked={job?.published ?? false} /> Veröffentlicht
           (sichtbar für Arbeitnehmer)

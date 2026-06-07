@@ -17,6 +17,7 @@ import {
   hasNetCalcSettings,
   type WorkerNetCalcSettings,
 } from "@/lib/income-display";
+import { RichTextContent } from "@/components/rich-text-content";
 
 const SAVED_JOBS_LS = "geheimjob-saved-job-ids";
 
@@ -420,9 +421,11 @@ export default function WorkerJobExplorer({
             </div>
             <section>
               <h3 className="text-sm font-semibold text-[var(--gj-text)]">Über diesen Job</h3>
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--gj-text)]/90">
-                {detail.richDescription || "Keine weiteren Angaben vom Arbeitgeber."}
-              </div>
+              <RichTextContent
+                className="mt-3"
+                html={detail.richDescription}
+                emptyText="Keine weiteren Angaben vom Arbeitgeber."
+              />
             </section>
             <div className="flex gap-3">
               <button type="button" className="gj-btn-primary flex-1" onClick={() => openApply(detail)}>

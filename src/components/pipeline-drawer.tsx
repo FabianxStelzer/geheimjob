@@ -10,6 +10,7 @@ import { HIRING_STAGE_SEQUENCE } from "@/lib/application-pipeline";
 import type { CvAccessUiState } from "@/lib/cv-access";
 import { formatTargetIncomeDisplay, hasNetCalcSettings, type WorkerNetCalcSettings } from "@/lib/income-display";
 import type { IncomeKind } from "@prisma/client";
+import { RichTextContent } from "@/components/rich-text-content";
 
 export type PipelineDrawerPayload = {
   viewerRole: "WORKER" | "EMPLOYER";
@@ -186,9 +187,7 @@ export function PipelineDetailPanel({ payload }: { payload: PipelineDrawerPayloa
               </span>
             ))}
           </div>
-          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--gj-text)]/90">
-            {payload.job.richDescription}
-          </div>
+          <RichTextContent className="mt-3" html={payload.job.richDescription} />
         </section>
       ) : null}
 

@@ -6,6 +6,7 @@ import { notifyWorkersOnNewJob } from "@/lib/billing-notifications";
 import { canPublishAnotherJob, getEmployerEntitlements } from "@/lib/employer-billing";
 import { prisma } from "@/lib/prisma";
 import { isValidEmploymentKind } from "@/lib/employment-kinds";
+import { sanitizeRichTextHtml } from "@/lib/rich-text-html";
 
 async function employerProfileFromSession() {
   const session = await auth();
@@ -36,7 +37,7 @@ export async function upsertJobPosting(formData: FormData): Promise<void> {
   const weeklyHoursHint = String(formData.get("weeklyHoursHint") || "").trim() || null;
   const employmentKindRaw = String(formData.get("employmentKind") || "").trim();
   const employmentKind = employmentKindRaw || null;
-  const richDescription = String(formData.get("richDescription") || "").trim();
+  const richDescription = sanitizeRichTextHtml(String(formData.get("richDescription") || "").trim());
   const publishedRaw = formData.get("published");
   const published = publishedRaw === "on" || publishedRaw === "true";
   const highlightedRequested =
