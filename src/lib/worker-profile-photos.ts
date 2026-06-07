@@ -42,6 +42,15 @@ export function serializeWorkerProfilePhotos(photos: WorkerProfilePhoto[]): stri
   return JSON.stringify(photos.slice(0, MAX_PHOTOS));
 }
 
+export function workerProfilePhotoUrls(
+  profilePhotosJson: string | null | undefined,
+  legacyPhotoUrl: string | null | undefined,
+): string[] {
+  return parseWorkerProfilePhotos(profilePhotosJson, legacyPhotoUrl).map((p) =>
+    resolveLegacyPhotoUrl(p.url),
+  );
+}
+
 export function primaryWorkerPhotoUrl(
   profilePhotosJson: string | null | undefined,
   legacyPhotoUrl: string | null | undefined,

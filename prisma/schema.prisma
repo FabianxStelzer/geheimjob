@@ -122,6 +122,9 @@ model WorkerProfile {
   socialXing        String?
   socialWebsite     String?
   bio               String?
+  contactPhone      String?
+  contactEmail      String?
+  applicationProfileJson String?
   anonymousSlug     String   @unique @default(cuid())
   videoIntroUrl     String?
   cvPdfFilename     String?

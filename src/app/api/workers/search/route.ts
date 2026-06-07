@@ -64,6 +64,7 @@ export async function GET(req: Request) {
     if (blocked) continue;
     out.push({
       id: w.id,
+      displayName: w.displayName,
       professionField: w.professionField,
       experienceYears: w.experienceYears,
       region: w.region,

@@ -68,7 +68,7 @@ export function newEducation(): CvEducation {
   };
 }
 
-function parseStringList(raw: unknown): string[] {
+export function parseStringList(raw: unknown): string[] {
   if (Array.isArray(raw)) {
     return raw.map((x) => String(x).trim()).filter(Boolean);
   }

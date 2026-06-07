@@ -80,8 +80,8 @@ export function CvBuilder({ initialJson, profileMeta }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gj-muted)]">
-        Erstellen Sie Ihren Lebenslauf direkt hier. Die Daten bleiben in Ihrem Profil gespeichert.
-        Optional können Sie unten eine PDF für Arbeitgeber hochladen (sichtbar erst nach Match).
+        Vollständiger Lebenslauf — getrennt vom Bewerbungsprofil. Sichtbar für Arbeitgeber nur bei
+        „Sofort teilen“ oder nach Ihrer Freigabe auf Anfrage.
       </p>
 
       <div className="inline-flex rounded-full border border-[var(--gj-border)] bg-white p-1">

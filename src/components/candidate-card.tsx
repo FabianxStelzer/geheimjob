@@ -5,6 +5,7 @@ import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/component
 
 export type CandidateCardData = {
   id: string;
+  displayName: string;
   professionField: string;
   experienceYears: number;
   region: string;
@@ -64,9 +65,14 @@ export function CandidateCard({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold leading-snug text-[var(--gj-text)]">
-                {data.professionField}
-              </h3>
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold leading-snug text-[var(--gj-text)]">
+                  {data.displayName}
+                </h3>
+                <p className="mt-0.5 truncate text-xs text-[var(--gj-muted)]">
+                  {data.professionField}
+                </p>
+              </div>
               <span className="shrink-0 rounded-md bg-[var(--gj-primary-softer)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--gj-primary)]">
                 Detail
               </span>

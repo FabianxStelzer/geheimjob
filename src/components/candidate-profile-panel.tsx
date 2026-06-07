@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon, UserIcon } from "@/components/icons";
+import { ChatIcon, ClockIcon, EuroIcon, MapPinIcon } from "@/components/icons";
 import { CvDraftPreview } from "@/components/cv-draft-preview";
-import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
+import { ApplicationProfileDisplay } from "@/components/application-profile-display";
+import type { PublicTalentProfile } from "@/lib/anonymous-profile";
 import type { CandidateCardData } from "@/components/candidate-card";
 
 export type ContactResult = { ok: boolean; matchId?: string };
@@ -17,7 +18,7 @@ export function CandidateProfilePanel({
   cardPreview?: CandidateCardData;
   onContact?: () => Promise<ContactResult>;
 }) {
-  const [profile, setProfile] = useState<PublicAnonymousProfile | null>(null);
+  const [profile, setProfile] = useState<PublicTalentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contactBusy, setContactBusy] = useState(false);
@@ -30,7 +31,7 @@ export function CandidateProfilePanel({
     try {
       const res = await fetch(`/api/workers/anonymous-profile/${encodeURIComponent(slug)}`);
       const data = (await res.json()) as {
-        profile?: PublicAnonymousProfile;
+        profile?: PublicTalentProfile;
         error?: string;
       };
       if (!res.ok) throw new Error(data.error || "Profil konnte nicht geladen werden.");
@@ -73,7 +74,7 @@ export function CandidateProfilePanel({
       await loadProfile();
       if (!matchId) {
         const res = await fetch(`/api/workers/anonymous-profile/${encodeURIComponent(slug)}`);
-        const data = (await res.json()) as { profile?: PublicAnonymousProfile };
+        const data = (await res.json()) as { profile?: PublicTalentProfile };
         matchId = data.profile?.employerMatch?.id;
         if (data.profile) setProfile(data.profile);
       }
@@ -111,22 +112,44 @@ export function CandidateProfilePanel({
   const cvAccess = profile.employerMatch?.cvAccess;
   const showCvPreview = profile.hasCv && profile.cvDraftJson;
   const showCvRequestButton =
-    profile.hasCv &&
-    profile.cvShareMode === "ON_REQUEST" &&
-    !cvAccess?.canView;
+    profile.hasCv && profile.cvShareMode === "ON_REQUEST" && !cvAccess?.canView;
   const cvRequested = cvAccess?.requested ?? false;
+  const displayName = profile.displayName || cardPreview?.displayName || "Kandidat";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-start gap-2">
-        <span className="gj-chip gj-chip-solid text-[10px] uppercase">Anonym</span>
-        <span className="gj-chip gj-chip-neutral">Talentpool</span>
+        <span className="gj-chip gj-chip-solid text-[10px] uppercase">Talentpool</span>
+        {profile.employmentKind ? (
+          <span className="gj-chip gj-chip-neutral text-[10px]">{profile.employmentKind}</span>
+        ) : null}
       </div>
 
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/60 p-5 text-center">
-        <ProfileAvatar photoUrl={profile.photoUrl} label={profile.professionField} size="large" />
-        <div>
-          <h3 className="text-xl font-semibold text-[var(--gj-text)]">{profile.professionField}</h3>
+      <div className="rounded-2xl border border-[var(--gj-border)] bg-[var(--gj-bg)]/60 p-5">
+        {profile.photoUrls.length > 1 ? (
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {profile.photoUrls.map((url, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={url}
+                src={url}
+                alt=""
+                className={`aspect-square w-full rounded-xl object-cover ring-2 ring-white shadow-sm ${
+                  i === 0 ? "col-span-2 row-span-2 sm:col-span-1 sm:row-span-1" : ""
+                }`}
+              />
+            ))}
+          </div>
+        ) : (
+          <ProfileAvatar photoUrl={profile.photoUrls[0] ?? null} label={displayName} size="large" />
+        )}
+
+        <div className="mt-4 text-center sm:text-left">
+          <h3 className="text-xl font-semibold text-[var(--gj-text)]">{displayName}</h3>
+          <p className="mt-1 text-sm text-[var(--gj-muted)]">
+            {profile.professionField}
+            {profile.application.headline ? ` · ${profile.application.headline}` : ""}
+          </p>
           <p className="mt-1 text-sm text-[var(--gj-muted)]">
             {profile.region} · {profile.experienceYears} Jahre Erfahrung
           </p>
@@ -145,25 +168,20 @@ export function CandidateProfilePanel({
             <EuroIcon /> {profile.salaryExpectation.toLocaleString("de-DE")} €
           </span>
         ) : null}
-        {cardPreview ? (
-          <span className="gj-chip gj-chip-neutral">{cardPreview.experienceYears} J. Erfahrung</span>
-        ) : null}
       </div>
 
-      {profile.bio ? (
-        <section className="rounded-xl border border-[var(--gj-border-strong)] bg-[var(--gj-primary-softer)]/40 p-4">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--gj-text)]/90">
-            {profile.bio}
+      <ApplicationProfileDisplay profile={profile} />
+
+      {profile.hasCv && !showCvPreview ? (
+        <section className="rounded-xl border border-dashed border-[var(--gj-border)] bg-white p-4 text-sm text-[var(--gj-muted)]">
+          <p className="font-medium text-[var(--gj-text)]">Lebenslauf geschützt</p>
+          <p className="mt-1">
+            {profile.cvShareMode === "IMMEDIATE"
+              ? "Lebenslauf ist hinterlegt, aber noch nicht als Vorschau verfügbar."
+              : "Der vollständige Lebenslauf wird erst nach Freigabe durch den Kandidaten angezeigt."}
           </p>
         </section>
-      ) : (
-        <p className="text-sm italic text-[var(--gj-muted)]">Kein Kurzprofil hinterlegt.</p>
-      )}
-
-      <p className="text-xs text-[var(--gj-muted)]">
-        Name und Kontakt werden erst nach Match-Freigabe über die Plattform geteilt. Videos sind in
-        dieser Ansicht ausgeblendet.
-      </p>
+      ) : null}
 
       {showCvPreview ? (
         <section className="space-y-3 border-t border-[var(--gj-border)] pt-4">
@@ -173,7 +191,7 @@ export function CandidateProfilePanel({
           <CvDraftPreview
             draftJson={profile.cvDraftJson!}
             meta={{
-              displayName: profile.professionField,
+              displayName,
               professionField: profile.professionField,
               region: profile.region,
             }}

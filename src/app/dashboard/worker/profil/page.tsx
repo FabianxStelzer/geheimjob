@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { regenerateAnonymousSlug, updateWorkerProfile } from "@/app/actions/dashboard";
+import { ApplicationProfileEditor } from "@/components/application-profile-editor";
 import { CvBuilder } from "@/components/cv-builder";
 import { CvShareModeSettings } from "@/components/cv-share-mode-settings";
 import { CvUploadField } from "@/components/cv-upload-field";
@@ -29,9 +30,10 @@ export default async function WorkerProfilPage() {
     <div className="space-y-6">
       <section className="gj-card p-6">
         <header className="mb-4">
-          <h2 className="text-base font-semibold">Anonymer Profil-Link</h2>
+          <h2 className="text-base font-semibold">Profil-Link</h2>
           <p className="mt-1 text-sm text-[var(--gj-muted)]">
-            Diesen Link können Sie teilen — Name und Kontaktdaten bleiben verborgen, bis Sie einen Match annehmen.
+            Optional teilen — Arbeitgeber in der Kandidatensuche sehen Ihren Namen, Fotos und
+            Bewerbungsdaten direkt.
           </p>
         </header>
         <div className="flex flex-wrap items-center gap-2">
@@ -50,16 +52,16 @@ export default async function WorkerProfilPage() {
       <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold">Profilfotos</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Mehrere Bilder möglich — sichtbar für Arbeitgeber in der Kandidatensuche (Hauptfoto zuerst).
+          Mehrere Bilder möglich — werden Arbeitgebern oben in Ihrem Profil angezeigt.
         </p>
         <ProfilePhotosUpload initialPhotos={profilePhotos} />
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="mb-4 text-base font-semibold">Profil bearbeiten</h2>
+        <h2 className="mb-4 text-base font-semibold">Stammdaten</h2>
         <form action={updateWorkerProfile} className="grid gap-4 md:grid-cols-2">
           <label className="md:col-span-2">
-            <span className="gj-label">Anzeigename (intern)</span>
+            <span className="gj-label">Name (für Arbeitgeber sichtbar)</span>
             <input name="displayName" defaultValue={profile.displayName} required className="gj-input" />
           </label>
           <label>
@@ -69,6 +71,20 @@ export default async function WorkerProfilPage() {
           <label>
             <span className="gj-label">Region</span>
             <input name="region" defaultValue={profile.region} required className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Telefon (optional, in Bewerbung sichtbar)</span>
+            <input name="contactPhone" defaultValue={profile.contactPhone ?? ""} className="gj-input" />
+          </label>
+          <label>
+            <span className="gj-label">Kontakt-E-Mail (optional)</span>
+            <input
+              name="contactEmail"
+              type="email"
+              defaultValue={profile.contactEmail ?? ""}
+              className="gj-input"
+              placeholder="Falls abweichend vom Login"
+            />
           </label>
           <label>
             <span className="gj-label">Jahre Erfahrung</span>
@@ -131,7 +147,7 @@ export default async function WorkerProfilPage() {
             Profil in Arbeitgeber-Suche sichtbar
           </label>
           <label className="md:col-span-2">
-            <span className="gj-label">Kurzprofil</span>
+            <span className="gj-label">Über mich (Kurztext)</span>
             <textarea name="bio" rows={4} defaultValue={profile.bio ?? ""} className="gj-textarea" />
           </label>
           <label>
@@ -147,13 +163,38 @@ export default async function WorkerProfilPage() {
             <input name="socialWebsite" defaultValue={profile.socialWebsite ?? ""} className="gj-input" />
           </label>
           <div className="md:col-span-2 pt-2">
-            <button type="submit" className="gj-btn-primary">Speichern</button>
+            <button type="submit" className="gj-btn-primary">
+              Stammdaten speichern
+            </button>
           </div>
         </form>
       </section>
 
       <section className="gj-card p-6">
-        <h2 className="mb-1 text-base font-semibold">Lebenslauf erstellen</h2>
+        <h2 className="mb-1 text-base font-semibold">Bewerbungsprofil</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Klassische Bewerbungsinhalte für Arbeitgeber: Werdegang, Fähigkeiten, Ausbildung und mehr.
+          Der Lebenslauf als PDF/Builder bleibt separat und ist nur sichtbar, wenn Sie ihn freigeben.
+        </p>
+        <ApplicationProfileEditor
+          initialJson={profile.applicationProfileJson}
+          previewContext={{
+            bio: profile.bio,
+            contactPhone: profile.contactPhone,
+            contactEmail: profile.contactEmail,
+            socialLinkedin: profile.socialLinkedin,
+            socialXing: profile.socialXing,
+            socialWebsite: profile.socialWebsite,
+          }}
+        />
+      </section>
+
+      <section className="gj-card p-6">
+        <h2 className="mb-1 text-base font-semibold">Lebenslauf (geschützt)</h2>
+        <p className="mb-4 text-sm text-[var(--gj-muted)]">
+          Vollständiger Lebenslauf — nur sichtbar bei „Sofort teilen“ oder nach Ihrer Freigabe auf
+          Anfrage.
+        </p>
         <div className="mb-6">
           <CvShareModeSettings currentMode={profile.cvShareMode} />
         </div>
@@ -170,7 +211,7 @@ export default async function WorkerProfilPage() {
       <section className="gj-card p-6">
         <h2 className="mb-1 text-base font-semibold">Dateien</h2>
         <p className="mb-4 text-sm text-[var(--gj-muted)]">
-          Optional: eigene PDF hochladen oder Kurzvideo — für Arbeitgeber erst nach Match sichtbar.
+          Optional PDF oder Kurzvideo — unterliegen denselben Freigabe-Regeln wie der Lebenslauf.
         </p>
         <div className="grid gap-6 md:grid-cols-2">
           <CvUploadField />
@@ -191,7 +232,6 @@ export default async function WorkerProfilPage() {
           </Link>
         </p>
       </section>
-
     </div>
   );
 }

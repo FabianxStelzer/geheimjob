@@ -82,6 +82,8 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
   const socialXing = String(formData.get("socialXing") || "").trim() || null;
   const socialWebsite =
     String(formData.get("socialWebsite") || "").trim() || null;
+  const contactPhone = String(formData.get("contactPhone") || "").trim() || null;
+  const contactEmail = String(formData.get("contactEmail") || "").trim() || null;
   const profileVisible = formData.get("profileVisible") === "on";
   if (!displayName || !professionField || !region || !availability) return;
   if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
@@ -105,6 +107,8 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       socialLinkedin,
       socialXing,
       socialWebsite,
+      contactPhone,
+      contactEmail,
       profileVisible,
     },
   });

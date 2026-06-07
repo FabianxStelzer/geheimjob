@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { getEmployerEntitlements } from "@/lib/employer-billing";
-import type { PublicAnonymousProfile } from "@/lib/anonymous-profile";
+import type { PublicTalentProfile } from "@/lib/anonymous-profile";
+import { parseApplicationProfile } from "@/lib/application-profile";
 import { employerIsBlockedFromWorker } from "@/lib/platform";
-import { primaryWorkerPhotoUrl } from "@/lib/worker-profile-photos";
+import { workerProfilePhotoUrls } from "@/lib/worker-profile-photos";
 import { cvAccessUiState, workerHasCv } from "@/lib/cv-access";
 import { prisma } from "@/lib/prisma";
 
@@ -67,30 +68,39 @@ export async function GET(_req: Request, props: Params) {
       }
     : null;
 
+  const canViewCv =
+    hasCv &&
+    (profile.cvShareMode === "IMMEDIATE" || Boolean(employerMatch?.cvAccess.canView));
+
   let showCvDraft: string | null = null;
-  if (hasCv) {
-    if (profile.cvShareMode === "IMMEDIATE") {
-      showCvDraft = profile.cvDraftJson;
-    } else if (employerMatch?.cvAccess.canView) {
-      showCvDraft = profile.cvDraftJson;
-    }
+  if (canViewCv && profile.cvDraftJson) {
+    showCvDraft = profile.cvDraftJson;
   }
 
-  const out: PublicAnonymousProfile = {
+  const out: PublicTalentProfile = {
+    displayName: profile.displayName,
     professionField: profile.professionField,
     region: profile.region,
     experienceYears: profile.experienceYears,
     availability: profile.availability,
+    employmentKind: profile.employmentKind,
     salaryExpectation:
       profile.salaryPublic && profile.salaryExpectation != null
         ? profile.salaryExpectation
         : null,
     salaryPublic: profile.salaryPublic,
     bio: profile.bio,
-    photoUrl: primaryWorkerPhotoUrl(profile.profilePhotosJson, profile.photoUrl),
+    contactPhone: profile.contactPhone,
+    contactEmail: profile.contactEmail,
+    socialLinkedin: profile.socialLinkedin,
+    socialXing: profile.socialXing,
+    socialWebsite: profile.socialWebsite,
+    photoUrls: workerProfilePhotoUrls(profile.profilePhotosJson, profile.photoUrl),
+    application: parseApplicationProfile(profile.applicationProfileJson),
     cvShareMode: profile.cvShareMode,
     hasCv,
     cvDraftJson: showCvDraft,
+    cvPdfAvailable: Boolean(profile.cvPdfFilename) && canViewCv,
     employerMatch,
   };
 

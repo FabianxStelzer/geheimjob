@@ -21,7 +21,7 @@ export default async function SettingsPage() {
       select: { displayName: true },
     });
     displayName = profile?.displayName ?? "";
-    nameLabel = "Anzeigename (intern)";
+    nameLabel = "Name (für Arbeitgeber sichtbar)";
   } else if (role === "EMPLOYER") {
     const profile = await prisma.employerProfile.findUnique({
       where: { userId: session.user.id },
