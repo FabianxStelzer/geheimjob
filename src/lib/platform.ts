@@ -9,6 +9,7 @@ import {
   type EmailNotificationEvent,
 } from "@/lib/email-notification-events";
 import { sendNotificationEmail } from "@/lib/email-notifications";
+import { sendNotificationWhatsApp } from "@/lib/whatsapp-notifications";
 
 export async function notifyUser(
   userId: string,
@@ -26,6 +27,9 @@ export async function notifyUser(
   if (event) {
     await sendNotificationEmail({ userId, event, title, body, href }).catch(() => {
       /* E-Mail optional; In-App-Benachrichtigung bleibt */
+    });
+    await sendNotificationWhatsApp({ userId, event, title, body, href }).catch(() => {
+      /* WhatsApp optional; In-App-Benachrichtigung bleibt */
     });
   }
 }
@@ -71,6 +75,7 @@ export async function softDeleteUser(userId: string) {
         socialWebsite: null,
         contactPhone: null,
         contactEmail: null,
+        whatsappPhone: null,
         applicationProfileJson: null,
         cvPdfFilename: null,
         cvDraftJson: null,

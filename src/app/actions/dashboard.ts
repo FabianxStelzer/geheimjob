@@ -10,6 +10,7 @@ const slugNano = customAlphabet("23456789abcdefghjkmnpqrstuvwxyz", 12);
 import { normalizeWebsiteDomain } from "@/lib/employer-block-match";
 import { isValidEmploymentKind } from "@/lib/employment-kinds";
 import { isValidEmployeeCountRange } from "@/lib/employee-count-ranges";
+import { normalizeWhatsAppPhone } from "@/lib/phone-utils";
 
 export async function addEmployerBlock(formData: FormData): Promise<void> {
   const session = await auth();
@@ -84,6 +85,8 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
     String(formData.get("socialWebsite") || "").trim() || null;
   const contactPhone = String(formData.get("contactPhone") || "").trim() || null;
   const contactEmail = String(formData.get("contactEmail") || "").trim() || null;
+  const whatsappPhoneRaw = String(formData.get("whatsappPhone") || "").trim();
+  const whatsappPhone = normalizeWhatsAppPhone(whatsappPhoneRaw) ?? (whatsappPhoneRaw || null);
   const profileVisible = formData.get("profileVisible") === "on";
   if (!displayName || !professionField || !region || !availability) return;
   if (employmentKind && !isValidEmploymentKind(employmentKind)) return;
@@ -109,6 +112,7 @@ export async function updateWorkerProfile(formData: FormData): Promise<void> {
       socialWebsite,
       contactPhone,
       contactEmail,
+      whatsappPhone,
       profileVisible,
     },
   });

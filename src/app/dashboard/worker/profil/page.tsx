@@ -87,6 +87,23 @@ export default async function WorkerProfilPage() {
             />
           </label>
           <label>
+            <span className="gj-label">WhatsApp für Benachrichtigungen (optional)</span>
+            <input
+              name="whatsappPhone"
+              type="tel"
+              defaultValue={profile.whatsappPhone ?? ""}
+              className="gj-input"
+              placeholder="+49 170 1234567"
+            />
+          </label>
+          <p className="md:col-span-2 text-xs text-[var(--gj-muted)]">
+            WhatsApp-Aktionen unter{" "}
+            <Link href="/dashboard/einstellungen" className="text-[var(--gj-primary)] hover:underline">
+              Einstellungen
+            </Link>{" "}
+            aktivieren.
+          </p>
+          <label>
             <span className="gj-label">Jahre Erfahrung</span>
             <input name="experienceYears" type="number" defaultValue={profile.experienceYears} className="gj-input" />
           </label>

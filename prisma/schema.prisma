@@ -124,6 +124,7 @@ model WorkerProfile {
   bio               String?
   contactPhone      String?
   contactEmail      String?
+  whatsappPhone     String?
   applicationProfileJson String?
   anonymousSlug     String   @unique @default(cuid())
   videoIntroUrl     String?
@@ -259,6 +260,16 @@ model UserNotificationPrefs {
   emailNewJobMatch   Boolean  @default(true)
   emailNewTalent     Boolean  @default(true)
   emailBilling       Boolean  @default(true)
+  whatsappEnabled    Boolean  @default(false)
+  whatsappMatchRequest  Boolean  @default(true)
+  whatsappMatchAccepted Boolean  @default(true)
+  whatsappMatchRejected Boolean  @default(true)
+  whatsappCvRequest     Boolean  @default(true)
+  whatsappCvGranted     Boolean  @default(true)
+  whatsappNewMessage    Boolean  @default(true)
+  whatsappHiringStage   Boolean  @default(true)
+  whatsappNewJobMatch   Boolean  @default(true)
+  whatsappBilling       Boolean  @default(false)
   updatedAt          DateTime @updatedAt
 }
 

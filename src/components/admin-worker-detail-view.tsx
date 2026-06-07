@@ -26,6 +26,7 @@ type WorkerUser = {
     bio: string | null;
     contactPhone: string | null;
     contactEmail: string | null;
+    whatsappPhone: string | null;
     socialLinkedin: string | null;
     socialXing: string | null;
     socialWebsite: string | null;
@@ -128,6 +129,7 @@ export function AdminWorkerDetailView({
             { label: "In Suche sichtbar", value: p.profileVisible ? "Ja" : "Nein" },
             { label: "Telefon", value: p.contactPhone },
             { label: "Kontakt-E-Mail", value: p.contactEmail },
+            { label: "WhatsApp", value: p.whatsappPhone },
             { label: "LinkedIn", value: p.socialLinkedin },
             { label: "XING", value: p.socialXing },
             { label: "Website", value: p.socialWebsite },

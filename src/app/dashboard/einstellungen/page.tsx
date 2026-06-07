@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { AccountNameForm } from "@/components/account-name-form";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { NotificationEmailPrefsForm } from "@/components/notification-email-prefs-form";
+import { NotificationWhatsAppPrefsForm } from "@/components/notification-whatsapp-prefs-form";
 import { getOrCreateNotificationPrefs } from "@/lib/email-notifications";
-import { prefsToUi } from "@/lib/notification-prefs-ui";
+import { prefsToUi, whatsappPrefsToUi } from "@/lib/notification-prefs-ui";
+import { twilioWhatsAppConfigured } from "@/lib/whatsapp-notifications";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -39,10 +41,21 @@ export default async function SettingsPage() {
         : "/dashboard/admin";
 
   const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+  const whatsappConfigured = twilioWhatsAppConfigured();
   let emailPrefs = null;
+  let whatsappPrefs = null;
+  let whatsappPhone = "";
   if (role === "WORKER" || role === "EMPLOYER" || role === "ADMIN") {
     const prefs = await getOrCreateNotificationPrefs(session.user.id);
     emailPrefs = prefsToUi(prefs);
+    if (role === "WORKER") {
+      whatsappPrefs = whatsappPrefsToUi(prefs);
+      const wp = await prisma.workerProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { whatsappPhone: true },
+      });
+      whatsappPhone = wp?.whatsappPhone ?? "";
+    }
   }
 
   return (
@@ -63,6 +76,23 @@ export default async function SettingsPage() {
           <AccountNameForm defaultName={displayName} label={nameLabel} />
         ) : null}
       </section>
+
+      {role === "WORKER" && whatsappPrefs ? (
+        <section className="gj-card p-6">
+          <h2 className="text-base font-semibold">WhatsApp-Benachrichtigungen</h2>
+          <p className="mt-2 text-sm text-[var(--gj-muted)]">
+            Optional per WhatsApp informiert werden — z. B. wenn ein Unternehmen Sie kontaktiert,
+            eine Nachricht sendet oder sich der Bewerbungsstatus ändert.
+          </p>
+          <div className="mt-4">
+            <NotificationWhatsAppPrefsForm
+              prefs={whatsappPrefs}
+              whatsappPhone={whatsappPhone}
+              twilioConfigured={whatsappConfigured}
+            />
+          </div>
+        </section>
+      ) : null}
 
       {emailPrefs && (role === "WORKER" || role === "EMPLOYER" || role === "ADMIN") ? (
         <section className="gj-card p-6">

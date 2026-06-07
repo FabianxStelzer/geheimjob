@@ -59,6 +59,43 @@ export const EMAIL_NOTIFICATION_LABELS: Record<
   },
 };
 
+/** Nur für Arbeitnehmer relevante WhatsApp-Ereignisse */
+export const WORKER_WHATSAPP_EVENTS: EmailNotificationEvent[] = [
+  "matchRequest",
+  "matchAccepted",
+  "matchRejected",
+  "cvRequest",
+  "newMessage",
+  "hiringStage",
+  "newJobMatch",
+  "billing",
+];
+
+export const WHATSAPP_PREF_FIELD: Partial<
+  Record<
+    EmailNotificationEvent,
+    | "whatsappMatchRequest"
+    | "whatsappMatchAccepted"
+    | "whatsappMatchRejected"
+    | "whatsappCvRequest"
+    | "whatsappCvGranted"
+    | "whatsappNewMessage"
+    | "whatsappHiringStage"
+    | "whatsappNewJobMatch"
+    | "whatsappBilling"
+  >
+> = {
+  matchRequest: "whatsappMatchRequest",
+  matchAccepted: "whatsappMatchAccepted",
+  matchRejected: "whatsappMatchRejected",
+  cvRequest: "whatsappCvRequest",
+  cvGranted: "whatsappCvGranted",
+  newMessage: "whatsappNewMessage",
+  hiringStage: "whatsappHiringStage",
+  newJobMatch: "whatsappNewJobMatch",
+  billing: "whatsappBilling",
+};
+
 export const EMAIL_PREF_FIELD: Record<
   EmailNotificationEvent,
   | "emailMatchRequest"
