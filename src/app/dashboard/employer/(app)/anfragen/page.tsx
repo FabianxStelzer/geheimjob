@@ -9,6 +9,7 @@ import { pipelineColumnForMatch } from "@/lib/application-pipeline";
 import { splitJobPostingTags } from "@/lib/job-postings-for-worker";
 import type { PipelineDrawerPayload } from "@/components/pipeline-drawer";
 import { buildMatchCvFields } from "@/lib/match-cv-props";
+import { employerAvatarLogo } from "@/lib/employer-logo-storage";
 
 export default async function EmployerAnfragenPage() {
   const session = await auth();
@@ -47,7 +48,10 @@ export default async function EmployerAnfragenPage() {
         companyName: m.employerProfile.companyName,
         industry: m.employerProfile.industry,
         region: m.employerProfile.region,
-        logoUrl: m.employerProfile.logoUrl,
+        logoUrl: employerAvatarLogo(
+          m.employerProfile.logoSquareUrl,
+          m.employerProfile.logoUrl,
+        ),
         contactName: m.employerProfile.contactName,
       },
       worker: {

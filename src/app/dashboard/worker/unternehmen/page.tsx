@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CompanyBrowseGrid } from "@/components/company-browse-grid";
+import { employerAvatarLogo } from "@/lib/employer-logo-storage";
 
 export default async function WorkerUnternehmenPage() {
   const session = await auth();
@@ -23,6 +24,7 @@ export default async function WorkerUnternehmenPage() {
       industry: true,
       region: true,
       logoUrl: true,
+      logoSquareUrl: true,
       openPositionsNote: true,
       companyDescription: true,
       productsAndServices: true,
@@ -38,7 +40,7 @@ export default async function WorkerUnternehmenPage() {
     companyName: e.companyName,
     industry: e.industry,
     region: e.region,
-    logoUrl: e.logoUrl,
+    logoUrl: employerAvatarLogo(e.logoSquareUrl, e.logoUrl),
     openPositionsNote: e.openPositionsNote,
     descriptionPreview:
       e.productsAndServices?.slice(0, 140) ??

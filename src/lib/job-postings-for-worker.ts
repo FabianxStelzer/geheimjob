@@ -1,3 +1,4 @@
+import { employerAvatarLogo } from "@/lib/employer-logo-storage";
 import { prisma } from "@/lib/prisma";
 import { employerIsBlockedFromWorker } from "@/lib/platform";
 
@@ -49,6 +50,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
           region: true,
           industry: true,
           logoUrl: true,
+          logoSquareUrl: true,
           publicSlug: true,
           userId: true,
           contactName: true,
@@ -94,7 +96,7 @@ export async function listPublishedJobsForWorkerProfile(workerProfileId: string)
         companyName: e.companyName,
         region: e.region,
         industry: e.industry,
-        logoUrl: e.logoUrl,
+        logoUrl: employerAvatarLogo(e.logoSquareUrl, e.logoUrl),
         employerProfileId: e.id,
         publicSlug: e.publicSlug,
         contactName: e.contactName,

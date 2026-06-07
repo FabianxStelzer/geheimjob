@@ -147,6 +147,7 @@ model EmployerProfile {
   publicSlug        String   @unique @default(cuid())
   companyName       String
   logoUrl           String?
+  logoSquareUrl     String?
   industry          String
   region            String
   companyDescription String?

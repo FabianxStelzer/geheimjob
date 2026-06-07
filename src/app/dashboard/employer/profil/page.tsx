@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateEmployerProfile } from "@/app/actions/dashboard";
+import { EmployerLogoUpload } from "@/components/employer-logo-upload";
 import { EMPLOYEE_COUNT_RANGE_OPTIONS } from "@/lib/employee-count-ranges";
 
 export default async function EmployerProfilPage() {
@@ -21,17 +22,13 @@ export default async function EmployerProfilPage() {
           Diese Angaben sehen Arbeitnehmer unter „Unternehmen“ — je vollständiger, desto überzeugender
           Ihr Auftritt.
         </p>
-        <form action={updateEmployerProfile} className="grid gap-4 md:grid-cols-2">
-          <label className="md:col-span-2">
-            <span className="gj-label">Logo (Bild-URL)</span>
-            <input
-              name="logoUrl"
-              type="url"
-              defaultValue={profile.logoUrl ?? ""}
-              className="gj-input"
-              placeholder="https://…"
-            />
-          </label>
+        <EmployerLogoUpload
+          logoUrl={profile.logoUrl}
+          logoSquareUrl={profile.logoSquareUrl}
+          companyName={profile.companyName}
+        />
+
+        <form action={updateEmployerProfile} className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="md:col-span-2">
             <span className="gj-label">Firmenname</span>
             <input name="companyName" defaultValue={profile.companyName} required className="gj-input" />

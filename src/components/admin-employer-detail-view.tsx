@@ -4,6 +4,7 @@ import { AdminDataSection, AdminFieldGrid } from "@/components/admin-data-sectio
 import { AdminEmployerForm } from "@/components/admin-employer-form";
 import { companyAgeYears } from "@/lib/employee-count-ranges";
 import { planByCode } from "@/lib/billing-catalog";
+import { employerAvatarLogo } from "@/lib/employer-logo-storage";
 
 type EmployerUser = {
   id: string;
@@ -16,6 +17,7 @@ type EmployerUser = {
     industry: string;
     region: string;
     logoUrl: string | null;
+    logoSquareUrl: string | null;
     productsAndServices: string | null;
     companyDescription: string | null;
     companyBenefits: string | null;
@@ -78,14 +80,15 @@ export async function AdminEmployerDetailView({
   const sub = user.subscription;
   const planName = (await planByCode((sub?.plan ?? "NONE") as EmployerPlan))?.name ?? "—";
   const ageYears = companyAgeYears(p.foundedYear);
+  const avatarLogo = employerAvatarLogo(p.logoSquareUrl, p.logoUrl);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex gap-4">
-          {p.logoUrl ? (
+          {avatarLogo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.logoUrl} alt="" className="h-16 w-16 rounded-xl object-cover ring-2 ring-white shadow" />
+            <img src={avatarLogo} alt="" className="h-16 w-16 rounded-xl object-cover ring-2 ring-white shadow" />
           ) : null}
           <div>
             <h1 className="text-xl font-bold text-[var(--gj-text)]">{p.companyName}</h1>

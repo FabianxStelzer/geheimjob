@@ -95,7 +95,7 @@ export function CompanyProfileView({
               <img
                 src={company.logoUrl}
                 alt=""
-                className="h-20 w-20 rounded-2xl object-cover ring-4 ring-white shadow"
+                className="max-h-24 max-w-[220px] rounded-2xl object-contain ring-4 ring-white shadow"
               />
             ) : (
               <BrandAvatar className="h-20 w-20 rounded-2xl text-xl">{initial}</BrandAvatar>

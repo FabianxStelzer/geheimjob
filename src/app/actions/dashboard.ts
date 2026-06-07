@@ -161,7 +161,6 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
   const website = String(formData.get("website") || "").trim() || null;
   const openPositionsNote =
     String(formData.get("openPositionsNote") || "").trim() || null;
-  const logoUrl = String(formData.get("logoUrl") || "").trim() || null;
   const companyDescription =
     String(formData.get("companyDescription") || "").trim() || null;
   const productsAndServices =
@@ -193,7 +192,6 @@ export async function updateEmployerProfile(formData: FormData): Promise<void> {
       contactPhone,
       website,
       openPositionsNote,
-      logoUrl,
       companyDescription,
       productsAndServices,
       companyBenefits,

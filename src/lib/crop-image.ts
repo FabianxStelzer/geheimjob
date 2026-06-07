@@ -71,6 +71,57 @@ export async function getCroppedImageBlob(
   });
 }
 
+/** Freiform-Zuschnitt — max. Breite in px, Seitenverhältnis bleibt erhalten. */
+export async function getCroppedRectImageBlob(
+  imageSrc: string,
+  pixelCrop: PixelCrop,
+  maxWidth = 1200,
+  rotation = 0,
+): Promise<Blob> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas nicht verfügbar.");
+
+  const rotRad = (rotation * Math.PI) / 180;
+  const { width: boxW, height: boxH } = rotateSize(image.width, image.height, rotation);
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.translate(-pixelCrop.x, -pixelCrop.y);
+  ctx.translate(boxW / 2, boxH / 2);
+  ctx.rotate(rotRad);
+  ctx.translate(-image.width / 2, -image.height / 2);
+  ctx.drawImage(image, 0, 0);
+
+  const scale = pixelCrop.width > maxWidth ? maxWidth / pixelCrop.width : 1;
+  const outW = Math.round(pixelCrop.width * scale);
+  const outH = Math.round(pixelCrop.height * scale);
+
+  const out = document.createElement("canvas");
+  const outCtx = out.getContext("2d");
+  if (!outCtx) throw new Error("Canvas nicht verfügbar.");
+
+  out.width = outW;
+  out.height = outH;
+  outCtx.drawImage(canvas, 0, 0, pixelCrop.width, pixelCrop.height, 0, 0, outW, outH);
+
+  return new Promise((resolve, reject) => {
+    out.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Export fehlgeschlagen."));
+          return;
+        }
+        resolve(blob);
+      },
+      "image/jpeg",
+      0.9,
+    );
+  });
+}
+
 export function readFileAsObjectUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
